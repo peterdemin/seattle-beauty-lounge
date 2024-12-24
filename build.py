@@ -18,6 +18,8 @@ class Builder:
         )
 
     def build_public(self) -> None:
+        if not os.path.exists(self.PUBLIC_DIR):
+            os.makedirs(self.PUBLIC_DIR)
         with open(f"{self.PUBLIC_DIR}/index.html", "wt", encoding="utf-8") as fobj:
             fobj.write(self.render_index())
         for image in self.find_images().values():
