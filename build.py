@@ -1,6 +1,9 @@
 import glob
-import shutil
 import os
+import shutil
+import subprocess
+import sys
+import time
 from typing import Iterable
 
 import jinja2
@@ -23,10 +26,22 @@ class Builder:
         with open(f"{self.PUBLIC_DIR}/index.html", "wt", encoding="utf-8") as fobj:
             fobj.write(self.render_index())
         for image in self.find_images().values():
-            target_dir = os.path.dirname(image['public'])
+            target_dir = os.path.dirname(image["public"])
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
-            shutil.copy(image['source'], image['public'])
+            shutil.copy(image["source"], image["public"])
+        subprocess.run(
+            [
+                "npx",
+                "tailwindcss",
+                "-i",
+                "./source/styles/input.css",
+                "-o",
+                "./public/style.css",
+            ],
+            capture_output=True,
+            check=True,
+        )
 
     def render_index(self) -> str:
         return self.env.get_template("01-index.html").render(
@@ -55,7 +70,9 @@ class Builder:
         return {
             self.get_file_index(path): {
                 "source": path,
-                "public": os.path.join(self.PUBLIC_DIR, os.path.relpath(path, self.SOURCE_DIR)),
+                "public": os.path.join(
+                    self.PUBLIC_DIR, os.path.relpath(path, self.SOURCE_DIR)
+                ),
                 "url": os.path.relpath(path, self.SOURCE_DIR),
             }
             for path in glob.glob("source/images/*")
@@ -66,4 +83,13 @@ class Builder:
 
 
 if __name__ == "__main__":
-    Builder().build_public()
+    builder = Builder()
+    if len(sys.argv) > 1 and sys.argv[1] == "watch":
+        while True:
+            try:
+                builder.build_public()
+            except jinja2.exceptions.TemplateNotFound:
+                continue
+            time.sleep(0.1)
+    else:
+        builder.build_public()

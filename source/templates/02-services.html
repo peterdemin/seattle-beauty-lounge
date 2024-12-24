@@ -3,10 +3,7 @@
     <h2 class="w-full my-2 text-5xl font-bold leading-tight text-center text-gray-300">
       Services
     </h2>
-    <div class="w-full mb-4">
-      <div class="h-1 mx-auto gradient w-64 opacity-25 my-0 py-0 rounded-t"></div>
-    </div>
-    <div class="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+    <div class="grid mx-auto xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
       {% for service in services %}
         {% include "03-service.html" %}
       {% endfor %}

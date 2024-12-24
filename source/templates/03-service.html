@@ -1,18 +1,16 @@
-<div class="flex-1 rounded-t rounded-b-none overflow-hidden shadow">
-  <a href="#" class="no-underline hover:no-underline">
+<div class="max-w-md bg-gray-900 md:rounded-t-xl overflow-hidden">
     {% if service.image %}
-    <div class="w-full h-full aspect-square" style="background-image: url('{{ service.image.url }}');">
-        asdfjlkasdf;jkldfs
-    </div>
+    <img class="w-full max-h-96 aspect-video object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
     {% endif %}
-    <h2 class="w-full text-white text-xl">
-      {{ service.title }}
-    </h2>
-    <p class="text-gray-800 text-base mb-5">
-      {{ service.description }}
-    </p>
-    <p class="text-gray-800 text-base mb-5">
-      {{ service.price }}
-    </p>
-  </a>
+    <div class="p-4">
+      <h2 class="w-full text-amber-300 text-2xl">
+        {{ service.title }}
+      </h2>
+      <p class="text-gray-300 text-base mb-5">
+        {{ service.description }}
+      </p>
+      <p class="text-gray-200 text-base mb-5">
+        {{ service.price }}
+      </p>
+    </div>
 </div>
