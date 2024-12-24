@@ -1,0 +1,18 @@
+<div class="flex-1 rounded-t rounded-b-none overflow-hidden shadow">
+  <a href="#" class="no-underline hover:no-underline">
+    {% if service.image %}
+    <div class="w-full h-full aspect-square" style="background-image: url('{{ service.image.url }}');">
+        asdfjlkasdf;jkldfs
+    </div>
+    {% endif %}
+    <h2 class="w-full text-white text-xl">
+      {{ service.title }}
+    </h2>
+    <p class="text-gray-800 text-base mb-5">
+      {{ service.description }}
+    </p>
+    <p class="text-gray-800 text-base mb-5">
+      {{ service.price }}
+    </p>
+  </a>
+</div>
