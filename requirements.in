@@ -4,3 +4,4 @@ flake8
 isort
 black
 ipdb
+pip-tools
