@@ -27,7 +27,7 @@ export NVM_DIR="$HOME/.nvm"
 
 nvm install "${NODE_VERSION}"
 nvm use "${NODE_VERSION}"
-npm install -D tailwindcss
+npm install
 
 # pre-commit install
 # pre-commit autoupdate

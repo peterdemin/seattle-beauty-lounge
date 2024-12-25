@@ -12,7 +12,9 @@ import jinja2
 class Builder:
     SOURCE_DIR = "source"
     PUBLIC_DIR = "public"
+    PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
     TEMPLATES_DIR = f"{SOURCE_DIR}/templates"
+    SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
 
     def __init__(self):
         self.env = jinja2.Environment(
@@ -21,8 +23,16 @@ class Builder:
         )
 
     def build_public(self) -> None:
-        if not os.path.exists(self.PUBLIC_DIR):
-            os.makedirs(self.PUBLIC_DIR)
+        if not os.path.exists(self.PUBLIC_ASSETS_DIR):
+            os.makedirs(self.PUBLIC_ASSETS_DIR)
+        subprocess.run(
+            ["npm", "run", "build"],
+            capture_output=True,
+            check=True,
+        )
+        for path in glob.glob(f'{self.SCRIPTS_DIR}/*.js'):
+            shutil.copy(path, f'{self.PUBLIC_ASSETS_DIR}/book.js')
+            break  # Just one bundle
         with open(f"{self.PUBLIC_DIR}/index.html", "wt", encoding="utf-8") as fobj:
             fobj.write(self.render_index())
         for image in self.find_images().values():
@@ -37,7 +47,7 @@ class Builder:
                 "-i",
                 "./source/styles/input.css",
                 "-o",
-                "./public/style.css",
+                "./public/assets/style.css",
             ],
             capture_output=True,
             check=True,

@@ -1,6 +1,6 @@
-<div class="max-w-md bg-gray-900 md:rounded-t-xl overflow-hidden">
+<div class="sm:max-w-md bg-stone-950 sm:rounded-t-xl overflow-hidden">
     {% if service.image %}
-    <img class="w-full max-h-96 aspect-video object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
+    <img class="w-full max-h-96 aspect-square object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
     {% endif %}
     <div class="p-4">
       <h2 class="w-full text-amber-300 text-2xl">
