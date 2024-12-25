@@ -11,8 +11,8 @@
     <meta name="keywords" content="" />
     <meta name="author" content="" />
     <link rel="stylesheet" href="assets/style.css"/>
-    <script type="module" crossorigin src="./assets/book.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" />
+    <style>{{ style|safe }}</style>
   </head>
   <body class="bg-hero bg-no-repeat bg-cover bg-center bg-fixed" style="background-image: url(./images/00-hero.webp)">
     <!--Nav-->
@@ -80,7 +80,16 @@
         </g>
       </svg>
     </div>
+    <section class="bg-black text-white py-6">
+      <h2 class="w-full my-2 text-5xl font-bold leading-tight text-center text-amber-300">
+        Book Now
+      </h2>
+      <div class="flex-row pt-4 pb-12">
+         <div class="max-w-md mx-auto" id="book"></div>
+      </div>
+    </section>
     {% include "02-services.html" %}
+    {% include "04-hours.html" %}
     <!-- Change the colour #f8fafc to match the previous section colour -->
     <svg class="wave-top" viewBox="0 0 1439 147" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -191,6 +200,7 @@
       </div>
       <a href="https://www.freepik.com/free-photos-vectors/background" class="text-gray-500">Background vector created by freepik - www.freepik.com</a>
     </footer>
+    <script>{{ script|safe }}</script>
     <script>
       /*Toggle dropdown list*/
       /*https://gist.github.com/slavapas/593e8e50cf4cc16ac972afcbad4f70c8*/

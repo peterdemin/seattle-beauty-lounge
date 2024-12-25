@@ -11,10 +11,11 @@ import jinja2
 
 class Builder:
     SOURCE_DIR = "source"
-    PUBLIC_DIR = "public"
-    PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
     TEMPLATES_DIR = f"{SOURCE_DIR}/templates"
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
+    PAGES_DIR = f"{SOURCE_DIR}/pages"
+    PUBLIC_DIR = "public"
+    PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
 
     def __init__(self):
         self.env = jinja2.Environment(
@@ -30,11 +31,25 @@ class Builder:
             capture_output=True,
             check=True,
         )
-        for path in glob.glob(f'{self.SCRIPTS_DIR}/*.js'):
-            shutil.copy(path, f'{self.PUBLIC_ASSETS_DIR}/book.js')
+        script = ""
+        for path in glob.glob(f"{self.SCRIPTS_DIR}/*.js"):
+            with open(path, "rt", encoding="utf-8") as fobj:
+                script = fobj.read()
             break  # Just one bundle
+        style = ""
+        for path in glob.glob(f"{self.SCRIPTS_DIR}/*.css"):
+            with open(path, "rt", encoding="utf-8") as fobj:
+                style = fobj.read()
+            break  # Just one bundle
+        hours = list(self.iter_hours())
         with open(f"{self.PUBLIC_DIR}/index.html", "wt", encoding="utf-8") as fobj:
-            fobj.write(self.render_index())
+            fobj.write(
+                self.render_index(
+                    script=script,
+                    style=style,
+                    hours=hours,
+                )
+            )
         for image in self.find_images().values():
             target_dir = os.path.dirname(image["public"])
             if not os.path.exists(target_dir):
@@ -53,9 +68,9 @@ class Builder:
             check=True,
         )
 
-    def render_index(self) -> str:
+    def render_index(self, **kwargs) -> str:
         return self.env.get_template("01-index.html").render(
-            services=list(self.iter_services())
+            services=list(self.iter_services()), **kwargs
         )
 
     def render_services(self) -> str:
@@ -63,9 +78,15 @@ class Builder:
             services=list(self.iter_services())
         )
 
+    def iter_hours(self) -> Iterable[dict]:
+        with open(f"{self.PAGES_DIR}/51-hours.md", "rt", encoding="utf-8") as fobj:
+            for line in fobj:
+                day, hours = line.strip().split(None, 1)
+                yield {"day": day, "hours": hours}
+
     def iter_services(self) -> Iterable[dict]:
         images = self.find_images()
-        for path in sorted(glob.glob("source/services/*.md")):
+        for path in sorted(glob.glob(f"{self.SOURCE_DIR}/services/*.md")):
             idx = self.get_file_index(path)
             with open(path, "rt", encoding="utf-8") as fobj:
                 lines = [line.strip() for line in fobj]
