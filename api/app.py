@@ -3,12 +3,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
+from api.tasks.emails import EmailTask
 
 
 def create_app() -> FastAPI:
-    db = Database()
+    settings = Settings()
+    db = Database(database_url=settings.database_url)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -32,5 +35,5 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
-    AppointmentsAPI(db).register(app)
+    AppointmentsAPI(db, email_task=EmailTask(settings)).register(app)
     return app

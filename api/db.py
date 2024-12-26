@@ -7,9 +7,7 @@ import api.models as _  # noqa  Register models
 
 
 class Database:
-    DEFAULT_DATABASE_URL = "sqlite:///api/test.db"
-
-    def __init__(self, database_url: str = DEFAULT_DATABASE_URL) -> None:
+    def __init__(self, database_url: str) -> None:
         self._engine = self._connect_db(database_url)
 
     @staticmethod

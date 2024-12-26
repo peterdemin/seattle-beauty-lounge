@@ -2,12 +2,13 @@ from fastapi import BackgroundTasks, FastAPI
 
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
-from api.tasks.emails import send_confirmation_email
+from api.tasks.emails import EmailTask
 
 
 class AppointmentsAPI:
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database, email_task: EmailTask) -> None:
         self._db = db
+        self._email_task = email_task
 
     def create_appointment(
         self,
@@ -24,7 +25,10 @@ class AppointmentsAPI:
             session.add(appointment)
             session.commit()
             session.refresh(appointment)
-        background_tasks.add_task(send_confirmation_email, appointment)
+        background_tasks.add_task(
+            self._email_task.send_confirmation_email,
+            appointment,
+        )
         return appointment
 
     def register(self, app_: FastAPI, prefix: str = "") -> None:
