@@ -174,3 +174,4 @@ cython_debug/
 /public/
 /node_modules/
 /source/scripts/dist/
+api/test.db
