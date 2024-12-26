@@ -1,7 +1,7 @@
 # Cancellation Policy
 
 At Seattle Beauty Lounge, we value your time and ours.
-To ensure we can provide the best service to all our clients, we kindly request adherence to the following cancellation policy:
+To ensure we can provide the best service to all our clients, we kindly request adherence to the following cancellation policy.
 
 ## Notice Period
 
@@ -17,7 +17,7 @@ Clients who miss their appointment without notifying us will be charged 100% of 
 
 ## How to Cancel
 
-To cancel or reschedule your appointment, please call us: **[tel:+13016588708](+1 (301) 658-87-08)**
+To cancel or reschedule your appointment, call **[+1 (301) 658-8708](tel:+13016588708)**
 
 ## Emergencies
 

@@ -203,6 +203,8 @@
   flex-wrap: wrap;
   gap: var(--rdp-months-gap);
   max-width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .rdp-month_grid {

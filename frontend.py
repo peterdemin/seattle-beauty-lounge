@@ -7,6 +7,7 @@ import time
 from typing import Iterable
 
 import jinja2
+from markdown_it import MarkdownIt
 
 
 class Builder:
@@ -22,6 +23,7 @@ class Builder:
             loader=jinja2.FileSystemLoader(self.TEMPLATES_DIR),
             autoescape=jinja2.select_autoescape(),
         )
+        self.markdown = MarkdownIt("commonmark", {"breaks": True, "html": True})
 
     def build_public(self) -> None:
         if not os.path.exists(self.PUBLIC_ASSETS_DIR):
@@ -42,12 +44,14 @@ class Builder:
                 style = fobj.read()
             break  # Just one bundle
         hours = list(self.iter_hours())
+        cancellation_policy = self.load_cancellation_policy()
         with open(f"{self.PUBLIC_DIR}/index.html", "wt", encoding="utf-8") as fobj:
             fobj.write(
                 self.render_index(
                     script=script,
                     style=style,
                     hours=hours,
+                    cancellation_policy=cancellation_policy,
                 )
             )
         for image in self.find_images().values():
@@ -77,6 +81,12 @@ class Builder:
         return self.env.get_template("02-services.html").render(
             services=list(self.iter_services())
         )
+
+    def load_cancellation_policy(self) -> str:
+        with open(
+            f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8"
+        ) as fobj:
+            return self.markdown.render(fobj.read())
 
     def iter_hours(self) -> Iterable[dict]:
         with open(f"{self.PAGES_DIR}/51-hours.md", "rt", encoding="utf-8") as fobj:

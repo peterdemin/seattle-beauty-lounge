@@ -6,17 +6,16 @@ import { useForm } from "react-hook-form";
 
 
 function BookingWizard() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(2);
 
   // Wizard State
   const [services, setServices] = useState([]);
-  const [selectedService, setSelectedService] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [clientName, setClientName] = useState("");
-  const [clientPhone, setClientPhone] = useState("");
-  const [clientEmail, setClientEmail] = useState("");
-  const [paymentInfo, setPaymentInfo] = useState(null);
+  const [selectedService, setSelectedService] = useState("Microdermaabrasion");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState("07:30");
+  const [clientName, setClientName] = useState("Peter Demin");
+  const [clientPhone, setClientPhone] = useState("2403421438");
+  const [clientEmail, setClientEmail] = useState("peterdemin@gmail.com");
 
   // Fetch services on mount
   useEffect(() => {
@@ -33,6 +32,16 @@ function BookingWizard() {
       setServices(data);
     }
     fetchServices();
+    Array.from(document.getElementsByClassName("book-btn")).forEach((element) => {
+      element.addEventListener("click", () => {
+        setSelectedService(element.dataset.serviceId);
+        setCurrentStep(2);
+        document.getElementById("book-modal").classList.remove("hidden");
+      });
+    });
+    document.getElementById("book-close").addEventListener("click", () => {
+      document.getElementById("book-modal").classList.add("hidden");
+    });
   }, []);
 
   async function handleSubmitAppointment() {
@@ -43,7 +52,6 @@ function BookingWizard() {
       clientName,
       clientPhone,
       clientEmail,
-      // paymentInfo, // If applicable
     };
 
     const res = await fetch("/api/appointments", {
@@ -112,7 +120,6 @@ function BookingWizard() {
           clientName={clientName}
           clientPhone={clientPhone}
           clientEmail={clientEmail}
-          // paymentInfo={paymentInfo}
           onConfirm={handleSubmitAppointment}
         />
       )}
@@ -148,6 +155,16 @@ function SelectServiceStep({ services, onServiceSelect }) {
 function PickDateStep({ onDateSelect }) {
   const [selectedDay, setSelectedDay] = useState(null);
 
+  function addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  const today = new Date();
+  const first_day = addDays(today, 1);   // next day
+  const last_day = addDays(today, 7*6);  // 6 weeks
+
   function handleNext() {
     if (selectedDay) {
       onDateSelect(selectedDay);
@@ -156,24 +173,41 @@ function PickDateStep({ onDateSelect }) {
 
   return (
     <div>
-      <h2>Pick a Date</h2>
+      <h2 className="text-2xl text-center font-thin text-amber-300">Pick a Date</h2>
       <DayPicker
         mode="single"
         selected={selectedDay}
         onSelect={setSelectedDay}
         // You can add optional props here, like `disabled` or `fromDate/toDate`
         // to limit the selectable date range.
+        modifiers={{
+          disabled: [
+            { dayOfWeek: [0] },
+            { before: first_day },
+            { after: last_day },
+            new Date(2024, 11, 30),
+            new Date(2024, 11, 31),
+            new Date(2025, 0, 1),
+          ]
+        }}
       />
-
-      <button onClick={handleNext} disabled={!selectedDay}>
-        Next
-      </button>
+      <div className="flex place-content-end">
+        <button
+            className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300
+                   disabled:invisible
+                   hover:bg-amber-300 hover:text-black"
+            onClick={handleNext}
+            disabled={!selectedDay}>
+          Next
+        </button>
+      </div>
     </div>
   );
 }
 
 
 function PickTimeslotStep({ serviceId, date, onTimeslotSelect }) {
+  const [selected, setSelected] = useState(null);
   const [timeslots, setTimeslots] = useState([]);
 
   useEffect(() => {
@@ -181,30 +215,49 @@ function PickTimeslotStep({ serviceId, date, onTimeslotSelect }) {
       // const response = await fetch(`/api/services/${serviceId}/availability?date=${date}`);
       // const data = await response.json();
       const data = [
-          {time: "07:40", isAvailable: true},
-          {time: "12:00", isAvailable: true},
-          {time: "17:59", isAvailable: true},
+          "07:00", "07:15", "07:30", "07:45",
+          "08:00", "08:15", "08:30", "08:45",
+          "09:00", "09:15", "09:30", "09:45",
+          "10:00", "10:15", "10:30", "10:45",
+          "11:00", "11:15", "11:30", "11:45",
+          "12:00", "12:15", "12:30", "12:45",
       ];
       setTimeslots(data);
     }
     fetchTimes();
   }, [serviceId, date]);
 
+  const slotClass = (slot) => {
+      const base = "cursor-pointer p-1 rounded-full border-2";
+      if (selected == slot) {
+          return base + " border-amber-300 text-amber-300"
+      }
+      return base + " border-black text-white";
+  }
+
   return (
     <div>
-      <h2>Pick a Time</h2>
-      <ul>
+      <h2 className="text-2xl text-center pb-4 font-thin text-amber-300">Pick a Time</h2>
+      <div className="grid grid-cols-4 gap-4">
         {timeslots.map((slot) => (
-          <li key={slot.time}>
-            {slot.time}{" "}
-            {slot.isAvailable ? (
-              <button onClick={() => onTimeslotSelect(slot.time)}>Select</button>
-            ) : (
-              <span>Not Available</span>
-            )}
-          </li>
+          <button
+            onClick={()=>{setSelected(slot)}}
+            className={slotClass(slot)}
+            >
+            {slot}
+          </button>
         ))}
-      </ul>
+      </div>
+      <div className="flex place-content-end">
+        <button
+            className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300
+                   disabled:invisible
+                   hover:bg-amber-300 hover:text-black"
+            onClick={()=>{onTimeslotSelect(selected)}}
+            disabled={!selected}>
+          Next
+        </button>
+      </div>
     </div>
   );
 }
@@ -232,15 +285,18 @@ function ClientInfoStep({
     onNextStep(data.name, data.phone, data.email);
   };
 
+  const labelClass = "block mt-2 font-thin text-amber-300";
+  const inputClass = "block bg-stone-700 border border-amber-600 text-white text-sm rounded-lg focus:ring-amber-300 focus:border-amber-500 w-full p-2.5";
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <h2>Enter Your Information</h2>
+      <h2 className="text-2xl text-center pb-4 font-thin text-amber-300">Enter Your Information</h2>
 
-      {/* Name */}
       <div>
-        <label htmlFor="name">Name</label>
+        <label htmlFor="name" className={labelClass}>FULL NAME</label>
         <input
           id="name"
+          className={inputClass}
           {...register("name", { required: "Name is required" })}
           placeholder="Your Full Name"
         />
@@ -249,11 +305,11 @@ function ClientInfoStep({
         )}
       </div>
 
-      {/* Phone */}
       <div>
-        <label htmlFor="phone">Phone</label>
+        <label htmlFor="phone" className={labelClass}>PHONE NUMBER</label>
         <input
           id="phone"
+          className={inputClass}
           {...register("phone", {
             required: "Phone number is required",
             pattern: {
@@ -268,11 +324,11 @@ function ClientInfoStep({
         )}
       </div>
 
-      {/* Email */}
       <div>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email" className={labelClass}>E-MAIL</label>
         <input
           id="email"
+          className={inputClass}
           {...register("email", {
             required: "Email is required",
             pattern: {
@@ -287,7 +343,14 @@ function ClientInfoStep({
         )}
       </div>
 
-      <button type="submit">Next</button>
+      <div className="mt-4 flex place-content-end">
+        <button
+          className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300
+                 hover:bg-amber-300 hover:text-black"
+          type="submit">
+            Next
+        </button>
+      </div>
     </form>
   );
 }
@@ -299,38 +362,37 @@ function ReviewAndConfirmStep({
   clientName,
   clientPhone,
   clientEmail,
-  // paymentInfo,
   onConfirm,
 }) {
+  function formatDate(date) {
+    // Get full weekday name, e.g. "Wednesday"
+    const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' });
+    // Get full month name, e.g. "January"
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    // Get numeric day, e.g. 3
+    const day = date.getDate();
+
+    return `${dayOfWeek}, ${month} ${day}`;
+  }
   return (
     <div>
-      <h2>Review and Confirm</h2>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Service ID:</strong> {serviceId}
+      <h2 className="text-2xl text-center font-thin text-amber-300 mb-4">Review and Confirm</h2>
+      <p className="text-lg font-thin [&>span]:font-medium [&>span]:text-amber-300">
+        I, <span>{clientName}</span>, want to book <span>{serviceId}</span> on <span>{formatDate(date)}</span> at <span>{time}</span>.
+      </p>
+      <p className="text-lg font-thin [&>span]:font-medium [&>span]:text-amber-300">
+        You can contact me by phone: <span>{clientPhone}</span>
+      </p>
+      <p className="text-lg font-thin [&>span]:font-medium [&>span]:text-amber-300">
+        Or by email: <span>{clientEmail}</span>
+      </p>
+      <div className="flex place-content-center my-4">
+        <button
+          className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300 hover:bg-amber-300 hover:text-black"
+          onClick={onConfirm}>
+            Confirm Booking
+        </button>
       </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Date:</strong> {date.toString()}
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Time:</strong> {time}
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Name:</strong> {clientName}
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Phone:</strong> {clientPhone}
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Email:</strong> {clientEmail}
-      </div>
-
-      <button onClick={onConfirm}>Confirm Booking</button>
     </div>
   );
 }
