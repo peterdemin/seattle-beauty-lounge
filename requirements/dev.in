@@ -1,3 +1,4 @@
+-r ../api/requirements.in
 -r frontend.in
 
 pyright
@@ -6,3 +7,4 @@ isort
 black
 ipdb
 pip-compile-multi
+pytest
