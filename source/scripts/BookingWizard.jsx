@@ -47,14 +47,14 @@ function BookingWizard() {
   async function handleSubmitAppointment() {
     const payload = {
       serviceId: selectedService,
-      date: selectedDate,
+      date: selectedDate.toISOString().substring(0,10),
       time: selectedTime,
       clientName,
       clientPhone,
       clientEmail,
     };
 
-    const res = await fetch("/api/appointments", {
+    const res = await fetch("http://localhost:8000/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -125,7 +125,10 @@ function BookingWizard() {
       )}
       {currentStep === "confirmation" && (
         <div>
-          <h2>Thank you! Your appointment is confirmed.</h2>
+          <h2 className="text-2xl text-center font-thin text-amber-300">Thank you, {clientName}! Your appointment is confirmed.</h2>
+          <p>You will receive an email confirmation at {clientEmail} with the booking details.</p>
+          <p>We'll send a reminder the day before service to {clientPhone}</p>
+          <p>To cancel or reschedule your appointment,<br/>call <a class="font-medium text-amber-300 underline" href="tel:+13016588708">+1 (301) 658-8708</a></p>
         </div>
       )}
     </div>
