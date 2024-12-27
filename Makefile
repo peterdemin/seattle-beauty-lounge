@@ -1,6 +1,10 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 
+.PHONY: clean
+clean:
+	rm -rf public .build dist source/scripts/dist
+
 .PHONY: fe
 fe:
 	python3 frontend.py
