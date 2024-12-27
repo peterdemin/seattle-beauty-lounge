@@ -4,17 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>
-      Seattle Beauty Lounge
-    </title>
+    <title>Seattle Beauty Lounge</title>
     <meta name="description" content="Seattle Beauty Lounge" />
     <meta name="keywords" content="" />
     <meta name="author" content="" />
-    <link rel="stylesheet" href="assets/style.css"/>
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" />
-    <style>{{ style|safe }}</style>
+    {% if style_name %}
+      <link rel="stylesheet" href="assets/{{ style_name }}" media="none" onload="media='all'">
+      <noscript><link rel="stylesheet" href="assets/{{ style_name }}"></noscript>
+    {% endif %}
+    {% if style %}
+      <style>{{ style|safe }}</style>
+    {% endif %}
   </head>
-  <body class="bg-hero bg-no-repeat bg-cover bg-center bg-fixed" style="background-image: url(./images/00-hero.webp)">
+  <body class="bg-hero bg-black bg-no-repeat bg-cover bg-center bg-fixed" style="background-image: url(./images/00-hero.webp)">
     <div class="lg:py-48 py-24 px-3 text-center">
       <h1 class="mx-auto w-fit p-4 my-8 rounded-xl text-5xl font-bold leading-tight text-amber-300 bg-opacity-50 bg-black">
         Seattle Beauty Lounge
@@ -71,6 +73,11 @@
     </svg>
     <section class="h-full py-40">
     </section>
-    <script>{{ script|safe }}</script>
+    {% if script %}
+      <script>{{ script|safe }}</script>
+    {% endif %}
+    {% if script_name %}
+      <script type="module" crossorigin src="assets/{{ script_name }}"></script>
+    {% endif %}
   </body>
 </html>

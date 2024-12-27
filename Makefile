@@ -1,8 +1,8 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 
-.PHONY: frontend
-frontend:
+.PHONY: fe
+fe:
 	python3 frontend.py
 
 .PHONY: watch
@@ -10,11 +10,11 @@ watch:
 	python3 frontend.py watch
 
 .PHONY: dev
-dev: frontend
+dev: fe
 	fastapi dev api/main.py
 
 .PHONY: install
-install: counter_install
+install:
 	pip install -r requirements/dev.txt
 
 .PHONY: gitconfig

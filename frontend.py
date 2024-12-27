@@ -13,9 +13,12 @@ from PIL import Image
 
 class Builder:
     SOURCE_DIR = "source"
+    STYLES_DIR = f"{SOURCE_DIR}/styles"
     TEMPLATES_DIR = f"{SOURCE_DIR}/templates"
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
+    BUILD_DIR = ".build"
+    BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_DIR = "public"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
     SERVICE_IMAGE_MAX_SIZE = (500, 500)
@@ -33,45 +36,69 @@ class Builder:
     def build_public(self) -> None:
         if not os.path.exists(self.PUBLIC_ASSETS_DIR):
             os.makedirs(self.PUBLIC_ASSETS_DIR)
+        if not os.path.exists(self.BUILD_ASSETS_DIR):
+            os.makedirs(self.BUILD_ASSETS_DIR)
+        # Build Javascript for BookingWizard.jsx:
         subprocess.run(
             ["npm", "run", "build"],
             capture_output=True,
             check=True,
         )
-        script = ""
+        script_name = ""
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.js"):
-            with open(path, "rt", encoding="utf-8") as fobj:
-                script = fobj.read()
+            shutil.copy(path, f'{self.BUILD_ASSETS_DIR}/')
+            shutil.copy(path, f'{self.PUBLIC_ASSETS_DIR}/')
+            script_name = os.path.basename(path)
             break  # Just one bundle
-        style = ""
+        style_name = ""
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.css"):
-            with open(path, "rt", encoding="utf-8") as fobj:
-                style = fobj.read()
+            shutil.copy(path, f'{self.BUILD_ASSETS_DIR}/')
+            shutil.copy(path, f'{self.PUBLIC_ASSETS_DIR}/')
+            style_name = os.path.basename(path)
             break  # Just one bundle
+        # Render template with embedded tailwind css
         hours = list(self.iter_hours())
         cancellation_policy = self.load_cancellation_policy()
-        with open(f"{self.PUBLIC_DIR}/index.html", "wt", encoding="utf-8") as fobj:
-            fobj.write(
-                self.render_index(
-                    script=script,
-                    style=style,
-                    hours=hours,
-                    cancellation_policy=cancellation_policy,
-                )
-            )
         self.export_images()
+        self.render_index_with_style(
+            script_name=script_name,
+            style_name=style_name,
+            hours=hours,
+            cancellation_policy=cancellation_policy,
+        )
+
+    def render_index_with_style(self, **params) -> None:
+        self.save_rendered_index(
+            f"{self.BUILD_DIR}/index.html",
+            **params
+        )
+        style = self.gen_tailwind_css()
+        self.save_rendered_index(
+            f"{self.PUBLIC_DIR}/index.html",
+            style=style,
+            **params
+        )
+
+    def save_rendered_index(self, path: str, **params) -> None:
+        with open(path, "wt", encoding="utf-8") as fobj:
+            fobj.write(self.render_index(**params))
+
+    def gen_tailwind_css(self) -> str:
+        """Must be called after index.html is rendered"""
         subprocess.run(
             [
                 "npx",
                 "tailwindcss",
                 "-i",
-                "./source/styles/input.css",
+                f"./{self.STYLES_DIR}/input.css",
                 "-o",
-                "./public/assets/style.css",
+                f"{self.BUILD_ASSETS_DIR}/style.css",
             ],
             capture_output=True,
             check=True,
         )
+        with open(f"{self.BUILD_ASSETS_DIR}/style.css", "rt", encoding="utf-8") as fobj:
+            return fobj.read()
 
     def render_index(self, **kwargs) -> str:
         return self.env.get_template("01-index.html").render(

@@ -72,15 +72,6 @@ function BookingWizard() {
   // Render steps conditionally:
   return (
     <div>
-      {currentStep === 1 && (
-        <SelectServiceStep
-          services={services}
-          onServiceSelect={(id) => {
-            setSelectedService(id);
-            setCurrentStep(2);
-          }}
-        />
-      )}
       {currentStep === 2 && (
         <PickDateStep
           onDateSelect={(date) => {
@@ -131,25 +122,6 @@ function BookingWizard() {
           <p>To cancel or reschedule your appointment,<br/>call <a class="font-medium text-amber-300 underline" href="tel:+13016588708">+1 (301) 658-8708</a></p>
         </div>
       )}
-    </div>
-  );
-}
-
-function SelectServiceStep({ services, onServiceSelect }) {
-  return (
-    <div>
-      <h2>Select a Service</h2>
-      <ul>
-        {services.map((service) => (
-          <li key={service.id}>
-            <h3>{service.name}</h3>
-            <p>{service.description}</p>
-            <button onClick={() => onServiceSelect(service.id)}>
-              Select
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
