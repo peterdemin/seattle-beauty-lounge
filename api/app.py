@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,10 +8,11 @@ from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
 from api.tasks.emails import EmailTask
+from fastapi.staticfiles import StaticFiles
 
 
-def create_app() -> FastAPI:
-    settings = Settings()
+def create_app(settings: Optional[Settings] = None) -> FastAPI:
+    settings = settings or Settings()
     db = Database(database_url=settings.database_url)
 
     @asynccontextmanager
@@ -36,4 +38,6 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     AppointmentsAPI(db, email_task=EmailTask(settings)).register(app)
+    if settings.proxy_frontend:
+        app.mount("/", StaticFiles(directory="public"), name="static")
     return app

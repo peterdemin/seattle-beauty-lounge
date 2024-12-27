@@ -7,6 +7,9 @@ from api.config import Settings
 
 
 class EmailTask:
+    SMTP_HOST = "smtp.gmail.com"
+    SMTP_PORT = 587
+
     def __init__(self, settings: Settings) -> None:
         self._sender_email = settings.sender_email
         self._sender_password = settings.sender_password
@@ -16,23 +19,28 @@ class EmailTask:
         """Sends a confirmation email to the appointment.clientEmail."""
         if not self._enabled:
             return
-        subject = "Your Appointment is Confirmed"
+        self._send(self._compose_confirmation(appointment))
+
+    def _send(self, msg: EmailMessage) -> None:
+        context = ssl.create_default_context()
+        with smtplib.SMTP(self.SMTP_HOST, self.SMTP_PORT) as smtp:
+            smtp.starttls(context=context)
+            smtp.login(self._sender_email, self._sender_password)
+            smtp.send_message(msg)
+
+    def _compose_confirmation(self, appointment: Appointment) -> EmailMessage:
+        subject = "Your Appointment with Seattle Beauty Lounge is Confirmed"
         body = (
             f"Hello {appointment.clientName},\n\n"
             f"Your appointment has been booked.\n"
             f"Service ID: {appointment.serviceId}\n"
             f"Date: {appointment.date}\n"
             f"Time: {appointment.time}\n\n"
-            "Thank you for choosing our service!\n"
+            "Thank you for choosing Seattle Beauty Lounge!\n"
         )
-
         msg = EmailMessage()
         msg["Subject"] = subject
         msg["From"] = self._sender_email
         msg["To"] = appointment.clientEmail
         msg.set_content(body)
-
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
-            smtp.login(self._sender_email, self._sender_password)
-            smtp.send_message(msg)
+        return msg

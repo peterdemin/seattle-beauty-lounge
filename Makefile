@@ -9,6 +9,10 @@ frontend:
 watch:
 	python3 frontend.py watch
 
+.PHONY: dev
+dev: frontend
+	fastapi dev api/main.py
+
 .PHONY: install
 install: counter_install
 	pip install -r requirements/dev.txt
