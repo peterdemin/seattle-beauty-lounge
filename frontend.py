@@ -8,6 +8,7 @@ from typing import Iterable
 
 import jinja2
 from markdown_it import MarkdownIt
+from PIL import Image
 
 
 class Builder:
@@ -17,13 +18,17 @@ class Builder:
     PAGES_DIR = f"{SOURCE_DIR}/pages"
     PUBLIC_DIR = "public"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
+    SERVICE_IMAGE_MAX_SIZE = (500, 500)
 
     def __init__(self):
         self.env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(self.TEMPLATES_DIR),
             autoescape=jinja2.select_autoescape(),
         )
-        self.markdown = MarkdownIt("commonmark", {"breaks": True, "html": True})
+        self.markdown = MarkdownIt(
+            "commonmark",
+            {"breaks": True, "html": True},
+        )
 
     def build_public(self) -> None:
         if not os.path.exists(self.PUBLIC_ASSETS_DIR):
@@ -54,11 +59,7 @@ class Builder:
                     cancellation_policy=cancellation_policy,
                 )
             )
-        for image in self.find_images().values():
-            target_dir = os.path.dirname(image["public"])
-            if not os.path.exists(target_dir):
-                os.makedirs(target_dir)
-            shutil.copy(image["source"], image["public"])
+        self.export_images()
         subprocess.run(
             [
                 "npx",
@@ -106,6 +107,21 @@ class Builder:
                     "description": lines[2],
                     "price": lines[-1],
                 }
+
+    def export_images(self) -> None:
+        for image in self.find_images().values():
+            target_dir = os.path.dirname(image["public"])
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            if os.path.basename(image["source"]).startswith("0"):
+                shutil.copy(image["source"], image["public"])
+            else:
+                self.export_thumbnail(image["source"], image["public"])
+
+    def export_thumbnail(self, source: str, target: str) -> None:
+        image = Image.open(source)
+        image.thumbnail(self.SERVICE_IMAGE_MAX_SIZE)
+        image.save(target)
 
     def find_images(self) -> dict[str, str]:
         return {
