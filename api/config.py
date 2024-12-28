@@ -11,3 +11,16 @@ class Settings(BaseSettings):
     enable_emails: bool = False
 
     proxy_frontend: bool = False
+
+    strip_api_key: str = ""
+
+    @classmethod
+    def test_settings(cls) -> "Settings":
+        return cls(
+            database_url="sqlite://",
+            sender_email="",
+            sender_password="",
+            enable_emails=False,
+            proxy_frontend=False,
+            strip_api_key="",
+        )

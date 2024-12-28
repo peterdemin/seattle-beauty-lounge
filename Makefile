@@ -21,6 +21,15 @@ dev: fe
 install:
 	pip install -r requirements/dev.txt
 
+.PHONY: test
+test:
+	pytest api
+
+.PHONY: fmt
+fmt:
+	isort api
+	black api
+
 .PHONY: gitconfig
 gitconfig:
 	git config user.name 'Peter Demin (bot)'

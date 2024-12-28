@@ -1,10 +1,14 @@
+-r prereq.in
 -r ../api/requirements.in
 -r frontend.in
 
 pyright
 flake8
+Flake8-pyproject
 isort
 black
 ipdb
 pip-compile-multi
 pytest
+pytest-cov
+pre-commit

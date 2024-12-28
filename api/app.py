@@ -3,12 +3,13 @@ from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
+from api.endpoints.payment import PaymentAPI
 from api.tasks.emails import EmailTask
-from fastapi.staticfiles import StaticFiles
 
 
 def create_app(settings: Optional[Settings] = None) -> FastAPI:
@@ -29,6 +30,8 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             "http://127.0.0.1",
             "http://localhost:3000",
             "http://localhost:8000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:8000",
             "https://seattle-beauty-lounge.com",
@@ -38,6 +41,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         allow_headers=["*"],
     )
     AppointmentsAPI(db, email_task=EmailTask(settings)).register(app)
+    PaymentAPI("http://localhost:5173/return", settings.strip_api_key).register(app)
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")
     return app

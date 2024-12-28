@@ -2,8 +2,8 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 
-from api.models import Appointment
 from api.config import Settings
+from api.models import Appointment
 
 
 class EmailTask:

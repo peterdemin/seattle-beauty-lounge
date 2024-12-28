@@ -1,4 +1,5 @@
-from typing import Iterable
+import datetime
+from typing import Iterable, Optional
 
 from dateutil.parser import parse
 
@@ -8,17 +9,48 @@ class SlotsLoader:
     FIRST_OFFSET = 1
     LAST_OFFSET = 7 * 6  # 6 weeks
 
-    def load_slots(self) -> Iterable[dict]:
-        yield {}
-        return
+    def __init__(self, hours_of_operation: Optional[dict[str, list[datetime.time]]] = None) -> None:
+        self._hours_of_operation = hours_of_operation or self.load_hours_of_operation()
 
-    def iter_hours(self) -> Iterable[dict]:
-        with open(f"{self.HOURS_FILE}", "rt", encoding="utf-8") as fobj:
+    def gen_ranges(self, today: Optional[datetime.date] = None) -> dict[str, list[datetime.time]]:
+        """Generates availability time ranges for each day.
+
+        The result is used by the Javascript frontend to dynamically
+        generate a list of time slots for duration of a selected service.
+
+        Args:
+            today - optional date to anchor the date range. Today be default.
+
+        Returns:
+            mapping from date string formatted as YYYY-mm-dd
+            to a list of start and end time formatted as HH:MM
+        """
+        today = today or datetime.date.today()
+        hours = self._hours_of_operation
+        result = {}
+        for offset in range(self.FIRST_OFFSET, self.LAST_OFFSET + 1):
+            date = today + datetime.timedelta(days=offset)
+            if dow_range := hours.get(date.weekday()):
+                start, end = dow_range
+                result[date.strftime("%Y-%m-%d")] = [
+                    start.strftime("%H:%M"),
+                    end.strftime("%H:%M"),
+                ]
+        return result
+
+    @classmethod
+    def load_hours_of_operation(cls) -> dict[str, list[datetime.time]]:
+        return {day["weekday"]: [day["start"], day["end"]] for day in cls._iter_hours()}
+
+    @classmethod
+    def _iter_hours(cls, hours_file: str = "") -> Iterable[dict]:
+        with open(f"{hours_file or cls.HOURS_FILE}", "rt", encoding="utf-8") as fobj:
             for line in fobj:
                 if "-" not in line:
                     continue
-                day, hours = line.strip().split(None, 1)
+                day_str, hours = line.strip().split(None, 1)
+                day = parse(day_str).weekday()
                 start_str, end_str = [x.strip() for x in hours.split("-", 1)]
                 start = parse(start_str).time()
                 end = parse(end_str).time()
-                yield {"day": day, "start": start, "end": end}
+                yield {"weekday": day, "start": start, "end": end}

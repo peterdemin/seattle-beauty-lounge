@@ -18,7 +18,8 @@ if [ -z "$VIRTUAL_ENV" ]; then
     . ${VENV_DIR}/bin/activate
 fi
 
-$PYTHON -m pip install -r requirements.in
+$PYTHON -m pip install -r requirements/prereq.txt
+pip-sync requirements/dev.txt
 
 tools/nvm.sh
 
@@ -29,5 +30,5 @@ nvm install "${NODE_VERSION}"
 nvm use "${NODE_VERSION}"
 npm install
 
-# pre-commit install
-# pre-commit autoupdate
+pre-commit install
+pre-commit autoupdate

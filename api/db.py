@@ -17,9 +17,7 @@ class Database:
             return create_engine(
                 database_url,
                 echo=echo,
-                connect_args=(
-                    {"check_same_thread": False}
-                ),
+                connect_args=({"check_same_thread": False}),
                 poolclass=StaticPool,
             )
         else:

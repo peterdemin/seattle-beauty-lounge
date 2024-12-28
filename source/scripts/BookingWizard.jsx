@@ -1,12 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, StrictMode } from "react";
 import ReactDOM from 'react-dom/client';
 import { DayPicker } from "react-day-picker";
 import "/rdp-style.css";
 import { useForm } from "react-hook-form";
+import { loadStripe } from '@stripe/stripe-js';
+import {CheckoutProvider} from '@stripe/react-stripe-js';
+import PayButton from './PayButton.jsx';
+import {PaymentElement, useCheckout} from '@stripe/react-stripe-js';
+
+const stripe = loadStripe(
+  "pk_test_51Qalad4JEQklJs336eRXneul1QBSEn00GJ2AwYLKQcIKha0QoB53KOnPJtFUY2r5kAcGM5ltfn9qFqRNAXEQQBX20077lrDx0t",
+  { betas: ['custom_checkout_beta_5'] }
+);
 
 
 function BookingWizard() {
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(4);
 
   // Wizard State
   const [services, setServices] = useState([]);
@@ -104,6 +113,14 @@ function BookingWizard() {
         />
       )}
       {currentStep === 5 && (
+        <CheckoutStep
+          clientEmail={clientEmail}
+          onConfirm={() => {
+            setCurrentStep(6);
+          }}
+        />
+      )}
+      {currentStep === 6 && (
         <ReviewAndConfirmStep
           serviceId={selectedService}
           date={selectedDate}
@@ -330,6 +347,7 @@ function ClientInfoStep({
   );
 }
 
+
 function ReviewAndConfirmStep({
   serviceId,
   date,
@@ -340,13 +358,9 @@ function ReviewAndConfirmStep({
   onConfirm,
 }) {
   function formatDate(date) {
-    // Get full weekday name, e.g. "Wednesday"
     const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' });
-    // Get full month name, e.g. "January"
     const month = date.toLocaleString('en-US', { month: 'long' });
-    // Get numeric day, e.g. 3
     const day = date.getDate();
-
     return `${dayOfWeek}, ${month} ${day}`;
   }
   return (
@@ -372,8 +386,47 @@ function ReviewAndConfirmStep({
   );
 }
 
+
+const CheckoutStep = (
+  clientEmail,
+  onConfirm,
+) => {
+  const [clientSecret, setClientSecret] = useState(null);
+  useEffect(() => {
+    fetch('http://localhost:8000/checkout', {method: 'POST'})
+      .then((response) => response.json())
+      .then((json) => setClientSecret(json.clientSecret))
+  }, []);
+
+  if (clientSecret) {
+    return (
+      <CheckoutProvider
+        stripe={stripe}
+        options={{clientSecret}}
+      >
+        <CheckoutForm />
+      </CheckoutProvider>
+    );
+  } else {
+    return null;
+  }
+};
+
+
+const CheckoutForm = () => {
+  const checkout = useCheckout();
+  return (
+    <form>
+      <PaymentElement options={{layout: 'accordion'}}/>
+    </form>
+  )
+};
+
+
 ReactDOM.createRoot(document.getElementById('book')).render(
-  <BookingWizard />
+  <StrictMode>
+    <BookingWizard />
+  </StrictMode>
 );
 
 export default BookingWizard;
