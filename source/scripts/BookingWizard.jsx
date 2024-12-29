@@ -43,9 +43,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			.then((response) => response.json())
 			.then((json) => setStripeClientSecret(json.clientSecret));
 
-		for (const element of Array.from(
-			document.getElementsByClassName("book-btn"),
-		)) {
+		for (const element of document.getElementsByClassName("book-btn")) {
 			element.addEventListener("click", () => {
 				setSelectedService(element.dataset.serviceId);
 				setCurrentStep(4);
@@ -476,8 +474,8 @@ const CheckoutForm = ({ clientPhone, clientEmail }) => {
 			<PaymentElement
 				options={{
 					layout: "accordion",
-					defaultValues: { billingDetails: { email: clientEmail } },
 				}}
+				defaultValues={{ billingDetails: { email: clientEmail } }}
 			/>
 			<PayButton />
 		</form>
