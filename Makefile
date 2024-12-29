@@ -42,6 +42,7 @@ fmt:
 lint:
 	flake8 api frontend.py
 	pyright api frontend.py
+	npx biome check --fix --unsafe source/scripts/*.jsx
 
 .PHONY: gitconfig
 gitconfig:

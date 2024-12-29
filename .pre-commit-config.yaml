@@ -31,3 +31,10 @@ repos:
       language: system
       require_serial: true
       types_or: [python, pyi]
+
+    - id: biome-check
+      name: biome check
+      entry: npx biome check --write --files-ignore-unknown=true --no-errors-on-unmatched
+      language: system
+      types: [text]
+      files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?|css|svelte|vue|astro|graphql|gql)$"
