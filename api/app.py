@@ -35,6 +35,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             "http://127.0.0.1:3000",
             "http://127.0.0.1:8000",
             "https://seattle-beauty-lounge.com",
+            "https://static.staging.seattle-beauty-lounge.com",
         ],
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
