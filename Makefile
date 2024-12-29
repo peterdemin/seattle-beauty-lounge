@@ -21,6 +21,14 @@ dev: fe
 install:
 	pip install -r requirements/dev.txt
 
+.PHONY: js
+js:
+	npm run build
+
+.PHONY: jsdev
+jsdev:
+	npm run dev
+
 .PHONY: test
 test:
 	pytest api

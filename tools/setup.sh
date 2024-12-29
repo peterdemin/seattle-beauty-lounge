@@ -29,6 +29,11 @@ export NVM_DIR="$HOME/.nvm"
 nvm install "${NODE_VERSION}"
 nvm use "${NODE_VERSION}"
 npm install
+npm install -g caprover
 
 pre-commit install
 pre-commit autoupdate
+
+# https://cloud.google.com/sdk/docs/install
+curl -s -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-arm.tar.gz | tar xz - -C ~/
+(cd ~/google-cloud-sdk/ && ./install.sh && bin/gcloud init)
