@@ -3,7 +3,7 @@
 
 .PHONY: clean
 clean:
-	rm -rf public .build dist source/scripts/dist
+	rm -rf public .build dist source/scripts/dist __pycache__ api/__pycache__ api/**/__pycache__
 
 .PHONY: fe
 fe:

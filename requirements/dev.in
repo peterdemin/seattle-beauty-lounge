@@ -1,6 +1,6 @@
 -r prereq.in
+-r ../source/requirements.in
 -r ../api/requirements.in
--r frontend.in
 
 pyright
 flake8

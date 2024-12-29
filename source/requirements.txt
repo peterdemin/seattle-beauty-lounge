@@ -6,12 +6,12 @@
 #    pip-compile-multi
 #
 jinja2==3.1.5
-    # via -r requirements/frontend.in
+    # via -r source/requirements.in
 markdown-it-py==3.0.0
-    # via -r requirements/frontend.in
+    # via -r source/requirements.in
 markupsafe==3.0.2
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
 pillow==11.0.0
-    # via -r requirements/frontend.in
+    # via -r source/requirements.in
