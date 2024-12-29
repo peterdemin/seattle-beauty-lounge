@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     proxy_frontend: bool = False
 
-    strip_api_key: str = ""
+    stripe_api_key: str = ""
 
     @classmethod
     def test_settings(cls) -> "Settings":
@@ -22,5 +22,5 @@ class Settings(BaseSettings):
             sender_password="",
             enable_emails=False,
             proxy_frontend=False,
-            strip_api_key="",
+            stripe_api_key="",
         )

@@ -12,7 +12,7 @@ class PaymentAPI:
 
     def checkout(self) -> dict:
         if not self._api_key:
-            return {"error": "Stripe API not configured"}, 422
+            return {"error": "Stripe API not configured"}
         stripe.api_key = self._api_key
         stripe.api_version = "2024-12-18.acacia; custom_checkout_beta=v1;"
         session = stripe.checkout.Session.create(
@@ -27,7 +27,7 @@ class PaymentAPI:
                 },
             ],
             mode="payment",
-            ui_mode="custom",
+            ui_mode="custom",  # type: ignore
             return_url=self._return_url,
         )
         return {"clientSecret": session["client_secret"]}

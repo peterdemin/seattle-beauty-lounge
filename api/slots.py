@@ -9,7 +9,7 @@ class SlotsLoader:
     FIRST_OFFSET = 1
     LAST_OFFSET = 7 * 6  # 6 weeks
 
-    def __init__(self, hours_of_operation: Optional[dict[str, list[datetime.time]]] = None) -> None:
+    def __init__(self, hours_of_operation: Optional[dict[int, list[datetime.time]]] = None) -> None:
         self._hours_of_operation = hours_of_operation or self.load_hours_of_operation()
 
     def gen_ranges(self, today: Optional[datetime.date] = None) -> dict[str, list[datetime.time]]:
@@ -39,7 +39,7 @@ class SlotsLoader:
         return result
 
     @classmethod
-    def load_hours_of_operation(cls) -> dict[str, list[datetime.time]]:
+    def load_hours_of_operation(cls) -> dict[int, list[datetime.time]]:
         return {day["weekday"]: [day["start"], day["end"]] for day in cls._iter_hours()}
 
     @classmethod

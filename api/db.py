@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import ContextManager
+from typing import Iterator
 
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
@@ -33,6 +33,6 @@ class Database:
         SQLModel.metadata.create_all(self._engine)
 
     @contextmanager
-    def session(self) -> ContextManager[Session]:
+    def session(self) -> Iterator[Session]:
         with Session(self._engine) as session:
             yield session

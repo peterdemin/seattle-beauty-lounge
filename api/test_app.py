@@ -1,3 +1,5 @@
+from typing import Iterator
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -11,7 +13,7 @@ def settings_fixture() -> Settings:
 
 
 @pytest.fixture(name="test_client")
-def client_fixture(test_settings: Settings) -> TestClient:
+def client_fixture(test_settings: Settings) -> Iterator[TestClient]:
     assert not test_settings.enable_emails
     with TestClient(create_app(test_settings)) as client:
         yield client

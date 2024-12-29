@@ -46,14 +46,14 @@ class Builder:
         )
         script_name = ""
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.js"):
-            shutil.copy(path, f'{self.BUILD_ASSETS_DIR}/')
-            shutil.copy(path, f'{self.PUBLIC_ASSETS_DIR}/')
+            shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
+            shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
             script_name = os.path.basename(path)
             break  # Just one bundle
         style_name = ""
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.css"):
-            shutil.copy(path, f'{self.BUILD_ASSETS_DIR}/')
-            shutil.copy(path, f'{self.PUBLIC_ASSETS_DIR}/')
+            shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
+            shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
             style_name = os.path.basename(path)
             break  # Just one bundle
         # Render template with embedded tailwind css
@@ -68,16 +68,9 @@ class Builder:
         )
 
     def render_index_with_style(self, **params) -> None:
-        self.save_rendered_index(
-            f"{self.BUILD_DIR}/index.html",
-            **params
-        )
+        self.save_rendered_index(f"{self.BUILD_DIR}/index.html", **params)
         style = self.gen_tailwind_css()
-        self.save_rendered_index(
-            f"{self.PUBLIC_DIR}/index.html",
-            style=style,
-            **params
-        )
+        self.save_rendered_index(f"{self.PUBLIC_DIR}/index.html", style=style, **params)
 
     def save_rendered_index(self, path: str, **params) -> None:
         with open(path, "wt", encoding="utf-8") as fobj:
@@ -106,14 +99,10 @@ class Builder:
         )
 
     def render_services(self) -> str:
-        return self.env.get_template("02-services.html").render(
-            services=list(self.iter_services())
-        )
+        return self.env.get_template("02-services.html").render(services=list(self.iter_services()))
 
     def load_cancellation_policy(self) -> str:
-        with open(
-            f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8"
-        ) as fobj:
+        with open(f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8") as fobj:
             return self.markdown.render(fobj.read())
 
     def iter_hours(self) -> Iterable[dict]:
@@ -150,13 +139,11 @@ class Builder:
         image.thumbnail(self.SERVICE_IMAGE_MAX_SIZE)
         image.save(target)
 
-    def find_images(self) -> dict[str, str]:
+    def find_images(self) -> dict[str, dict[str, str]]:
         return {
             self.get_file_index(path): {
                 "source": path,
-                "public": os.path.join(
-                    self.PUBLIC_DIR, os.path.relpath(path, self.SOURCE_DIR)
-                ),
+                "public": os.path.join(self.PUBLIC_DIR, os.path.relpath(path, self.SOURCE_DIR)),
                 "url": os.path.relpath(path, self.SOURCE_DIR),
             }
             for path in glob.glob("source/images/*")

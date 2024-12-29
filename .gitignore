@@ -176,3 +176,6 @@ cython_debug/
 /source/scripts/dist/
 api/test.db
 /.build/
+
+# CapRover
+/*.tar

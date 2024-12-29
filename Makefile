@@ -35,8 +35,13 @@ test:
 
 .PHONY: fmt
 fmt:
-	isort api
-	black api
+	isort api frontend.py
+	black api frontend.py
+
+.PHONY: lint
+lint:
+	flake8 api frontend.py
+	pyright api frontend.py
 
 .PHONY: gitconfig
 gitconfig:

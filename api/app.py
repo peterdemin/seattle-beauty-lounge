@@ -41,7 +41,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         allow_headers=["*"],
     )
     AppointmentsAPI(db, email_task=EmailTask(settings)).register(app)
-    PaymentAPI("http://localhost:5173/return", settings.strip_api_key).register(app)
+    PaymentAPI("http://localhost:5173/return", settings.stripe_api_key).register(app)
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")
     return app
