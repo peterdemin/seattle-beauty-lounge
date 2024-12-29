@@ -8,28 +8,27 @@ import {CheckoutProvider} from '@stripe/react-stripe-js';
 import PayButton from './PayButton.jsx';
 import {PaymentElement, useCheckout} from '@stripe/react-stripe-js';
 
-const stripe = loadStripe(
-  "pk_test_51Qalad4JEQklJs336eRXneul1QBSEn00GJ2AwYLKQcIKha0QoB53KOnPJtFUY2r5kAcGM5ltfn9qFqRNAXEQQBX20077lrDx0t",
-  { betas: ['custom_checkout_beta_5'] }
-);
 
-
-function BookingWizard() {
-  const [currentStep, setCurrentStep] = useState(5);
+function BookingWizard({
+  apiUrl,
+  stripePublishableKey,
+}) {
+  const [currentStep, setCurrentStep] = useState(4);
 
   // Wizard State
-  const [services, setServices] = useState([]);
+  const [availability, setAvailability] = useState([]);
   const [selectedService, setSelectedService] = useState("Microdermaabrasion");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState("07:30");
   const [clientName, setClientName] = useState("Peter Demin");
   const [clientPhone, setClientPhone] = useState("2403421438");
   const [clientEmail, setClientEmail] = useState("peterdemin@gmail.com");
+  const [stripeClientSecret, setStripeClientSecret] = useState(null);
+  const stripe = loadStripe(stripePublishableKey, { betas: ['custom_checkout_beta_5'] });
 
-  // Fetch services on mount
   useEffect(() => {
-    async function fetchServices() {
-      // const res = await fetch("/api/services");
+    async function fetchAvailability() {
+      // const res = await fetch(`${apiUrl}/availability`);
       // const data = await res.json();
       const data = [
         {
@@ -38,9 +37,14 @@ function BookingWizard() {
           description: "description",
         }
       ];
-      setServices(data);
+      setAvailability(data);
     }
-    fetchServices();
+    fetchAvailability();
+
+    fetch(`${apiUrl}/checkout`, {method: 'POST'})
+      .then((response) => response.json())
+      .then((json) => setStripeClientSecret(json.clientSecret))
+
     Array.from(document.getElementsByClassName("book-btn")).forEach((element) => {
       element.addEventListener("click", () => {
         setSelectedService(element.dataset.serviceId);
@@ -63,7 +67,7 @@ function BookingWizard() {
       clientEmail,
     };
 
-    const res = await fetch("http://localhost:8000/appointments", {
+    const res = await fetch(`${apiUrl}/appointments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -116,6 +120,8 @@ function BookingWizard() {
         <CheckoutStep
           clientPhone={clientPhone}
           clientEmail={clientEmail}
+          clientSecret={stripeClientSecret}
+          stripe={stripe}
           onConfirm={() => {
             setCurrentStep(6);
           }}
@@ -391,14 +397,10 @@ function ReviewAndConfirmStep({
 const CheckoutStep = ({
   clientPhone,
   clientEmail,
+  clientSecret,
   onConfirm,
+  stripe,
 }) => {
-  const [clientSecret, setClientSecret] = useState(null);
-  useEffect(() => {
-    fetch('http://localhost:8000/checkout', {method: 'POST'})
-      .then((response) => response.json())
-      .then((json) => setClientSecret(json.clientSecret))
-  }, []);
   if (clientSecret) {
     return (
       <CheckoutProvider
@@ -437,8 +439,10 @@ const CheckoutForm = ({
   clientEmail,
 }) => {
   const checkout = useCheckout();
-  // checkout.updatePhoneNumber(clientPhone);
-  checkout.updateEmail(clientEmail);
+  useEffect(() => {
+    // checkout.updatePhoneNumber(clientPhone);
+    // checkout.updateEmail(clientEmail);
+  }, []);
   return (
     <form>
       <PaymentElement options={{layout: 'accordion'}}/>
@@ -450,7 +454,10 @@ const CheckoutForm = ({
 
 ReactDOM.createRoot(document.getElementById('book')).render(
   <StrictMode>
-    <BookingWizard />
+    <BookingWizard
+      apiUrl="https://api.staging.seattle-beauty-lounge.com"
+      stripePublishableKey="pk_test_51Qalad4JEQklJs336eRXneul1QBSEn00GJ2AwYLKQcIKha0QoB53KOnPJtFUY2r5kAcGM5ltfn9qFqRNAXEQQBX20077lrDx0t"
+    />
   </StrictMode>
 );
 
