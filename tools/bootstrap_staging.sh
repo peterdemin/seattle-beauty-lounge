@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e -o pipefail
 
-scp tools/init_ubuntu.sh staging.seattle-beauty-lounge.com:
-ssh staging.seattle-beauty-lounge.com -- "chmod +x init_ubuntu.sh && sudo ./init_ubuntu.sh"
+scp tools/init_staging.sh staging.seattle-beauty-lounge.com:
+ssh staging.seattle-beauty-lounge.com -- "chmod +x init_staging.sh && sudo ./init_staging.sh"
 
 cat <<EOF
 Replicate this CapRover server setup (Password in the password manager):
