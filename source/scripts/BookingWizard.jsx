@@ -15,7 +15,7 @@ const stripe = loadStripe(
 
 
 function BookingWizard() {
-  const [currentStep, setCurrentStep] = useState(4);
+  const [currentStep, setCurrentStep] = useState(5);
 
   // Wizard State
   const [services, setServices] = useState([]);
@@ -44,7 +44,7 @@ function BookingWizard() {
     Array.from(document.getElementsByClassName("book-btn")).forEach((element) => {
       element.addEventListener("click", () => {
         setSelectedService(element.dataset.serviceId);
-        setCurrentStep(2);
+        setCurrentStep(4);
         document.getElementById("book-modal").classList.remove("hidden");
       });
     });
@@ -114,6 +114,7 @@ function BookingWizard() {
       )}
       {currentStep === 5 && (
         <CheckoutStep
+          clientPhone={clientPhone}
           clientEmail={clientEmail}
           onConfirm={() => {
             setCurrentStep(6);
@@ -387,24 +388,42 @@ function ReviewAndConfirmStep({
 }
 
 
-const CheckoutStep = (
+const CheckoutStep = ({
+  clientPhone,
   clientEmail,
   onConfirm,
-) => {
+}) => {
   const [clientSecret, setClientSecret] = useState(null);
   useEffect(() => {
     fetch('http://localhost:8000/checkout', {method: 'POST'})
       .then((response) => response.json())
       .then((json) => setClientSecret(json.clientSecret))
   }, []);
-
   if (clientSecret) {
     return (
       <CheckoutProvider
         stripe={stripe}
-        options={{clientSecret}}
+        options={{
+          clientSecret,
+          elementsOptions: {
+            appearance: {
+              theme: 'night',
+              variables: {
+                colorPrimary: '#fcd34d',
+                colorBackground: '#000000',
+                colorText: '#30313d',
+                colorDanger: '#df1b41',
+                spacingUnit: '2px',
+                borderRadius: '4px',
+              }
+            },
+          },
+        }}
       >
-        <CheckoutForm />
+        <CheckoutForm
+          clientPhone={clientPhone}
+          clientEmail={clientEmail}
+        />
       </CheckoutProvider>
     );
   } else {
@@ -413,11 +432,17 @@ const CheckoutStep = (
 };
 
 
-const CheckoutForm = () => {
+const CheckoutForm = ({
+  clientPhone,
+  clientEmail,
+}) => {
   const checkout = useCheckout();
+  // checkout.updatePhoneNumber(clientPhone);
+  checkout.updateEmail(clientEmail);
   return (
     <form>
       <PaymentElement options={{layout: 'accordion'}}/>
+      <PayButton />
     </form>
   )
 };
