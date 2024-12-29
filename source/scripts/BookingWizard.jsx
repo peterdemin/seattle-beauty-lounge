@@ -447,7 +447,7 @@ const CheckoutStep = ({
 							variables: {
 								colorPrimary: "#fcd34d",
 								colorBackground: "#000000",
-								colorText: "#30313d",
+								colorText: "#d1d5db",
 								colorDanger: "#df1b41",
 								spacingUnit: "2px",
 								borderRadius: "4px",
@@ -456,36 +456,27 @@ const CheckoutStep = ({
 					},
 				}}
 			>
-				<CheckoutForm clientPhone={clientPhone} clientEmail={clientEmail} />
+				<CheckoutPreview />
+				<form>
+					<PaymentElement options={{ layout: "accordion" }} />
+					<PayButton email={clientEmail} onConfirm={onConfirm} />
+				</form>
 			</CheckoutProvider>
 		);
 	}
 	return null;
 };
 
-const CheckoutForm = ({ clientPhone, clientEmail }) => {
+const CheckoutPreview = () => {
 	const checkout = useCheckout();
-	useEffect(() => {
-		// checkout.updatePhoneNumber(clientPhone);
-		// checkout.updateEmail(clientEmail);
-	}, []);
-	return (
-		<form>
-			<PaymentElement
-				options={{
-					layout: "accordion",
-				}}
-				defaultValues={{ billingDetails: { email: clientEmail } }}
-			/>
-			<PayButton />
-		</form>
-	);
+	return <pre>{JSON.stringify(checkout.lineItems, null, 2)}</pre>;
 };
 
 ReactDOM.createRoot(document.getElementById("book")).render(
 	<StrictMode>
 		<BookingWizard
 			apiUrl="https://api.staging.seattle-beauty-lounge.com"
+			// apiUrl="http://localhost:8000"
 			stripePublishableKey="pk_test_51Qalad4JEQklJs336eRXneul1QBSEn00GJ2AwYLKQcIKha0QoB53KOnPJtFUY2r5kAcGM5ltfn9qFqRNAXEQQBX20077lrDx0t"
 		/>
 	</StrictMode>,

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 class PaymentAPI:
     PRODUCT_NAME = "Seattle Beauty Lounge Deposit"
-    PRICE = 50
+    PRICE_CENTS = 5000  # $50.00
 
     def __init__(self, return_url: str, api_key: str) -> None:
         self._return_url = return_url
@@ -20,7 +20,7 @@ class PaymentAPI:
                 {
                     "price_data": {
                         "product_data": {"name": self.PRODUCT_NAME},
-                        "unit_amount": self.PRICE,
+                        "unit_amount": self.PRICE_CENTS,
                         "currency": "usd",
                     },
                     "quantity": 1,
