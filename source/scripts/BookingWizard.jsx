@@ -9,17 +9,18 @@ import { useForm } from "react-hook-form";
 import PayButton from "./PayButton.jsx";
 
 function BookingWizard({ apiUrl, stripePublishableKey }) {
-	const [currentStep, setCurrentStep] = useState(4);
+	const [currentStep, setCurrentStep] = useState(2);
 
 	// Wizard State
 	const [availability, setAvailability] = useState([]);
-	const [selectedService, setSelectedService] = useState("Microdermaabrasion");
-	const [selectedDate, setSelectedDate] = useState(new Date());
-	const [selectedTime, setSelectedTime] = useState("07:30");
-	const [clientName, setClientName] = useState("Peter Demin");
-	const [clientPhone, setClientPhone] = useState("2403421438");
-	const [clientEmail, setClientEmail] = useState("peterdemin@gmail.com");
+	const [selectedService, setSelectedService] = useState(null);
+	const [selectedDate, setSelectedDate] = useState(null);
+	const [selectedTime, setSelectedTime] = useState(null);
+	const [clientName, setClientName] = useState(null);
+	const [clientPhone, setClientPhone] = useState(null);
+	const [clientEmail, setClientEmail] = useState(null);
 	const [stripeClientSecret, setStripeClientSecret] = useState(null);
+
 	const stripe = loadStripe(stripePublishableKey, {
 		betas: ["custom_checkout_beta_5"],
 	});
@@ -46,7 +47,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 		for (const element of document.getElementsByClassName("book-btn")) {
 			element.addEventListener("click", () => {
 				setSelectedService(element.dataset.serviceId);
-				setCurrentStep(4);
+				setCurrentStep(2);
 				document.getElementById("book-modal").classList.remove("hidden");
 			});
 		}
@@ -120,9 +121,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 					clientEmail={clientEmail}
 					clientSecret={stripeClientSecret}
 					stripe={stripe}
-					onConfirm={() => {
-						setCurrentStep(6);
-					}}
+					onConfirm={handleSubmitAppointment}
 				/>
 			)}
 			{currentStep === 6 && (
@@ -226,8 +225,9 @@ function PickTimeslotStep({ serviceId, date, onTimeslotSelect }) {
 
 	useEffect(() => {
 		async function fetchTimes() {
+			const isoDate = date.toISOString().substring(0, 10);
 			const response = await fetch(
-				`/api/services/${serviceId}/availability?date=${date}`,
+				`${apiUrl}/availability?service=${serviceId}&date=${isoDate}`,
 			);
 			// const data = await response.json();
 			const data = [
@@ -456,7 +456,6 @@ const CheckoutStep = ({
 					},
 				}}
 			>
-				<CheckoutPreview />
 				<form>
 					<PaymentElement options={{ layout: "accordion" }} />
 					<PayButton email={clientEmail} onConfirm={onConfirm} />
@@ -465,11 +464,6 @@ const CheckoutStep = ({
 		);
 	}
 	return null;
-};
-
-const CheckoutPreview = () => {
-	const checkout = useCheckout();
-	return <pre>{JSON.stringify(checkout.lineItems, null, 2)}</pre>;
 };
 
 ReactDOM.createRoot(document.getElementById("book")).render(
