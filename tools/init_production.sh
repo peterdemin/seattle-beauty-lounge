@@ -2,6 +2,9 @@
 
 set -e -o pipefail
 
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | tee /etc/apt/sources.list.d/tailscale.list
+
 apt-get update
 apt-get upgrade -y
 apt-get install -y \
@@ -13,13 +16,14 @@ apt-get install -y \
     python3.12-venv \
     python-is-python3 \
     postgresql \
-    postgresql-contrib
+    postgresql-contrib \
+    tailscale
 
 if [ ! -e /usr/bin/certbot ]; then
     snap install --classic certbot
     ln -s /snap/bin/certbot /usr/bin/certbot
-    certbot --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com
 fi
+certbot --non-interactive --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com
 
 # Variables for database and user
 DB_NAME="api"
@@ -49,3 +53,5 @@ echo "Granting privileges on $DB_NAME to $DB_USER..."
 
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
 sudo -u postgres psql -d $DB_NAME -c "GRANT ALL ON SCHEMA public to $DB_USER;"
+
+sudo tailscale up

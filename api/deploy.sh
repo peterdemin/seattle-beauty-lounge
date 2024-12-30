@@ -28,4 +28,4 @@ systemctl restart api.service
 systemctl status api.service
 systemctl reload nginx.service
 
-journalctl -fu api.service
+# journalctl -fu api.service
