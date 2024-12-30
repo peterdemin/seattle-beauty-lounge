@@ -1,0 +1,16 @@
+[Unit]
+Description=api daemon
+After=network.target
+
+[Service]
+Type=simple
+User=api
+Group=api
+WorkingDirectory=/home/api/
+ExecStart=/home/api/api/run.sh
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target
