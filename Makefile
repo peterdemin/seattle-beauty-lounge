@@ -7,11 +7,19 @@ clean:
 
 .PHONY: fe
 fe:
-	python3 frontend.py
+	python3 frontend.py development
+
+.PHONY: staging
+staging: clean
+	python3 frontend.py staging
+
+.PHONY: production
+production: clean
+	python3 frontend.py production
 
 .PHONY: watch
 watch:
-	python3 -u frontend.py watch
+	python3 -u frontend.py development watch
 
 .PHONY: dev
 dev: fe

@@ -25,7 +25,8 @@ class Builder:
     SERVICE_IMAGE_MAX_SIZE = (500, 500)
     RE_NUMBER = re.compile(r"(\d+).*")
 
-    def __init__(self):
+    def __init__(self, mode: str) -> None:
+        self._mode = mode
         self.env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(self.TEMPLATES_DIR),
             autoescape=jinja2.select_autoescape(),
@@ -42,7 +43,7 @@ class Builder:
             os.makedirs(self.BUILD_ASSETS_DIR)
         # Build Javascript for BookingWizard.jsx:
         subprocess.run(
-            ["npm", "run", "build"],
+            ["npm", "run", self._mode],
             capture_output=True,
             check=True,
         )
@@ -162,8 +163,12 @@ class Builder:
 
 
 if __name__ == "__main__":
-    builder = Builder()
-    if len(sys.argv) > 1 and sys.argv[1] == "watch":
+    if len(sys.argv) > 1:
+        mode = sys.argv[1]
+    else:
+        raise RuntimeError("Pass mode [development|staging|production] as the first parameter")
+    builder = Builder(mode)
+    if len(sys.argv) > 2 and sys.argv[2] == "watch":
         while True:
             try:
                 builder.build_public()

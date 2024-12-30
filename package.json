@@ -1,7 +1,9 @@
 {
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build"
+		"development": "vite build --mode development",
+		"staging": "vite build --mode staging",
+		"production": "vite build --mode production"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
