@@ -9,6 +9,7 @@ from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.payment import PaymentAPI
+from api.slots import SlotsLoader
 from api.tasks.emails import EmailTask
 
 
@@ -41,7 +42,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
-    AppointmentsAPI(db, email_task=EmailTask(settings)).register(app)
+    AppointmentsAPI(db, email_task=EmailTask(settings), slots_loader=SlotsLoader()).register(app)
     PaymentAPI("http://localhost:5173/return", settings.stripe_api_key).register(app)
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")

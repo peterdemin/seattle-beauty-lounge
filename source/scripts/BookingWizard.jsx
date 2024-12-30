@@ -7,14 +7,16 @@ import { PaymentElement, useCheckout } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useForm } from "react-hook-form";
 import PayButton from "./PayButton.jsx";
+import getAvailableSlots from "./availability.js";
 
 function BookingWizard({ apiUrl, stripePublishableKey }) {
 	const [currentStep, setCurrentStep] = useState(2);
 
 	// Wizard State
-	const [availability, setAvailability] = useState([]);
 	const [selectedService, setSelectedService] = useState(null);
+	const [availability, setAvailability] = useState([]);
 	const [duration, setDuration] = useState(null);
+	const [slots, setSlots] = useState(null);
 	const [selectedDate, setSelectedDate] = useState(null);
 	const [selectedTime, setSelectedTime] = useState(null);
 	const [clientName, setClientName] = useState(null);
@@ -27,13 +29,17 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	});
 
 	useEffect(() => {
-		if (duration === null || apiUrl === null) {
-			return;
-		}
-		fetch(`${apiUrl}/availability?duration=${duration}`)
+		fetch(`${apiUrl}/availability`)
 			.then((response) => response.json())
 			.then(setAvailability);
-	}, [apiUrl, duration]);
+	}, [apiUrl]);
+
+	useEffect(() => {
+		if (duration === null || availability.length === 0) {
+			return;
+		}
+		setSlots(getAvailableSlots(availability, duration));
+	}, [availability, duration]);
 
 	useEffect(() => {
 		fetch(`${apiUrl}/checkout`, { method: "POST" })
@@ -58,7 +64,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	async function handleSubmitAppointment() {
 		const payload = {
 			serviceId: selectedService,
-			date: selectedDate.toISOString().substring(0, 10),
+			date: selectedDate,
 			time: selectedTime,
 			clientName,
 			clientPhone,
@@ -94,7 +100,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			)}
 			{currentStep === 3 && (
 				<PickTimeslotStep
-					availability={availability}
+					slots={slots}
 					date={selectedDate}
 					onTimeslotSelect={(time) => {
 						setSelectedTime(time);
@@ -171,13 +177,21 @@ function PickDateStep({ availability, onDateSelect }) {
 		return result;
 	}
 
+	const disabledDates = [];
+	for (const dateStr in availability) {
+		if (availability[dateStr].length === 0) {
+			const [year, month, day] = dateStr.split("-").map(Number);
+			disabledDates.push(new Date(year, month - 1, day));
+		}
+	}
+
 	const today = new Date();
 	const first_day = addDays(today, 1); // next day
 	const last_day = addDays(today, 7 * 6); // 6 weeks
 
 	function handleNext() {
 		if (selectedDay) {
-			onDateSelect(selectedDay);
+			onDateSelect(selectedDay.toISOString().substring(0, 10));
 		}
 	}
 
@@ -193,14 +207,9 @@ function PickDateStep({ availability, onDateSelect }) {
 				// You can add optional props here, like `disabled` or `fromDate/toDate`
 				// to limit the selectable date range.
 				modifiers={{
-					disabled: [
-						{ dayOfWeek: [0] },
-						{ before: first_day },
-						{ after: last_day },
-						new Date(2024, 11, 30),
-						new Date(2024, 11, 31),
-						new Date(2025, 0, 1),
-					],
+					disabled: [{ before: first_day }, { after: last_day }].concat(
+						disabledDates,
+					),
 				}}
 			/>
 			<div className="flex place-content-end">
@@ -219,30 +228,16 @@ function PickDateStep({ availability, onDateSelect }) {
 	);
 }
 
-function PickTimeslotStep({ availability, date, onTimeslotSelect }) {
+function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 	const [selected, setSelected] = useState(null);
 	const [timeslots, setTimeslots] = useState([]);
 
 	useEffect(() => {
-		if (availability === null || date === null) {
+		if (slots === null || date === null) {
 			return;
 		}
-		const data = [
-			"07:00",
-			"07:15",
-			"07:30",
-			"07:45",
-			"08:00",
-			"08:15",
-			"08:30",
-			"08:45",
-			"09:00",
-			"09:15",
-			"09:30",
-			"09:45",
-		];
-		setTimeslots(data);
-	}, [availability, date]);
+		setTimeslots(slots[date]);
+	}, [slots, date]);
 
 	const slotClass = (slot) => {
 		const base = "cursor-pointer p-1 rounded-full border-2";

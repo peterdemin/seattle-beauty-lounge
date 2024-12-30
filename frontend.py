@@ -120,7 +120,9 @@ class Builder:
             with open(path, "rt", encoding="utf-8") as fobj:
                 lines = [line.strip() for line in fobj]
                 price, duration = lines[-1].split(None, 1)
-                duration_min = int(self.RE_NUMBER.match(duration).group(1))
+                duration_min = 0
+                if mobj := self.RE_NUMBER.match(duration):
+                    duration_min = int(mobj.group(1))
                 yield {
                     "image": images.get(idx, ""),
                     "title": lines[0].strip(" #"),

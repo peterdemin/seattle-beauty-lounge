@@ -12,7 +12,7 @@ class SlotsLoader:
     def __init__(self, hours_of_operation: Optional[dict[int, list[datetime.time]]] = None) -> None:
         self._hours_of_operation = hours_of_operation or self.load_hours_of_operation()
 
-    def gen_ranges(self, today: Optional[datetime.date] = None) -> dict[str, list[datetime.time]]:
+    def gen_ranges(self, today: Optional[datetime.date] = None) -> dict[str, list[list[str]]]:
         """Generates availability time ranges for each day.
 
         The result is used by the Javascript frontend to dynamically
@@ -33,8 +33,10 @@ class SlotsLoader:
             if dow_range := hours.get(date.weekday()):
                 start, end = dow_range
                 result[date.strftime("%Y-%m-%d")] = [
-                    start.strftime("%H:%M"),
-                    end.strftime("%H:%M"),
+                    [
+                        start.strftime("%H:%M"),
+                        end.strftime("%H:%M"),
+                    ]
                 ]
         return result
 
