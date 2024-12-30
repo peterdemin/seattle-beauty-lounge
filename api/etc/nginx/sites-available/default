@@ -1,0 +1,51 @@
+upstream api {
+    server unix:/tmp/api.sock;
+}
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /var/www/html;
+	index index.html;
+	server_name _;
+	location / {
+		try_files $uri $uri/ =404;
+	}
+}
+
+server {
+	root /var/www/html;
+	index index.html;
+	server_name seattle-beauty-lounge.com; # managed by Certbot
+
+	location /api {
+		proxy_pass http://api;
+		proxy_set_header  X-Forwarded-Proto https;
+		proxy_set_header Host $http_host;
+	}
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ =404;
+	}
+
+	listen [::]:443 ssl ipv6only=on; # managed by Certbot
+	listen 443 ssl; # managed by Certbot
+	ssl_certificate /etc/letsencrypt/live/seattle-beauty-lounge.com/fullchain.pem; # managed by Certbot
+	ssl_certificate_key /etc/letsencrypt/live/seattle-beauty-lounge.com/privkey.pem; # managed by Certbot
+	include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = seattle-beauty-lounge.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+	listen 80 ;
+	listen [::]:80 ;
+    server_name seattle-beauty-lounge.com;
+    return 404; # managed by Certbot
+}

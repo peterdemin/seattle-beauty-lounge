@@ -179,3 +179,4 @@ api/test.db
 
 # CapRover
 /*.tar
+/.env.prod

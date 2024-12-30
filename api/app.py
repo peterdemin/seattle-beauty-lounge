@@ -46,8 +46,11 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         db,
         email_task=EmailTask(settings),
         slots_loader=SlotsLoader.load(),
-    ).register(app)
-    PaymentAPI("http://localhost:5173/return", settings.stripe_api_key).register(app)
+    ).register(app, prefix=settings.location_prefix)
+    PaymentAPI(
+        "https://seattle-beauty-lounge.com",
+        settings.stripe_api_key,
+    ).register(app, prefix=settings.location_prefix)
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")
     return app

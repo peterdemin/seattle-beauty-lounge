@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     enable_emails: bool = False
 
     proxy_frontend: bool = False
+    location_prefix: str = ""
 
     stripe_api_key: str = ""
 
@@ -22,5 +23,6 @@ class Settings(BaseSettings):
             sender_password="",
             enable_emails=False,
             proxy_frontend=False,
+            location_prefix="",
             stripe_api_key="",
         )

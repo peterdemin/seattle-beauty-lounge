@@ -4,3 +4,4 @@ sqlmodel
 httpx
 python-dateutil
 stripe
+psycopg2-binary
