@@ -459,9 +459,9 @@ const CheckoutStep = ({
 ReactDOM.createRoot(document.getElementById("book")).render(
 	<StrictMode>
 		<BookingWizard
-			// apiUrl="https://api.staging.seattle-beauty-lounge.com"
+			apiUrl="https://api.staging.seattle-beauty-lounge.com"
 			// apiUrl="https://seattle-beauty-lounge.com/api"
-			apiUrl="http://localhost:8000"
+			// apiUrl="http://localhost:8000"
 			stripePublishableKey="pk_test_51Qalad4JEQklJs336eRXneul1QBSEn00GJ2AwYLKQcIKha0QoB53KOnPJtFUY2r5kAcGM5ltfn9qFqRNAXEQQBX20077lrDx0t"
 		/>
 	</StrictMode>,
