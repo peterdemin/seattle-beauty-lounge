@@ -1,11 +1,16 @@
 import datetime
+import os
+import pickle
 from typing import Iterable, Optional
 
 from dateutil.parser import parse
 
+HERE = os.path.dirname(__file__)
+
 
 class SlotsLoader:
     HOURS_FILE = "source/pages/51-hours.md"
+    HOURS_PICKLE = os.path.join(HERE, "hours.pkl")
     FIRST_OFFSET = 1
     LAST_OFFSET = 7 * 6  # 6 weeks
 
@@ -41,6 +46,16 @@ class SlotsLoader:
         return result
 
     @classmethod
+    def load(cls) -> "SlotsLoader":
+        with open(cls.HOURS_PICKLE, "rb") as fobj:
+            return cls(pickle.load(fobj))
+
+    @classmethod
+    def dump(cls) -> None:
+        with open(cls.HOURS_PICKLE, "wb") as fobj:
+            pickle.dump(cls.load_hours_of_operation(), fobj)
+
+    @classmethod
     def load_hours_of_operation(cls) -> dict[int, list[datetime.time]]:
         return {day["weekday"]: [day["start"], day["end"]] for day in cls._iter_hours()}
 
@@ -56,3 +71,7 @@ class SlotsLoader:
                 start = parse(start_str).time()
                 end = parse(end_str).time()
                 yield {"weekday": day, "start": start, "end": end}
+
+
+if __name__ == "__main__":
+    SlotsLoader.dump()
