@@ -11,7 +11,7 @@ fe:
 
 .PHONY: watch
 watch:
-	python3 frontend.py watch
+	python3 -u frontend.py watch
 
 .PHONY: dev
 dev: fe

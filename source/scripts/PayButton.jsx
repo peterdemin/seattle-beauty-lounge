@@ -9,7 +9,6 @@ const PayButton = ({ email, onConfirm }) => {
 	const handleClick = () => {
 		setLoading(true);
 		checkout.confirm({ email, redirect: "if_required" }).then((result) => {
-			console.log(result);
 			if (result.type === "error") {
 				setError(result.error);
 			} else {
@@ -18,8 +17,6 @@ const PayButton = ({ email, onConfirm }) => {
 			setLoading(false);
 		});
 	};
-
-	console.log(checkout);
 
 	return (
 		<div className="mt-4 flex place-content-end">

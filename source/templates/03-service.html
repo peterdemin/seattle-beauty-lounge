@@ -11,11 +11,13 @@
       </p>
       <div class="flex items-center place-content-end">
         <div class="text-gray-200 text-xl text-base p-5">
-          {{ service.price }}
+            {{ service.duration }} | {{ service.price }}
         </div>
         <button
             class="book-btn py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border border-amber-300 hover:bg-amber-300 hover:text-black"
-            data-service-id="{{ service.title }}">
+            data-service-id="{{ service.title }}"
+            data-duration="{{ service.duration_min }}"
+            type=button>
                 Book
         </button>
       </div>

@@ -14,6 +14,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	// Wizard State
 	const [availability, setAvailability] = useState([]);
 	const [selectedService, setSelectedService] = useState(null);
+	const [duration, setDuration] = useState(null);
 	const [selectedDate, setSelectedDate] = useState(null);
 	const [selectedTime, setSelectedTime] = useState(null);
 	const [clientName, setClientName] = useState(null);
@@ -26,27 +27,25 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	});
 
 	useEffect(() => {
-		async function fetchAvailability() {
-			// const res = await fetch(`${apiUrl}/availability`);
-			// const data = await res.json();
-			const data = [
-				{
-					id: "id",
-					name: "name",
-					description: "description",
-				},
-			];
-			setAvailability(data);
+		if (duration === null || apiUrl === null) {
+			return;
 		}
-		fetchAvailability();
+		fetch(`${apiUrl}/availability?duration=${duration}`)
+			.then((response) => response.json())
+			.then(setAvailability);
+	}, [apiUrl, duration]);
 
+	useEffect(() => {
 		fetch(`${apiUrl}/checkout`, { method: "POST" })
 			.then((response) => response.json())
 			.then((json) => setStripeClientSecret(json.clientSecret));
+	}, [apiUrl]);
 
+	useEffect(() => {
 		for (const element of document.getElementsByClassName("book-btn")) {
 			element.addEventListener("click", () => {
 				setSelectedService(element.dataset.serviceId);
+				setDuration(element.dataset.duration);
 				setCurrentStep(2);
 				document.getElementById("book-modal").classList.remove("hidden");
 			});
@@ -54,7 +53,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 		document.getElementById("book-close").addEventListener("click", () => {
 			document.getElementById("book-modal").classList.add("hidden");
 		});
-	}, [apiUrl]);
+	}, []);
 
 	async function handleSubmitAppointment() {
 		const payload = {
@@ -86,6 +85,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 		<div>
 			{currentStep === 2 && (
 				<PickDateStep
+					availability={availability}
 					onDateSelect={(date) => {
 						setSelectedDate(date);
 						setCurrentStep(3);
@@ -94,7 +94,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			)}
 			{currentStep === 3 && (
 				<PickTimeslotStep
-					serviceId={selectedService}
+					availability={availability}
 					date={selectedDate}
 					onTimeslotSelect={(time) => {
 						setSelectedTime(time);
@@ -162,7 +162,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	);
 }
 
-function PickDateStep({ onDateSelect }) {
+function PickDateStep({ availability, onDateSelect }) {
 	const [selectedDay, setSelectedDay] = useState(null);
 
 	function addDays(date, days) {
@@ -219,35 +219,30 @@ function PickDateStep({ onDateSelect }) {
 	);
 }
 
-function PickTimeslotStep({ serviceId, date, onTimeslotSelect }) {
+function PickTimeslotStep({ availability, date, onTimeslotSelect }) {
 	const [selected, setSelected] = useState(null);
 	const [timeslots, setTimeslots] = useState([]);
 
 	useEffect(() => {
-		async function fetchTimes() {
-			const isoDate = date.toISOString().substring(0, 10);
-			const response = await fetch(
-				`${apiUrl}/availability?service=${serviceId}&date=${isoDate}`,
-			);
-			// const data = await response.json();
-			const data = [
-				"07:00",
-				"07:15",
-				"07:30",
-				"07:45",
-				"08:00",
-				"08:15",
-				"08:30",
-				"08:45",
-				"09:00",
-				"09:15",
-				"09:30",
-				"09:45",
-			];
-			setTimeslots(data);
+		if (availability === null || date === null) {
+			return;
 		}
-		fetchTimes();
-	}, [serviceId, date]);
+		const data = [
+			"07:00",
+			"07:15",
+			"07:30",
+			"07:45",
+			"08:00",
+			"08:15",
+			"08:30",
+			"08:45",
+			"09:00",
+			"09:15",
+			"09:30",
+			"09:45",
+		];
+		setTimeslots(data);
+	}, [availability, date]);
 
 	const slotClass = (slot) => {
 		const base = "cursor-pointer p-1 rounded-full border-2";
@@ -469,8 +464,9 @@ const CheckoutStep = ({
 ReactDOM.createRoot(document.getElementById("book")).render(
 	<StrictMode>
 		<BookingWizard
-			apiUrl="https://api.staging.seattle-beauty-lounge.com"
-			// apiUrl="http://localhost:8000"
+			// apiUrl="https://api.staging.seattle-beauty-lounge.com"
+			// apiUrl="https://seattle-beauty-lounge.com/api"
+			apiUrl="http://localhost:8000"
 			stripePublishableKey="pk_test_51Qalad4JEQklJs336eRXneul1QBSEn00GJ2AwYLKQcIKha0QoB53KOnPJtFUY2r5kAcGM5ltfn9qFqRNAXEQQBX20077lrDx0t"
 		/>
 	</StrictMode>,

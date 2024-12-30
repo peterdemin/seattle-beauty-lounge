@@ -1,5 +1,6 @@
 import glob
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -22,6 +23,7 @@ class Builder:
     PUBLIC_DIR = "public"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
     SERVICE_IMAGE_MAX_SIZE = (500, 500)
+    RE_NUMBER = re.compile(r"(\d+).*")
 
     def __init__(self):
         self.env = jinja2.Environment(
@@ -117,11 +119,15 @@ class Builder:
             idx = self.get_file_index(path)
             with open(path, "rt", encoding="utf-8") as fobj:
                 lines = [line.strip() for line in fobj]
+                price, duration = lines[-1].split(None, 1)
+                duration_min = int(self.RE_NUMBER.match(duration).group(1))
                 yield {
                     "image": images.get(idx, ""),
                     "title": lines[0].strip(" #"),
                     "description": lines[2],
-                    "price": lines[-1],
+                    "price": price,
+                    "duration": duration,
+                    "duration_min": duration_min,
                 }
 
     def export_images(self) -> None:
@@ -160,7 +166,9 @@ if __name__ == "__main__":
             try:
                 builder.build_public()
             except jinja2.exceptions.TemplateNotFound:
+                print("F", end="")
                 continue
+            print(".", end="")
             time.sleep(0.1)
     else:
         builder.build_public()
