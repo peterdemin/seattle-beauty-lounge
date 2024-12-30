@@ -53,16 +53,16 @@ function getSlotsForRange(range, serviceDuration) {
  * Returns an object with the same date keys, each an array of possible start times.
  */
 function getAvailableSlots(availability, serviceDuration) {
-	const result = {};
+	const slotsByDate = {};
 	for (const date in availability) {
 		const ranges = availability[date];
-		const allSlots = [];
+		slotsByDate[date] = [];
 		for (const range of ranges) {
 			const slots = getSlotsForRange(range, serviceDuration);
-			result[date] = allSlots.concat(slots);
+			slotsByDate[date] = slotsByDate[date].concat(slots);
 		}
 	}
-	return result;
+	return slotsByDate;
 }
 
 export default getAvailableSlots;

@@ -91,7 +91,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 		<div>
 			{currentStep === 2 && (
 				<PickDateStep
-					availability={availability}
+					slots={slots}
 					onDateSelect={(date) => {
 						setSelectedDate(date);
 						setCurrentStep(3);
@@ -168,21 +168,25 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	);
 }
 
-function PickDateStep({ availability, onDateSelect }) {
+function PickDateStep({ slots, onDateSelect }) {
 	const [selectedDay, setSelectedDay] = useState(null);
+	const [disabledDates, setDisabledDates] = useState(null);
+
+	useEffect(() => {
+		const dates = [];
+		for (const dateStr in slots) {
+			if (slots[dateStr].length === 0) {
+				const [year, month, day] = dateStr.split("-").map(Number);
+				dates.push(new Date(year, month - 1, day));
+			}
+		}
+		setDisabledDates(dates);
+	}, [slots]);
 
 	function addDays(date, days) {
 		const result = new Date(date);
 		result.setDate(result.getDate() + days);
 		return result;
-	}
-
-	const disabledDates = [];
-	for (const dateStr in availability) {
-		if (availability[dateStr].length === 0) {
-			const [year, month, day] = dateStr.split("-").map(Number);
-			disabledDates.push(new Date(year, month - 1, day));
-		}
 	}
 
 	const today = new Date();
@@ -193,6 +197,10 @@ function PickDateStep({ availability, onDateSelect }) {
 		if (selectedDay) {
 			onDateSelect(selectedDay.toISOString().substring(0, 10));
 		}
+	}
+
+	if (disabledDates === null) {
+		return null;
 	}
 
 	return (

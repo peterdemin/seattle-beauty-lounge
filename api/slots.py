@@ -35,14 +35,17 @@ class SlotsLoader:
         result = {}
         for offset in range(self.FIRST_OFFSET, self.LAST_OFFSET + 1):
             date = today + datetime.timedelta(days=offset)
+            date_str = date.strftime("%Y-%m-%d")
             if dow_range := hours.get(date.weekday()):
                 start, end = dow_range
-                result[date.strftime("%Y-%m-%d")] = [
+                result[date_str] = [
                     [
                         start.strftime("%H:%M"),
                         end.strftime("%H:%M"),
                     ]
                 ]
+            else:
+                result[date_str] = []
         return result
 
     @classmethod
