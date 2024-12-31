@@ -25,6 +25,12 @@ server {
 		proxy_set_header Host $http_host;
 	}
 
+	location /auth {
+		proxy_pass http://api;
+		proxy_set_header  X-Forwarded-Proto https;
+		proxy_set_header Host $http_host;
+	}
+
 	location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
