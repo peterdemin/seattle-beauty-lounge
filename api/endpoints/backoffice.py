@@ -24,7 +24,12 @@ class BackofficeAPI:
 
     def oauth2callback(self, request: Request):
         self._kv.set(
-            "creds", json.dumps(self._google_auth.resolve_credentials(str(request.url)).to_json())
+            "creds",
+            json.dumps(
+                self._google_auth.resolve_credentials(
+                    str(request.url.replace(scheme="https"))
+                ).to_json()
+            ),
         )
         return "Authorization successful!"
 
