@@ -1,31 +1,37 @@
+import json
+
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
+
+from api.google_auth import GoogleAuth
+from api.kv import KiwiStore
 
 app = FastAPI()
 
 
-@app.get("/authorize")
-def authorize_user():
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        redirect_uri="http://localhost:8000/oauth2callback",  # your callback
-    )
-    auth_url, _ = flow.authorization_url(prompt="consent")
-    return RedirectResponse(auth_url)
+class BackofficeAPI:
+    def __init__(self, kv: KiwiStore, google_auth: GoogleAuth) -> None:
+        self._kv = kv
+        self._google_auth = google_auth
 
+    def authorize_user(self, request: Request) -> RedirectResponse:
+        redirect_uri = request.url_for("oauth2callback")
+        return RedirectResponse(self._google_auth.gen_auth_url(redirect_uri))
 
-@app.get("/oauth2callback")
-def oauth2callback(request: Request):
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=SCOPES, redirect_uri="http://localhost:8000/oauth2callback"
-    )
-    flow.fetch_token(authorization_response=str(request.url))
-    credentials = flow.credentials
+    def oauth2callback(self, request: Request):
+        self._kv.set(
+            "creds", json.dumps(self._google_auth.resolve_credentials(str(request.url)).to_json())
+        )
+        return "Authorization successful!"
 
-    # Store these securely (DB), especially refresh_token
-    access_token = credentials.token
-    refresh_token = credentials.refresh_token
-
-    # The user is now authorized; proceed as needed
-    return {"msg": "Authorization successful!"}
+    def register(self, app_: FastAPI, prefix: str = "") -> None:
+        app_.add_api_route(
+            prefix + "/auth/consent",
+            self.authorize_user,
+            methods=["GET"],
+        )
+        app_.add_api_route(
+            prefix + "/auth/success",
+            self.oauth2callback,
+            methods=["GET"],
+        )

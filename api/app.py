@@ -8,7 +8,10 @@ from fastapi.staticfiles import StaticFiles
 from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
+from api.endpoints.backoffice import BackofficeAPI
 from api.endpoints.payment import PaymentAPI
+from api.google_auth import GoogleAuth
+from api.kv import KiwiStore
 from api.slots import SlotsLoader
 from api.tasks.emails import EmailTask
 
@@ -51,6 +54,10 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         "https://seattle-beauty-lounge.com",
         settings.stripe_api_key,
     ).register(app, prefix=settings.location_prefix)
+    BackofficeAPI(
+        kv=KiwiStore(db),
+        google_auth=GoogleAuth(),
+    ).register(app)
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")
     return app

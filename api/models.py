@@ -21,3 +21,8 @@ class AppointmentCreate(SQLModel):
     clientName: str
     clientPhone: str
     clientEmail: str
+
+
+class Kiwi(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    value: str = Field()
