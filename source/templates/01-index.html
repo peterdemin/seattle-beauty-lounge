@@ -13,10 +13,29 @@
       <noscript><link rel="stylesheet" href="assets/{{ style_name }}"></noscript>
     {% endif %}
     {% if style %}
-      <style>{{ style|safe }}</style>
+      <style>
+        {{ style|safe }}
+        {# Fix for bg-cover on iPhones #}
+        {# https://stackoverflow.com/a/43058483/135079 #}
+        body:after{
+              content:"";
+              position:fixed; /* stretch a fixed position to the whole screen */
+              top:0;
+              height:100vh; /* fix for mobile browser address bar appearing disappearing */
+              left:0;
+              right:0;
+              z-index:-1; /* needed to keep in the background */
+              background: url(./images/00-hero.webp) center center;
+              background-color: black;
+              -webkit-background-size: cover;
+              -moz-background-size: cover;
+              -o-background-size: cover;
+              background-size: cover;
+        }
+      </style>
     {% endif %}
   </head>
-  <body class="bg-hero bg-black bg-no-repeat bg-cover bg-center bg-fixed" style="background-image: url(./images/00-hero.webp)">
+  <body>
     <div class="lg:py-48 py-24 px-3 text-center">
       <h1 class="mx-auto w-fit p-4 my-8 rounded-xl text-5xl font-bold leading-tight text-amber-300 bg-opacity-50 bg-black">
         Seattle Beauty Lounge
