@@ -40,8 +40,8 @@ class GoogleAuth:
         )
 
     def gen_auth_url(self, redirect_uri: str) -> str:
-        flow = Flow.from_client_secrets_file(
-            self._CREDENTIALS_PATH,
+        flow = Flow.from_client_config(
+            self._client_config,
             scopes=self._SCOPES,
             redirect_uri=redirect_uri,
         )
@@ -49,8 +49,8 @@ class GoogleAuth:
         return auth_url
 
     def resolve_credentials(self, url: str):
-        flow = Flow.from_client_secrets_file(
-            self._CREDENTIALS_PATH,
+        flow = Flow.from_client_config(
+            self._client_config,
             scopes=self._SCOPES,
             redirect_uri="http://localhost:8000/oauth2callback",
         )
