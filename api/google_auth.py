@@ -1,3 +1,4 @@
+import json
 import os
 
 from google.auth.exceptions import RefreshError
@@ -11,7 +12,7 @@ class GoogleAuth:
     _SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
     def __init__(self, client_config: dict) -> None:
-        self._client_config = client_config
+        self._client_config = json.loads(client_config)
 
     def get_local_credentials(self) -> Credentials:
         creds = None
