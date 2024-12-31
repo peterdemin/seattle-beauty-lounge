@@ -18,7 +18,7 @@ class BackofficeAPI:
         redirect_uri = request.url_for("oauth2callback")
         return RedirectResponse(
             self._google_auth.gen_auth_url(
-                redirect_uri=redirect_uri.replace("http://", "https://"),
+                redirect_uri=str(redirect_uri.replace(scheme="https")),
             )
         )
 
