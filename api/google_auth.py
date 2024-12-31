@@ -1,5 +1,5 @@
 import json
-import os
+from typing import cast
 
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
@@ -8,10 +8,9 @@ from google_auth_oauthlib.flow import Flow, InstalledAppFlow
 
 
 class GoogleAuth:
-    _CREDENTIALS_PATH = os.path.expanduser("~/.gcp/credentials.json")
     _SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
-    def __init__(self, client_config: dict) -> None:
+    def __init__(self, client_config: str) -> None:
         self._client_config = json.loads(client_config)
 
     def get_local_credentials(self) -> Credentials:
@@ -27,7 +26,7 @@ class GoogleAuth:
                     fresh = True
             if not fresh:
                 flow = InstalledAppFlow.from_client_config(self._client_config, self._SCOPES)
-                creds = flow.run_local_server(port=0)
+                creds = cast(Credentials, flow.run_local_server(port=0))
         return creds
 
     def get_different_credentials(self, access_token, refresh_token, client_id, client_secret):

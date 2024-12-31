@@ -16,7 +16,11 @@ class BackofficeAPI:
 
     def authorize_user(self, request: Request) -> RedirectResponse:
         redirect_uri = request.url_for("oauth2callback")
-        return RedirectResponse(self._google_auth.gen_auth_url(redirect_uri))
+        return RedirectResponse(
+            self._google_auth.gen_auth_url(
+                redirect_uri=redirect_uri.replace("http://", "https://"),
+            )
+        )
 
     def oauth2callback(self, request: Request):
         self._kv.set(
