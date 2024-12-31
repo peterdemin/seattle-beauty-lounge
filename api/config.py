@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     stripe_api_key: str = ""
 
+    gcp_client_config: str = ""
+
     @classmethod
     def test_settings(cls) -> "Settings":
         return cls(
@@ -25,4 +27,5 @@ class Settings(BaseSettings):
             proxy_frontend=False,
             location_prefix="",
             stripe_api_key="",
+            gcp_client_config="",
         )

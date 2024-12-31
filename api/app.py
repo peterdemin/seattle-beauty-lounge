@@ -56,7 +56,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     ).register(app, prefix=settings.location_prefix)
     BackofficeAPI(
         kv=KiwiStore(db),
-        google_auth=GoogleAuth(),
+        google_auth=GoogleAuth(settings.gcp_client_config),
     ).register(app)
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")

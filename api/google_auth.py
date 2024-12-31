@@ -10,6 +10,9 @@ class GoogleAuth:
     _CREDENTIALS_PATH = os.path.expanduser("~/.gcp/credentials.json")
     _SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
+    def __init__(self, client_config: dict) -> None:
+        self._client_config = client_config
+
     def get_local_credentials(self) -> Credentials:
         creds = None
         fresh = False
@@ -22,9 +25,7 @@ class GoogleAuth:
                 else:
                     fresh = True
             if not fresh:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    self._CREDENTIALS_PATH, self._SCOPES
-                )
+                flow = InstalledAppFlow.from_client_config(self._client_config, self._SCOPES)
                 creds = flow.run_local_server(port=0)
         return creds
 
