@@ -1,11 +1,18 @@
 import datetime
 
+import pytest
+
+from api.calendar_client import DayBreaker
 from api.slots import SlotsLoader
 
 
-def test_slots_loader():
-    slots = SlotsLoader()
-    got = slots.load_hours_of_operation()
+@pytest.fixture(name="slots_loader")
+def build_slots_loader() -> SlotsLoader:
+    return SlotsLoader(DayBreaker({}))
+
+
+def test_slots_loader(slots_loader: SlotsLoader):
+    got = slots_loader.load_hours_of_operation()
     assert got == {
         0: [datetime.time(10, 0), datetime.time(19, 0)],
         1: [datetime.time(10, 0), datetime.time(19, 0)],
@@ -16,10 +23,9 @@ def test_slots_loader():
     }
 
 
-def test_gen_ranges() -> None:
-    slots = SlotsLoader()
+def test_gen_ranges(slots_loader: SlotsLoader) -> None:
     the_day = datetime.date(2024, 12, 27)
-    got = slots.gen_ranges(the_day)
+    got = slots_loader.gen_ranges(the_day)
     assert len(got) == 7 * 6
     assert got == {
         "2024-12-28": [["10:00", "17:00"]],

@@ -1,11 +1,32 @@
 import datetime
+import json
 import os
 import pickle
+import time
 from typing import Iterable, Optional
 
 from dateutil.parser import parse
 
+from api.calendar_client import DayBreaker, DayBreakerInterface
+from api.kv import KiwiStore
+
 HERE = os.path.dirname(__file__)
+
+
+class FreshDayBreaker(DayBreakerInterface):
+    TTL = 60  # 1 minute
+
+    def __init__(self, kv: KiwiStore) -> None:
+        self._kv = kv
+        self._stale_day_breaker = DayBreaker({})
+        self._refresh_time = 0
+
+    def break_availability(self, date: str, start: str, end: str) -> list[list[str]]:
+        now = time.time()
+        if now > self._refresh_time:
+            self._stale_day_breaker = DayBreaker(json.loads(self._kv.get("busy_dates") or "{}"))
+            self._refresh_time = now + self.TTL
+        return self._stale_day_breaker.break_availability(date, start, end)
 
 
 class SlotsLoader:
@@ -14,8 +35,13 @@ class SlotsLoader:
     FIRST_OFFSET = 1
     LAST_OFFSET = 7 * 6  # 6 weeks
 
-    def __init__(self, hours_of_operation: Optional[dict[int, list[datetime.time]]] = None) -> None:
+    def __init__(
+        self,
+        day_breaker: DayBreakerInterface,
+        hours_of_operation: Optional[dict[int, list[datetime.time]]] = None,
+    ) -> None:
         self._hours_of_operation = hours_of_operation or self.load_hours_of_operation()
+        self._day_breaker = day_breaker
 
     def gen_ranges(self, today: Optional[datetime.date] = None) -> dict[str, list[list[str]]]:
         """Generates availability time ranges for each day.
@@ -27,8 +53,8 @@ class SlotsLoader:
             today - optional date to anchor the date range. Today be default.
 
         Returns:
-            mapping from date string formatted as YYYY-mm-dd
-            to a list of start and end time formatted as HH:MM
+            mapping from date string formatted as "YYYY-mm-dd"
+            to a list of (start, end) time pairs formatted as "HH:MM"
         """
         today = today or datetime.date.today()
         hours = self._hours_of_operation
@@ -38,20 +64,19 @@ class SlotsLoader:
             date_str = date.strftime("%Y-%m-%d")
             if dow_range := hours.get(date.weekday()):
                 start, end = dow_range
-                result[date_str] = [
-                    [
-                        start.strftime("%H:%M"),
-                        end.strftime("%H:%M"),
-                    ]
-                ]
+                result[date_str] = self._day_breaker.break_availability(
+                    date_str,
+                    start.strftime("%H:%M"),
+                    end.strftime("%H:%M"),
+                )
             else:
                 result[date_str] = []
         return result
 
     @classmethod
-    def load(cls) -> "SlotsLoader":
+    def load(cls, day_breaker: DayBreakerInterface) -> "SlotsLoader":
         with open(cls.HOURS_PICKLE, "rb") as fobj:
-            return cls(pickle.load(fobj))
+            return cls(day_breaker, pickle.load(fobj))
 
     @classmethod
     def dump(cls) -> None:
