@@ -15,10 +15,9 @@ class BackofficeAPI:
         self._google_auth = google_auth
 
     def authorize_user(self, request: Request) -> RedirectResponse:
-        redirect_uri = request.url_for("oauth2callback")
         return RedirectResponse(
             self._google_auth.gen_auth_url(
-                redirect_uri=str(redirect_uri.replace(scheme="https")),
+                redirect_uri=self._get_redirect_uri(request),
             )
         )
 
@@ -27,11 +26,15 @@ class BackofficeAPI:
             "creds",
             json.dumps(
                 self._google_auth.resolve_credentials(
-                    str(request.url.replace(scheme="https"))
+                    str(request.url.replace(scheme="https")),
+                    redirect_uri=self._get_redirect_uri(request),
                 ).to_json()
             ),
         )
         return "Authorization successful!"
+
+    def _get_redirect_uri(self, request: Request) -> str:
+        return str(request.url_for("oauth2callback").replace(scheme="https"))
 
     def register(self, app_: FastAPI, prefix: str = "") -> None:
         app_.add_api_route(
