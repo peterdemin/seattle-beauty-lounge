@@ -1,6 +1,14 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 
+HTML_FILES := $(wildcard public/*.html)
+JS_FILES := $(wildcard public/assets/*.js)
+CSS_FILES := $(wildcard public/assets/*.css)
+
+COMPRESSED_HTML := $(HTML_FILES:.html=.html.gz)
+COMPRESSED_JS := $(JS_FILES:.js=.js.gz)
+COMPRESSED_CSS := $(CSS_FILES:.css=.css.gz)
+
 .PHONY: clean
 clean:
 	rm -rf public .build dist source/scripts/dist __pycache__ api/__pycache__ api/**/__pycache__
@@ -16,6 +24,12 @@ staging: clean
 .PHONY: production
 production: clean
 	python3 frontend.py production
+
+.PHONY: compress
+compress: $(COMPRESSED_HTML) $(COMPRESSED_JS) $(COMPRESSED_CSS)
+
+%.gz: %
+	gzip -c $< > $@
 
 .PHONY: watch
 watch:
