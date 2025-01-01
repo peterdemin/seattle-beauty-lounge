@@ -10,6 +10,7 @@ ssh seattle-beauty-lounge.com "sudo ls /home/api >/dev/null 2>&1 && sudo mv .env
 rsync -a --delete api seattle-beauty-lounge.com:
 ssh seattle-beauty-lounge.com "sudo api/deploy.sh"
 
-make production compress
+make production
+make compress  # Must be run separately to detect targets
 rsync -a --delete public seattle-beauty-lounge.com:
 ssh seattle-beauty-lounge.com "sudo rsync -a --delete public/ /var/www/html"
