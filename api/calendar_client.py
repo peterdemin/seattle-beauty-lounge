@@ -69,10 +69,13 @@ class DayBreaker(DayBreakerInterface):
     def break_availability(self, date: str, start: str, end: str) -> list[list[str]]:
         result = []
         for break_start, break_end in self._breaks.get(date, []):
-            if start < break_start < end:
-                result.append([start, break_start])
+            if start <= break_start <= end:
+                if start < break_start:
+                    result.append([start, break_start])
                 start = break_end
-            elif start < break_end < end:
+            elif start <= break_end <= end:
+                start = break_end
+            elif break_start <= start < end <= break_end:
                 start = break_end
         if start < end:
             result.append([start, end])

@@ -25,6 +25,10 @@ watch:
 dev: fe
 	fastapi dev api/main.py
 
+.PHONY: slots
+slots:
+	python -m api.sync_local peter@seattle-beauty-lounge.com
+
 .PHONY: install
 install:
 	pip install -r requirements/dev.txt
