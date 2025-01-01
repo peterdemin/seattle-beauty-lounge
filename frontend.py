@@ -53,11 +53,12 @@ class Builder:
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
             script_name = os.path.basename(path)
             break  # Just one bundle
-        style_name = ""
+        style = ""
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.css"):
             shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
-            style_name = os.path.basename(path)
+            with open(path, "rt", encoding="utf-8") as fobj:
+                style = fobj.read()
             break  # Just one bundle
         # Render template with embedded tailwind css
         hours = list(self.iter_hours())
@@ -65,15 +66,15 @@ class Builder:
         self.export_images()
         self.render_index_with_style(
             script_name=script_name,
-            style_name=style_name,
+            style=style,
             hours=hours,
             cancellation_policy=cancellation_policy,
         )
 
     def render_index_with_style(self, **params) -> None:
         self.save_rendered_index(f"{self.BUILD_DIR}/index.html", **params)
-        style = self.gen_tailwind_css()
-        self.save_rendered_index(f"{self.PUBLIC_DIR}/index.html", style=style, **params)
+        params["style"] = params.get("style", "") + self.gen_tailwind_css()
+        self.save_rendered_index(f"{self.PUBLIC_DIR}/index.html", **params)
 
     def save_rendered_index(self, path: str, **params) -> None:
         with open(path, "wt", encoding="utf-8") as fobj:
