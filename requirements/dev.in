@@ -1,6 +1,7 @@
 -r prereq.in
 -r ../source/requirements.in
 -r ../api/requirements.in
+-r ../jigs/load-testing/requirements.in
 
 pyright
 flake8

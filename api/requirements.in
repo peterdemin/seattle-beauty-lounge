@@ -5,6 +5,8 @@ httpx
 python-dateutil
 psycopg2-binary
 pytz
+cachetools
+types-cachetools
 
 stripe
 

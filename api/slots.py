@@ -5,6 +5,7 @@ import pickle
 import time
 from typing import Iterable, Optional
 
+from cachetools import TTLCache, cached
 from dateutil.parser import parse
 
 from api.calendar_client import DayBreaker, DayBreakerInterface
@@ -43,6 +44,7 @@ class SlotsLoader:
         self._hours_of_operation = hours_of_operation or self.load_hours_of_operation()
         self._day_breaker = day_breaker
 
+    @cached(cache=TTLCache(maxsize=1, ttl=60))
     def gen_ranges(self, today: Optional[datetime.date] = None) -> dict[str, list[list[str]]]:
         """Generates availability time ranges for each day.
 
