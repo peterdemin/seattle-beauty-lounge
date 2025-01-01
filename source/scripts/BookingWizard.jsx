@@ -3,7 +3,7 @@ import { DayPicker } from "react-day-picker";
 import ReactDOM from "react-dom/client";
 import "/rdp-style.css";
 import { CheckoutProvider } from "@stripe/react-stripe-js";
-import { PaymentElement, useCheckout } from "@stripe/react-stripe-js";
+import { PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useForm } from "react-hook-form";
 import PayButton from "./PayButton.jsx";
@@ -123,7 +123,6 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			)}
 			{currentStep === 5 && (
 				<CheckoutStep
-					clientPhone={clientPhone}
 					clientEmail={clientEmail}
 					clientSecret={stripeClientSecret}
 					stripe={stripe}
@@ -143,7 +142,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			)}
 			{currentStep === "confirmation" && (
 				<div>
-					<h2 className="text-2xl text-center font-thin text-amber-300">
+					<h2 className="text-2xl text-center font-light text-primary">
 						Thank you, {clientName}! Your appointment is confirmed.
 					</h2>
 					<p>
@@ -156,7 +155,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 						<br />
 						call{" "}
 						<a
-							class="font-medium text-amber-300 underline"
+							class="font-medium text-primary underline"
 							href="tel:+13016588708"
 						>
 							+1 (301) 658-8708
@@ -205,7 +204,7 @@ function PickDateStep({ slots, onDateSelect }) {
 
 	return (
 		<div>
-			<h2 className="text-2xl text-center font-thin text-amber-300">
+			<h2 className="text-2xl text-center font-light text-primary">
 				Pick a Date
 			</h2>
 			<DayPicker
@@ -220,18 +219,24 @@ function PickDateStep({ slots, onDateSelect }) {
 					),
 				}}
 			/>
-			<div className="flex place-content-end">
-				<button
-					className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300
-                       disabled:invisible
-                       hover:bg-amber-300 hover:text-black"
-					onClick={handleNext}
-					disabled={!selectedDay}
-					type="button"
-				>
-					Next
-				</button>
-			</div>
+			<NextButton handleNext={handleNext} disabled={!selectedDay} />
+		</div>
+	);
+}
+
+function NextButton({ handleNext, disabled }) {
+	return (
+		<div className="flex place-content-end">
+			<button
+				className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
+                   disabled:invisible
+                   hover:bg-primary hover:text-black"
+				onClick={handleNext}
+				disabled={disabled}
+				type="button"
+			>
+				Next
+			</button>
 		</div>
 	);
 }
@@ -250,17 +255,17 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 	const slotClass = (slot) => {
 		const base = "cursor-pointer p-1 rounded-full border-2";
 		if (selected === slot) {
-			return `${base} border-amber-300 text-amber-300`;
+			return `${base} border-primary text-primary`;
 		}
-		return `${base} border-black text-white`;
+		return `${base} border-neutral text-black`;
 	};
 
 	return (
 		<div>
-			<h2 className="text-2xl text-center pb-4 font-thin text-amber-300">
+			<h2 className="text-2xl text-center pb-4 font-light text-primary">
 				Pick a Time
 			</h2>
-			<div className="grid grid-cols-4 gap-4">
+			<div className="grid grid-cols-4 gap-4 mb-4">
 				{timeslots.map((slot) => (
 					<button
 						onClick={() => {
@@ -274,20 +279,12 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 					</button>
 				))}
 			</div>
-			<div className="mt-4 flex place-content-end">
-				<button
-					className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300
-                    disabled:invisible
-                    hover:bg-amber-300 hover:text-black"
-					onClick={() => {
-						onTimeslotSelect(selected);
-					}}
-					disabled={!selected}
-					type="button"
-				>
-					Next
-				</button>
-			</div>
+			<NextButton
+				handleNext={() => {
+					onTimeslotSelect(selected);
+				}}
+				disabled={!selected}
+			/>
 		</div>
 	);
 }
@@ -309,13 +306,13 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 		onNextStep(data.name, data.phone, data.email);
 	};
 
-	const labelClass = "block mt-2 font-thin text-amber-300";
+	const labelClass = "block mt-2 font-light text-primary";
 	const inputClass =
-		"block bg-stone-700 border border-amber-600 text-white text-sm rounded-lg focus:ring-amber-300 focus:border-amber-500 w-full p-2.5";
+		"block bg-neutral border border-primary text-black text-sm rounded-lg focus:ring-primary w-full p-2.5";
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
-			<h2 className="text-2xl text-center pb-4 font-thin text-amber-300">
+			<h2 className="text-2xl text-center pb-4 font-light text-primary">
 				Enter Your Information
 			</h2>
 
@@ -351,7 +348,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 				{errors.phone && <p style={{ color: "red" }}>{errors.phone.message}</p>}
 			</div>
 
-			<div>
+			<div class="mb-4">
 				<label htmlFor="email" className={labelClass}>
 					E-MAIL
 				</label>
@@ -372,8 +369,8 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 
 			<div className="mt-4 flex place-content-end">
 				<button
-					className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300
-                 hover:bg-amber-300 hover:text-black"
+					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
+                    hover:bg-primary hover:text-black"
 					type="submit"
 				>
 					Next
@@ -400,22 +397,22 @@ function ReviewAndConfirmStep({
 	}
 	return (
 		<div>
-			<h2 className="text-2xl text-center font-thin text-amber-300 mb-4">
+			<h2 className="text-2xl text-center font-light text-primary mb-4">
 				Review and Confirm
 			</h2>
-			<p className="text-lg font-thin [&>span]:font-medium [&>span]:text-amber-300">
+			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
 				I, <span>{clientName}</span>, want to book <span>{serviceId}</span> on{" "}
 				<span>{formatDate(date)}</span> at <span>{time}</span>.
 			</p>
-			<p className="text-lg font-thin [&>span]:font-medium [&>span]:text-amber-300">
+			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
 				You can contact me by phone: <span>{clientPhone}</span>
 			</p>
-			<p className="text-lg font-thin [&>span]:font-medium [&>span]:text-amber-300">
+			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
 				Or by email: <span>{clientEmail}</span>
 			</p>
 			<div className="flex place-content-center my-4">
 				<button
-					className="py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border-2 border-amber-300 hover:bg-amber-300 hover:text-black"
+					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary hover:bg-primary hover:text-black"
 					onClick={onConfirm}
 					type="button"
 				>
@@ -426,13 +423,7 @@ function ReviewAndConfirmStep({
 	);
 }
 
-const CheckoutStep = ({
-	clientPhone,
-	clientEmail,
-	clientSecret,
-	onConfirm,
-	stripe,
-}) => {
+const CheckoutStep = ({ clientEmail, clientSecret, onConfirm, stripe }) => {
 	if (clientSecret) {
 		return (
 			<CheckoutProvider
@@ -443,9 +434,9 @@ const CheckoutStep = ({
 						appearance: {
 							theme: "night",
 							variables: {
-								colorPrimary: "#fcd34d",
-								colorBackground: "#000000",
-								colorText: "#d1d5db",
+								colorPrimary: "#0dc0ca",
+								colorBackground: "#ffe8cb",
+								colorText: "#000000",
 								colorDanger: "#df1b41",
 								spacingUnit: "2px",
 								borderRadius: "4px",

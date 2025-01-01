@@ -1,20 +1,20 @@
-<div class="sm:max-w-md bg-stone-950 sm:rounded-t-xl overflow-hidden">
+<div class="sm:max-w-md bg-neutral sm:rounded-t-xl overflow-hidden">
     {% if service.image %}
     <img class="w-full max-h-96 aspect-square object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
     {% endif %}
     <div class="p-4">
-      <h2 class="w-full text-amber-300 text-2xl">
+      <h2 class="w-full text-primary text-2xl">
         {{ service.title }}
       </h2>
-      <p class="text-gray-300 text-base mb-5">
+      <p class="text-stone-900 text-base mb-5">
         {{ service.description }}
       </p>
       <div class="flex items-center place-content-end">
-        <div class="text-gray-200 text-xl text-base p-5">
+        <div class="text-stone-900 text-xl text-base p-5">
             {{ service.duration }} | {{ service.price }}
         </div>
         <button
-            class="book-btn py-2 px-5 rounded-lg text-2xl text-amber-300 font-bold border border-amber-300 hover:bg-amber-300 hover:text-black"
+            class="book-btn py-2 px-5 rounded-lg text-2xl text-primary font-bold border border-primary hover:bg-primary hover:text-black"
             data-service-id="{{ service.title }}"
             data-duration="{{ service.duration_min }}"
             type=button>

@@ -155,11 +155,11 @@ class Builder:
                 "public": os.path.join(self.PUBLIC_DIR, os.path.relpath(path, self.SOURCE_DIR)),
                 "url": os.path.relpath(path, self.SOURCE_DIR),
             }
-            for path in glob.glob("source/images/*")
+            for path in glob.glob(f"{self.SOURCE_DIR}/images/*")
         }
 
     def get_file_index(self, path: str) -> str:
-        return os.path.basename(path).split("-")[0]
+        return os.path.basename(path).split("-", 1)[0]
 
 
 if __name__ == "__main__":
