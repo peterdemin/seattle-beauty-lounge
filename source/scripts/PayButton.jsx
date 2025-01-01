@@ -22,7 +22,7 @@ const PayButton = ({ email, onConfirm }) => {
 		<div className="mt-4 flex place-content-end">
 			<button
 				className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
-                     hover:bg-primary hover:text-black"
+                     hover:bg-primary hover:text-neutral"
 				onClick={handleClick}
 				disabled={loading}
 				type="button"
