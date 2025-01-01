@@ -15,11 +15,14 @@ class GoogleAuth:
         self._client_config = json.loads(client_config)
 
     @classmethod
-    def delegated(cls, email: str) -> service_account.Credentials:
-        return service_account.Credentials.from_service_account_file(
-            cls._SERVICE_KEY,
-            scopes=cls._SCOPES,
-            subject=email,
+    def delegated(cls, email: str) -> Credentials:
+        return cast(
+            Credentials,
+            service_account.Credentials.from_service_account_file(
+                cls._SERVICE_KEY,
+                scopes=cls._SCOPES,
+                subject=email,
+            ),
         )
 
     def get_local_credentials(self) -> Credentials:

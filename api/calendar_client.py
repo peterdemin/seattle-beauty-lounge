@@ -1,4 +1,5 @@
 import datetime
+from typing import Iterable
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -83,7 +84,7 @@ class DayBreaker(DayBreakerInterface):
 
     @staticmethod
     def group_time_ranges(
-        time_ranges: list[tuple[datetime.datetime, datetime.datetime]]
+        time_ranges: Iterable[tuple[datetime.datetime, datetime.datetime]]
     ) -> dict[str, list[list[str]]]:
         result = {}
         for start, end in time_ranges:

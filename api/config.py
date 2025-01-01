@@ -9,13 +9,12 @@ class Settings(BaseSettings):
     sender_email: str = ""
     sender_password: str = ""
     enable_emails: bool = False
+    enable_calendar: bool = False
 
     proxy_frontend: bool = False
     location_prefix: str = ""
 
     stripe_api_key: str = ""
-
-    gcp_client_config: str = ""
 
     @classmethod
     def test_settings(cls) -> "Settings":
@@ -24,8 +23,8 @@ class Settings(BaseSettings):
             sender_email="",
             sender_password="",
             enable_emails=False,
+            enable_calendar=False,
             proxy_frontend=False,
             location_prefix="",
             stripe_api_key="",
-            gcp_client_config="",
         )
