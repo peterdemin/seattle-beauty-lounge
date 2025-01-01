@@ -1,15 +1,15 @@
-<div class="sm:max-w-md bg-neutral sm:rounded-t-xl overflow-hidden">
+<div class="sm:max-w-md sm:rounded-xl bg-neutral overflow-hidden">
     {% if service.image %}
-    <img class="w-full max-h-96 aspect-square object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
+    <img class="w-full max-h-96 aspect-video object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
     {% endif %}
-    <div class="p-4">
-      <h2 class="w-full text-primary text-2xl">
+    <div class="pb-4">
+      <h2 class="w-full py-2 px-4 text-neutral bg-primary text-3xl">
         {{ service.title }}
       </h2>
-      <p class="text-stone-900 text-base mb-5">
+      <p class="text-stone-900 px-4 text-base mb-5">
         {{ service.description }}
       </p>
-      <div class="flex items-center place-content-end">
+      <div class="px-4 flex items-center place-content-end">
         <div class="text-stone-900 text-xl text-base p-5">
             {{ service.duration }} | {{ service.price }}
         </div>
