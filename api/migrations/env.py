@@ -1,5 +1,3 @@
-from logging.config import fileConfig
-
 from alembic import context
 from sqlmodel import SQLModel
 
@@ -7,9 +5,6 @@ import api.models as _  # noqa register models
 from api.config import Settings
 from api.db import Database
 
-config = context.config
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
 target_metadata = SQLModel.metadata
 
 
