@@ -32,9 +32,11 @@ class CalendarTask(CalendarTaskDummy):
             self._services_info.compose_event(
                 title=appointment.serviceId,
                 description=self._DESCRIPTION_TEMPLATE.format(appointment=appointment),
-                start_dt=datetime.datetime.combine(
-                    appointment.date,
-                    appointment.time,
-                ).astimezone(TIMEZONE),
+                start_dt=TIMEZONE.localize(
+                    datetime.datetime.combine(
+                        appointment.date,
+                        appointment.time,
+                    )
+                ),
             )
         )

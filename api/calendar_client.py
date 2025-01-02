@@ -14,7 +14,7 @@ class CalendarService:
         self._service = build("calendar", "v3", credentials=creds)
 
     def fetch(self, limit_days: int) -> list[dict]:
-        now = datetime.datetime.now().astimezone(TIMEZONE)
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
         time_max = now + datetime.timedelta(days=limit_days)
         return (
             self._service.events()
@@ -37,23 +37,25 @@ class CalendarEventParser:
 
     def __call__(self, event: dict) -> tuple[datetime.datetime, datetime.datetime]:
         if start := event["start"].get("dateTime"):
-            start_dt = datetime.datetime.fromisoformat(start).astimezone(TIMEZONE)
+            start_dt = datetime.datetime.fromisoformat(start)
         else:
             start = event["start"].get("date")
-            start_dt = datetime.datetime.combine(
-                datetime.date.fromisoformat(start),
-                datetime.time(0, 0),
-                TIMEZONE,
+            start_dt = TIMEZONE.localize(
+                datetime.datetime.combine(
+                    datetime.date.fromisoformat(start),
+                    datetime.time(0, 0),
+                )
             )
 
         if end := event["end"].get("dateTime"):
-            end_dt = datetime.datetime.fromisoformat(end).astimezone(TIMEZONE)
+            end_dt = datetime.datetime.fromisoformat(end)
         else:
             end = event["end"].get("date")  # Next day after the event
-            end_dt = datetime.datetime.combine(
-                datetime.date.fromisoformat(end),
-                datetime.time(0, 0),
-                TIMEZONE,
+            end_dt = TIMEZONE.localize(
+                datetime.datetime.combine(
+                    datetime.date.fromisoformat(end),
+                    datetime.time(0, 0),
+                )
             ) - datetime.timedelta(seconds=1)
 
         return (start_dt, end_dt)

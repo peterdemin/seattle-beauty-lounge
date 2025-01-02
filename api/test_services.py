@@ -16,9 +16,11 @@ def test_load_from_pickle():
     event = services_info.compose_event(
         title="Eyebrow microblading",
         description="Description",
-        start_dt=datetime.datetime.combine(
-            datetime.date(2014, 4, 14),
-            datetime.time(1, 2, 3),
-        ).astimezone(TIMEZONE),
+        start_dt=TIMEZONE.localize(
+            datetime.datetime.combine(
+                datetime.date(2014, 4, 14),
+                datetime.time(1, 2, 3),
+            )
+        ),
     )
     assert event == MICROBLADING_EVENT
