@@ -1,9 +1,9 @@
-<section class="bg-neutral py-8">
+<section class="bg-stone-200 nm-flat-gray-200-lg py-8">
   <div class="container mx-auto flex flex-wrap">
-    <h2 class="w-full my-2 text-5xl font-medium leading-tight text-center text-primary">
+    <h2 class="w-full my-5 text-5xl font-light leading-tight text-center text-primary">
       Services
     </h2>
-    <div class="grid mx-auto xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+    <div class="grid mx-auto xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-8">
       {% for service in services %}
         {% include "03-service.html" %}
       {% endfor %}
