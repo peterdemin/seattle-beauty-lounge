@@ -42,5 +42,5 @@ def test_submit_appointment(test_client: TestClient) -> None:
         "date": "2025-01-10",
         "id": 1,
         "serviceId": "haircut-123",
-        "time": "13:30",
+        "time": "13:30:00",
     }

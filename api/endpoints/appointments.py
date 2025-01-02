@@ -3,13 +3,21 @@ from fastapi import BackgroundTasks, FastAPI
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
 from api.slots import SlotsLoader
-from api.tasks.emails import EmailTask
+from api.tasks.calendar import CalendarTaskDummy
+from api.tasks.emails import EmailTaskDummy
 
 
 class AppointmentsAPI:
-    def __init__(self, db: Database, email_task: EmailTask, slots_loader: SlotsLoader) -> None:
+    def __init__(
+        self,
+        db: Database,
+        email_task: EmailTaskDummy,
+        calendar_task: CalendarTaskDummy,
+        slots_loader: SlotsLoader,
+    ) -> None:
         self._db = db
         self._email_task = email_task
+        self._calendar_task = calendar_task
         self._slots_loader = slots_loader
 
     def create_appointment(
@@ -31,19 +39,23 @@ class AppointmentsAPI:
             self._email_task.send_confirmation_email,
             appointment,
         )
+        background_tasks.add_task(
+            self._calendar_task.create_event,
+            appointment,
+        )
         return appointment
 
     def get_availability(self):
         return self._slots_loader.gen_ranges()
 
-    def register(self, app_: FastAPI, prefix: str = "") -> None:
-        app_.add_api_route(
+    def register(self, app: FastAPI, prefix: str = "") -> None:
+        app.add_api_route(
             prefix + "/appointments",
             self.create_appointment,
             response_model=Appointment,
             methods=["POST"],
         )
-        app_.add_api_route(
+        app.add_api_route(
             prefix + "/availability",
             self.get_availability,
             methods=["GET"],

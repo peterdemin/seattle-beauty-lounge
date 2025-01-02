@@ -3,18 +3,17 @@ from typing import Iterable
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from pytz import timezone
 
-TIMEZONE = timezone("US/Pacific")
+from api.constants import TIMEZONE
 
 
-class CalendarFetcher:
+class CalendarService:
     CALENDAR_ID = "primary"
 
     def __init__(self, creds: Credentials) -> None:
         self._service = build("calendar", "v3", credentials=creds)
 
-    def __call__(self, limit_days) -> list[dict]:
+    def fetch(self, limit_days: int) -> list[dict]:
         now = datetime.datetime.now().astimezone(TIMEZONE)
         time_max = now + datetime.timedelta(days=limit_days)
         return (
@@ -29,6 +28,9 @@ class CalendarFetcher:
             .execute()
             .get("items", [])
         )
+
+    def insert(self, body: dict) -> dict:
+        return self._service.events().insert(calendarId=self.CALENDAR_ID, body=body).execute()
 
 
 class CalendarEventParser:
@@ -119,12 +121,14 @@ class CalendarClient:
     LIMIT_DAYS = 7 * 7  # 7 weeks
 
     def __init__(
-        self, calendar_fetcher: CalendarFetcher, calendar_event_parser: CalendarEventParser
+        self, calendar_service: CalendarService, calendar_event_parser: CalendarEventParser
     ) -> None:
-        self._calendar_fetcher = calendar_fetcher
+        self._calendar_service = calendar_service
         self._calendar_event_parser = calendar_event_parser
 
     def __call__(
         self, limit_days: int = LIMIT_DAYS
     ) -> list[tuple[datetime.datetime, datetime.datetime]]:
-        return [self._calendar_event_parser(event) for event in self._calendar_fetcher(limit_days)]
+        return [
+            self._calendar_event_parser(event) for event in self._calendar_service.fetch(limit_days)
+        ]

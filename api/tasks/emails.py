@@ -2,23 +2,25 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 
-from api.config import Settings
 from api.models import Appointment
 
 
-class EmailTask:
+class EmailTaskDummy:
+
+    def send_confirmation_email(self, appointment: Appointment):
+        del appointment
+
+
+class EmailTask(EmailTaskDummy):
     SMTP_HOST = "smtp.gmail.com"
     SMTP_PORT = 587
 
-    def __init__(self, settings: Settings) -> None:
-        self._sender_email = settings.sender_email
-        self._sender_password = settings.sender_password
-        self._enabled = settings.enable_emails
+    def __init__(self, sender_email: str, sender_password: str) -> None:
+        self._sender_email = sender_email
+        self._sender_password = sender_password
 
     def send_confirmation_email(self, appointment: Appointment):
         """Sends a confirmation email to the appointment.clientEmail."""
-        if not self._enabled:
-            return
         self._send(self._compose_confirmation(appointment))
 
     def _send(self, msg: EmailMessage) -> None:

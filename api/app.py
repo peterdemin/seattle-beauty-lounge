@@ -5,17 +5,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.calendar_client import CalendarEventParser, CalendarFetcher, DayBreaker
+from api.calendar_client import CalendarEventParser, CalendarService, DayBreaker
 from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.payment import PaymentAPI
 from api.google_auth import GoogleAuth
 from api.kv import KiwiStore
+from api.services import ServicesInfo
 from api.slots import FreshDayBreaker, SlotsLoader
 from api.task_scheduler import TaskScheduler
 from api.tasks.availability import AvailabilityTask
-from api.tasks.emails import EmailTask
+from api.tasks.calendar import CalendarTask, CalendarTaskDummy
+from api.tasks.emails import EmailTask, EmailTaskDummy
 
 
 def create_app(settings: Optional[Settings] = None) -> FastAPI:
@@ -52,9 +54,34 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
+
+    if settings.enable_calendar:
+        calendar_service = CalendarService(GoogleAuth.delegated(settings.sender_email))
+        availability_task = AvailabilityTask(
+            key="busy_dates",
+            kv=kv,
+            calendar_service=calendar_service,
+            calendar_event_parser=CalendarEventParser(),
+            day_breaker=DayBreaker({}),
+        )
+        task_scheduler.every().minute.do(availability_task)
+        calendar_task = CalendarTask(
+            calendar_service=calendar_service,
+            services_info=ServicesInfo.load(),
+        )
+    else:
+        calendar_task = CalendarTaskDummy()
+
+    email_task: EmailTaskDummy = (
+        EmailTask(sender_email=settings.sender_email, sender_password=settings.sender_password)
+        if settings.enable_emails
+        else EmailTaskDummy()
+    )
+
     AppointmentsAPI(
         db,
-        email_task=EmailTask(settings),
+        email_task=email_task,
+        calendar_task=calendar_task,
         slots_loader=SlotsLoader.load(
             day_breaker=FreshDayBreaker(kv),
         ),
@@ -63,15 +90,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         "https://seattle-beauty-lounge.com",
         settings.stripe_api_key,
     ).register(app, prefix=settings.location_prefix)
-    if settings.enable_calendar:
-        availability_task = AvailabilityTask(
-            key="busy_dates",
-            kv=kv,
-            calendar_fetcher=CalendarFetcher(GoogleAuth.delegated(settings.sender_email)),
-            calendar_event_parser=CalendarEventParser(),
-            day_breaker=DayBreaker({}),
-        )
-        task_scheduler.every().minute.do(availability_task)
+
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")
     return app

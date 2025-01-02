@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 from typing import Optional
 
 from sqlmodel import Field, SQLModel
@@ -7,8 +7,8 @@ from sqlmodel import Field, SQLModel
 class Appointment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     serviceId: str
-    date: date
-    time: str
+    date: datetime.date
+    time: datetime.time
     clientName: str
     clientPhone: str
     clientEmail: str
@@ -16,8 +16,8 @@ class Appointment(SQLModel, table=True):
 
 class AppointmentCreate(SQLModel):
     serviceId: str
-    date: date
-    time: str
+    date: datetime.date
+    time: datetime.time
     clientName: str
     clientPhone: str
     clientEmail: str

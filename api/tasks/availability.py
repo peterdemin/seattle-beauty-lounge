@@ -1,6 +1,6 @@
 import json
 
-from api.calendar_client import CalendarEventParser, CalendarFetcher, DayBreaker
+from api.calendar_client import CalendarEventParser, CalendarService, DayBreaker
 from api.kv import KiwiStore
 
 
@@ -9,13 +9,13 @@ class AvailabilityTask:
         self,
         key: str,
         kv: KiwiStore,
-        calendar_fetcher: CalendarFetcher,
+        calendar_service: CalendarService,
         calendar_event_parser: CalendarEventParser,
         day_breaker: DayBreaker,
     ) -> None:
         self._key = key
         self._kv = kv
-        self._calendar_fetcher = calendar_fetcher
+        self._calendar_service = calendar_service
         self._calendar_event_parser = calendar_event_parser
         self._day_breaker = day_breaker
 
@@ -26,7 +26,7 @@ class AvailabilityTask:
                 self._day_breaker.group_time_ranges(
                     map(
                         self._calendar_event_parser,
-                        self._calendar_fetcher(limit),
+                        self._calendar_service.fetch(limit),
                     )
                 )
             ),

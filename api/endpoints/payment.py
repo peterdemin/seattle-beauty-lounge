@@ -32,8 +32,8 @@ class PaymentAPI:
         )
         return {"clientSecret": session["client_secret"]}
 
-    def register(self, app_: FastAPI, prefix: str = "") -> None:
-        app_.add_api_route(
+    def register(self, app: FastAPI, prefix: str = "") -> None:
+        app.add_api_route(
             prefix + "/checkout",
             self.checkout,
             methods=["POST"],

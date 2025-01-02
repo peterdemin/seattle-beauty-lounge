@@ -6,7 +6,7 @@ from typing import cast
 
 from google.oauth2.credentials import Credentials
 
-from api.calendar_client import CalendarEventParser, CalendarFetcher, DayBreaker
+from api.calendar_client import CalendarEventParser, CalendarService, DayBreaker
 from api.config import Settings
 from api.db import Database
 from api.google_auth import GoogleAuth
@@ -17,17 +17,17 @@ class CalendarSynchronizer:
     def __init__(
         self,
         kv: KiwiStore,
-        calendar_fetcher: CalendarFetcher,
+        calendar_service: CalendarService,
         calendar_event_parser: CalendarEventParser,
         day_breaker: DayBreaker,
     ) -> None:
         self._kv = kv
-        self._calendar_fetcher = calendar_fetcher
+        self._calendar_service = calendar_service
         self._calendar_event_parser = calendar_event_parser
         self._day_breaker = day_breaker
 
     def sync(self, limit: int = 7) -> None:
-        events = self._calendar_fetcher(limit)
+        events = self._calendar_service.fetch(limit)
         self._kv.set("events", json.dumps(events))
         by_date = self._day_breaker.group_time_ranges(
             [self._calendar_event_parser(event) for event in events]
@@ -54,7 +54,7 @@ class CalendarSynchronizer:
 def main(email: str):
     cal = CalendarSynchronizer(
         kv=KiwiStore(db=Database(database_url=Settings().database_url)),
-        calendar_fetcher=CalendarFetcher(cast(Credentials, GoogleAuth.delegated(email))),
+        calendar_service=CalendarService(cast(Credentials, GoogleAuth.delegated(email))),
         calendar_event_parser=CalendarEventParser(),
         day_breaker=DayBreaker({}),
     )
