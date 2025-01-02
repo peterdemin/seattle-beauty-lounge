@@ -231,7 +231,7 @@ function NextButton({ handleNext, disabled }) {
 			<button
 				className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
                    disabled:invisible
-                   hover:bg-primary hover:text-neutral"
+                   hover:bg-primary hover:text-stone-200"
 				onClick={handleNext}
 				disabled={disabled}
 				type="button"
@@ -258,7 +258,7 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 		if (selected === slot) {
 			return `${base} border-primary text-primary`;
 		}
-		return `${base} border-neutral text-black`;
+		return `${base} border-stone-200 text-black`;
 	};
 
 	return (
@@ -309,7 +309,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 
 	const labelClass = "block mt-2 font-light text-primary";
 	const inputClass =
-		"block bg-neutral border border-primary text-black text-sm rounded-lg focus:ring-primary w-full p-2.5";
+		"block bg-stone-200 border border-primary text-black text-sm rounded-lg focus:ring-primary w-full p-2.5";
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
@@ -371,7 +371,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 			<div className="mt-4 flex place-content-end">
 				<button
 					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
-                    hover:bg-primary hover:text-neutral"
+                    hover:bg-primary hover:text-stone-200"
 					type="submit"
 				>
 					Next
@@ -413,7 +413,7 @@ function ReviewAndConfirmStep({
 			</p>
 			<div className="flex place-content-center my-4">
 				<button
-					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary hover:bg-primary hover:text-neutral"
+					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary hover:bg-primary hover:text-stone-200"
 					onClick={onConfirm}
 					type="button"
 				>

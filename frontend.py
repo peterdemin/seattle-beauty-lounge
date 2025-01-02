@@ -91,7 +91,7 @@ class Builder:
                 "-o",
                 f"{self.BUILD_ASSETS_DIR}/style.css",
             ],
-            capture_output=True,
+            capture_output=False,
             check=True,
         )
         with open(f"{self.BUILD_ASSETS_DIR}/style.css", "rt", encoding="utf-8") as fobj:

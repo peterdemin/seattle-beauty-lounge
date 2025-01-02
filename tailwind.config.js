@@ -4,11 +4,10 @@ module.exports = {
 	theme: {
 		extend: {
 			colors: {
-				primary: "rgb(var(--color-primary))",
-				secondary: "rgb(var(--color-secondary))",
-				neutral: "rgb(var(--color-neutral))",
+				primary: "#0dc0ca",
+				secondary: "#e9cf3d",
 			},
 		},
 	},
-	plugins: [],
+	plugins: [require("tailwindcss-neumorphism")],
 };
