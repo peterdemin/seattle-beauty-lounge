@@ -5,16 +5,16 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
     database_url: str = "sqlite:///api/test.db"
+    proxy_frontend: bool = False
+    location_prefix: str = ""
 
     sender_email: str = ""
     sender_password: str = ""
     enable_emails: bool = False
     enable_calendar: bool = False
 
-    proxy_frontend: bool = False
-    location_prefix: str = ""
-
     stripe_api_key: str = ""
+    sentry_dsn: str = ""
 
     @classmethod
     def test_settings(cls) -> "Settings":
@@ -27,4 +27,5 @@ class Settings(BaseSettings):
             proxy_frontend=False,
             location_prefix="",
             stripe_api_key="",
+            sentry_dsn="",
         )

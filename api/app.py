@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Optional
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -22,6 +23,16 @@ from api.tasks.emails import EmailTask, EmailTaskDummy
 
 def create_app(settings: Optional[Settings] = None) -> FastAPI:
     settings = settings or Settings()
+
+    if settings.sentry_dsn:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            traces_sample_rate=1.0,
+            _experiments={
+                "continuous_profiling_auto_start": True,
+            },
+        )
+
     db = Database(database_url=settings.database_url)
     kv = KiwiStore(db)
     task_scheduler = TaskScheduler()
