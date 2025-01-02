@@ -1,6 +1,7 @@
 fastapi[standard]
 pydantic-settings
 sqlmodel
+alembic
 httpx
 python-dateutil
 psycopg2-binary
