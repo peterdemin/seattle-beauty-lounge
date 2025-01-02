@@ -5,8 +5,6 @@ import pickle
 import re
 from typing import Iterable, Optional
 
-from api.constants import TIMEZONE_STR
-
 HERE = os.path.dirname(__file__)
 
 
@@ -63,11 +61,9 @@ class ServicesInfo:
             "description": description,
             "start": {
                 "dateTime": start_dt.isoformat(),
-                "timeZone": TIMEZONE_STR,
             },
             "end": {
                 "dateTime": (start_dt + service["duration"]).isoformat(),
-                "timeZone": TIMEZONE_STR,
             },
         }
 
