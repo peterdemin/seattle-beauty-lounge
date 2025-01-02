@@ -26,8 +26,9 @@ def test_slots_loader(slots_loader: SlotsLoader):
 def test_gen_ranges(slots_loader: SlotsLoader) -> None:
     the_day = datetime.date(2024, 12, 27)
     got = slots_loader.gen_ranges(the_day)
-    assert len(got) == 7 * 6
+    assert len(got) == 7 * 6 + 1
     assert got == {
+        "2024-12-27": [["10:00", "19:30"]],
         "2024-12-28": [["10:00", "17:00"]],
         "2024-12-29": [],
         "2024-12-30": [["10:00", "19:00"]],

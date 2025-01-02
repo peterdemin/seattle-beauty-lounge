@@ -9,6 +9,7 @@ from cachetools import TTLCache, cached
 from dateutil.parser import parse
 
 from api.calendar_client import DayBreaker, DayBreakerInterface
+from api.constants import TIMEZONE
 from api.kv import KiwiStore
 
 HERE = os.path.dirname(__file__)
@@ -33,8 +34,7 @@ class FreshDayBreaker(DayBreakerInterface):
 class SlotsLoader:
     HOURS_FILE = "source/pages/51-hours.md"
     HOURS_PICKLE = os.path.join(HERE, "hours.pkl")
-    FIRST_OFFSET = 1
-    LAST_OFFSET = 7 * 6  # 6 weeks
+    LOOKAHEAD = 7 * 6  # 6 weeks
 
     def __init__(
         self,
@@ -58,10 +58,12 @@ class SlotsLoader:
             mapping from date string formatted as "YYYY-mm-dd"
             to a list of (start, end) time pairs formatted as "HH:MM"
         """
-        today = today or datetime.date.today()
+        if today is None:
+            now = TIMEZONE.localize(datetime.datetime.now(tz=datetime.timezone.utc))
+            today = now.date()
         hours = self._hours_of_operation
         result = {}
-        for offset in range(self.FIRST_OFFSET, self.LAST_OFFSET + 1):
+        for offset in range(self.LOOKAHEAD + 1):
             date = today + datetime.timedelta(days=offset)
             date_str = date.strftime("%Y-%m-%d")
             if dow_range := hours.get(date.weekday()):
