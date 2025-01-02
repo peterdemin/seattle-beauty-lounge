@@ -6,8 +6,8 @@ from api.services import ServicesInfo
 MICROBLADING_EVENT = {
     "summary": "Eyebrow microblading",
     "description": "Description",
-    "start": {"dateTime": "2014-04-14T01:02:03-07:00", "timeZone": TIMEZONE_STR},
-    "end": {"dateTime": "2014-04-14T04:02:03-07:00", "timeZone": TIMEZONE_STR},
+    "start": {"dateTime": "2014-04-14T08:02:03+00:00", "timeZone": TIMEZONE_STR},
+    "end": {"dateTime": "2014-04-14T11:02:03+00:00", "timeZone": TIMEZONE_STR},
 }
 
 
