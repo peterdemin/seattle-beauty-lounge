@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Color Palette Editor</title>
+    <style>
+        @font-face {
+            font-family: 'Italianno';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url(https://fonts.gstatic.com/s/italianno/v17/dg4n_p3sv6gCJkwzT6RXiJwoYQAugw.woff2) format('woff2');
+            unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+
+        .controls {
+            width: 30%;
+            padding: 10px;
+            background: #f0f0f0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .color-picker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-picker canvas {
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .preview {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        h1 {
+            padding: 10px 40px;
+            margin: 0px;
+            text-align: center;
+            font-family: "Italianno", serif;
+            font-weight: 400;
+            font-size: 72pt;
+        }
+
+        p {
+            padding: 10px;
+        }
+
+        .code-snippet {
+            margin-top: 20px;
+            padding: 10px;
+            background: black;
+            color: green;
+            font-family: monospace;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="color-picker" id="primaryPicker">
+            <label>Primary</label>
+            <canvas width="100" height="100"></canvas>
+        </div>
+        <div class="color-picker" id="secondaryPicker">
+            <label>Secondary</label>
+            <canvas width="100" height="100"></canvas>
+        </div>
+        <div class="color-picker" id="neutralPicker">
+            <label>Neutral</label>
+            <canvas width="100" height="100"></canvas>
+        </div>
+        <div class="color-picker" id="textPicker">
+            <label>Text</label>
+            <canvas width="100" height="100"></canvas>
+        </div>
+        <div class="code-snippet" id="codeSnippet"></div>
+    </div>
+
+    <div class="preview" id="preview">
+        <h1 id="heading">Seattle Beauty Lounge</h1>
+        <p id="paragraph">Welcome to Radiance Beauty Salon, where elegance meets excellence. Established over a decade ago, our salon has become a sanctuary for those seeking top-tier beauty treatments and unparalleled service. Our journey began with a simple mission: to bring out the natural beauty in every client while providing a haven of relaxation and rejuvenation. Over the years, we have grown into a trusted name in the beauty industry, thanks to our unwavering commitment to quality and innovation.</p>
+        <p id="paragraph">At Radiance, we believe beauty is more than skin deep. That’s why our team consists of highly skilled professionals who are passionate about their craft. From the latest hairstyles and luxurious facials to precision manicures and soothing spa treatments, we offer a comprehensive range of services designed to meet your unique needs. Our salon is equipped with state-of-the-art technology and uses only premium-quality products to ensure you leave feeling and looking your absolute best.</p>
+        <p id="paragraph">Our clients are at the heart of everything we do. We take pride in the glowing reviews and heartfelt testimonials we receive from those who trust us with their beauty needs. Whether it’s a routine haircut, a bridal makeover, or a self-care day, our loyal customers consistently rave about the personalized attention and exceptional results they experience with us.</p>
+        <p id="paragraph">Step into Radiance Beauty Salon and discover a world where beauty, comfort, and satisfaction converge. Let us pamper you and help you shine, inside and out. Your journey to radiance begins here.</p>
+    </div>
+
+    <script>
+        function createColorWheel(canvas, callback) {
+            const ctx = canvas.getContext("2d");
+            const radius = canvas.width / 2;
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const dx = x - radius;
+                    const dy = y - radius;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+
+                    if (distance <= radius) {
+                        const hue = ((angle + Math.PI) / (2 * Math.PI)) * 360;
+                        const saturation = distance / radius;
+                        const rgb = hslToRgb(hue / 360, saturation, 0.5);
+
+                        const index = (y * canvas.width + x) * 4;
+                        data[index] = rgb[0];
+                        data[index + 1] = rgb[1];
+                        data[index + 2] = rgb[2];
+                        data[index + 3] = 255;
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            canvas.addEventListener("click", (event) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const pixel = ctx.getImageData(x, y, 1, 1).data;
+                const color = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+                callback(color);
+            });
+        }
+
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l; // achromatic
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `${r} ${g} ${b}`;
+        }
+
+        const primaryPicker = document.querySelector('#primaryPicker canvas');
+        const secondaryPicker = document.querySelector('#secondaryPicker canvas');
+        const neutralPicker = document.querySelector('#neutralPicker canvas');
+        const textPicker = document.querySelector('#textPicker canvas');
+
+        const heading = document.getElementById('heading');
+        const preview = document.getElementById('preview');
+        const codeSnippet = document.getElementById('codeSnippet');
+
+        function updateCodeSnippet() {
+            codeSnippet.textContent = `--color-primary: ${hexToRgb(heading.style.color)}; /* ${heading.style.color} */\n--color-secondary: ${hexToRgb(heading.style.backgroundColor)}; /* ${heading.style.backgroundColor} */\n--color-neutral: ${hexToRgb(preview.style.backgroundColor)}; /* ${preview.style.backgroundColor} */\n--color-text: ${hexToRgb(preview.style.color)}; /* ${preview.style.color} */`;
+        }
+
+        createColorWheel(primaryPicker, (color) => {
+            heading.style.color = color;
+            updateCodeSnippet();
+        });
+        createColorWheel(secondaryPicker, (color) => {
+            heading.style.backgroundColor = color;
+            updateCodeSnippet();
+        });
+        createColorWheel(neutralPicker, (color) => {
+            preview.style.backgroundColor = color;
+            updateCodeSnippet();
+        });
+        createColorWheel(textPicker, (color) => {
+            preview.style.color = color;
+            updateCodeSnippet();
+        });
+
+        updateCodeSnippet();
+    </script>
+</body>
+</html>
