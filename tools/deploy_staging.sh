@@ -4,11 +4,14 @@ set -e -o pipefail
 
 make clean
 
-git archive --format=tar HEAD api -o caprover-api.tar
-caprover deploy -t caprover-api.tar -a api -u staging.seattle-beauty-lounge.com
-rm -rf caprover-api.tar
+scp .env.staging staging.seattle-beauty-lounge.com:
+ssh staging.seattle-beauty-lounge.com "sudo ls /home/api >/dev/null 2>&1 && sudo mv .env.staging /home/api/.env && sudo chown api:api /home/api/.env || true"
+
+rsync -a --delete api staging.seattle-beauty-lounge.com:
+ssh staging.seattle-beauty-lounge.com "api/adapt_to_staging.sh"
+ssh staging.seattle-beauty-lounge.com "sudo api/deploy.sh"
 
 make staging
-tar cf caprover-static.tar public captain-definition Dockerfile
-caprover deploy -t caprover-static.tar -a static -u staging.seattle-beauty-lounge.com
-rm -rf caprover-static.tar
+make compress  # Must be run separately to detect targets
+rsync -a --delete public staging.seattle-beauty-lounge.com:
+ssh staging.seattle-beauty-lounge.com "sudo rsync -a --delete public/ /var/www/html"

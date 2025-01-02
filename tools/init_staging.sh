@@ -2,19 +2,58 @@
 
 set -e -o pipefail
 
-# Add Docker's official GPG key:
-apt-get update
-apt-get install ca-certificates curl
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | tee /etc/apt/sources.list.d/tailscale.list
 
-# Install CapRover
-ufw allow 80,443,3000,996,7946,4789,2377/tcp; ufw allow 7946,4789,2377/udp;
-docker run -p 80:80 -p 443:443 -p 3000:3000 -e ACCEPTED_TERMS=true -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover
+apt-get update
+apt-get upgrade -y
+apt-get install -y \
+    ca-certificates \
+    curl \
+    nginx \
+    rsync \
+    python3 \
+    python3.12-venv \
+    python-is-python3 \
+    postgresql \
+    postgresql-contrib \
+    tailscale
+
+if [ ! -e /usr/bin/certbot ]; then
+    snap install --classic certbot
+    ln -s /snap/bin/certbot /usr/bin/certbot
+fi
+certbot --non-interactive --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d staging.seattle-beauty-lounge.com
+
+# Variables for database and user
+DB_NAME="api"
+DB_USER="api"
+DB_PASSWORD="password"
+
+# Check if the database exists
+DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME';")
+if [ "$DB_EXISTS" != "1" ]; then
+  echo "Creating database $DB_NAME..."
+  sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
+else
+  echo "Database $DB_NAME already exists."
+fi
+
+# Check if the user exists
+USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';")
+if [ "$USER_EXISTS" != "1" ]; then
+  echo "Creating user $DB_USER..."
+  sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';"
+else
+  echo "User $DB_USER already exists."
+fi
+mv alembic.minimal.ini ~api/alembic.ini
+chown api:api ~api/alembic.ini
+
+# Grant privileges to the user on the database
+echo "Granting privileges on $DB_NAME to $DB_USER..."
+
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+sudo -u postgres psql -d $DB_NAME -c "GRANT ALL ON SCHEMA public to $DB_USER;"
+
+sudo tailscale up

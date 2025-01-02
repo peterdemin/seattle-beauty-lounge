@@ -179,4 +179,7 @@ api/test.db
 
 # CapRover
 /*.tar
+
+# Environment configs
 /.env.prod
+/.env.staging
