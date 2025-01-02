@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from typing import Iterator
 
+from sqlalchemy import Connection
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
@@ -36,3 +37,8 @@ class Database:
     def session(self) -> Iterator[Session]:
         with Session(self._engine) as session:
             yield session
+
+    @contextmanager
+    def connect(self) -> Iterator[Connection]:
+        with self._engine.connect() as connection:
+            yield connection

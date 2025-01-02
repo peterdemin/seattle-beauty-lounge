@@ -17,6 +17,8 @@ class KiwiStore:
     def set(self, key: str, value: str) -> None:
         with self._db.session() as session:
             if record := self._select_for_update(session, key):
+                if record.value == value:
+                    return
                 record.value = value
             else:
                 record = Kiwi(key=key, value=value)
