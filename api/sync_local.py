@@ -26,9 +26,9 @@ class CalendarSynchronizer:
         self._calendar_event_parser = calendar_event_parser
         self._day_breaker = day_breaker
 
-    def sync(self, limit: int = 7) -> None:
+    def sync(self, limit) -> None:
         events = self._calendar_service.fetch(limit)
-        self._kv.set("events", json.dumps(events))
+        pprint(events)
         by_date = self._day_breaker.group_time_ranges(
             [self._calendar_event_parser(event) for event in events]
         )
@@ -58,7 +58,7 @@ def main(email: str):
         calendar_event_parser=CalendarEventParser(),
         day_breaker=DayBreaker({}),
     )
-    cal.sync()
+    cal.sync(14)
 
 
 if __name__ == "__main__":

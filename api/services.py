@@ -58,17 +58,15 @@ class ServicesInfo:
 
     def compose_event(self, title: str, description: str, start_dt: datetime.datetime) -> dict:
         service = self._services[title]
-        # Google Calendar doesn't like non-UTC datetimes
-        start_utc = start_dt.astimezone(datetime.timezone.utc)
         return {
             "summary": title,
             "description": description,
             "start": {
-                "dateTime": start_utc.isoformat(),
+                "dateTime": start_dt.isoformat(),
                 "timeZone": TIMEZONE_STR,
             },
             "end": {
-                "dateTime": (start_utc + service["duration"]).isoformat(),
+                "dateTime": (start_dt + service["duration"]).isoformat(),
                 "timeZone": TIMEZONE_STR,
             },
         }

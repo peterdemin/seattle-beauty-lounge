@@ -1,4 +1,4 @@
 from pytz import timezone
 
-TIMEZONE = timezone("US/Pacific")
-TIMEZONE_STR = "US/Pacific"
+TIMEZONE_STR = "America/Los_Angeles"
+TIMEZONE = timezone(TIMEZONE_STR)
