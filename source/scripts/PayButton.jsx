@@ -19,16 +19,18 @@ const PayButton = ({ email, onConfirm }) => {
 	};
 
 	return (
-		<div className="mt-4 flex place-content-end">
-			<button
-				className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
-                     hover:bg-primary hover:text-stone-200"
-				onClick={handleClick}
-				disabled={loading}
-				type="button"
-			>
-				Pay ${checkout.lineItems[0].unitAmount / 100}
-			</button>
+		<div>
+			<div className="mt-4 flex place-content-end">
+				<button
+					className="m-6 p-5 aspect-square rounded-full text-2xl text-cyan-400 font-bold nm-convex-stone-200-lg hover:nm-flat-stone-200-lg
+                   disabled:invisible"
+					onClick={handleClick}
+					disabled={loading}
+					type="button"
+				>
+					Pay ${checkout.lineItems[0].unitAmount / 100}
+				</button>
+			</div>
 			{error && <div>{error.message}</div>}
 		</div>
 	);

@@ -90,6 +90,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	// Render steps conditionally:
 	return (
 		<div>
+			{currentStep > 1 && <div className="text-center">{selectedService}</div>}
 			{currentStep === 2 && (
 				<PickDateStep
 					slots={slots}
@@ -99,6 +100,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 					}}
 				/>
 			)}
+			{currentStep > 2 && <div className="text-center">{selectedDate}</div>}
 			{currentStep === 3 && (
 				<PickTimeslotStep
 					slots={slots}
@@ -109,6 +111,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 					}}
 				/>
 			)}
+			{currentStep > 3 && <div className="text-center">{selectedTime}</div>}
 			{currentStep === 4 && (
 				<ClientInfoStep
 					clientName={clientName}
@@ -229,9 +232,8 @@ function NextButton({ handleNext, disabled }) {
 	return (
 		<div className="flex place-content-end">
 			<button
-				className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
-                   disabled:invisible
-                   hover:bg-primary hover:text-stone-200"
+				className="m-6 p-5 aspect-square rounded-full text-2xl text-cyan-400 font-bold nm-convex-stone-200-lg hover:nm-flat-stone-200-lg
+                   disabled:invisible"
 				onClick={handleNext}
 				disabled={disabled}
 				type="button"
@@ -254,11 +256,11 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 	}, [slots, date]);
 
 	const slotClass = (slot) => {
-		const base = "cursor-pointer p-1 rounded-full border-2";
+		const base = "cursor-pointer p-1 rounded-full hover:nm-convex-stone-200";
 		if (selected === slot) {
-			return `${base} border-primary text-primary`;
+			return `${base} text-primary nm-inset-stone-200`;
 		}
-		return `${base} border-stone-200 text-black`;
+		return `${base} text-black`;
 	};
 
 	return (
@@ -307,9 +309,9 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 		onNextStep(data.name, data.phone, data.email);
 	};
 
-	const labelClass = "block mt-2 font-light text-primary";
+	const labelClass = "block pt-6 pb-2 font-light";
 	const inputClass =
-		"block bg-stone-200 border border-primary text-black text-sm rounded-lg focus:ring-primary w-full p-2.5";
+		"block nm-inset-stone-200-lg text-black text-sm rounded-lg focus:ring-primary w-full p-4";
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
@@ -370,8 +372,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 
 			<div className="mt-4 flex place-content-end">
 				<button
-					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
-                    hover:bg-primary hover:text-stone-200"
+					className="m-6 p-5 aspect-square rounded-full text-2xl text-cyan-400 font-bold nm-convex-stone-200-lg hover:nm-flat-stone-200-lg"
 					type="submit"
 				>
 					Next
@@ -436,7 +437,7 @@ const CheckoutStep = ({ clientEmail, clientSecret, onConfirm, stripe }) => {
 							theme: "night",
 							variables: {
 								colorPrimary: "#0dc0ca",
-								colorBackground: "#ffe8cb",
+								colorBackground: "#e7e5e4",
 								colorText: "#000000",
 								colorDanger: "#df1b41",
 								spacingUnit: "2px",
