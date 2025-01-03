@@ -57,7 +57,6 @@ class ServicesInfo:
                 }
 
     def compose_event(self, title: str, description: str, start_dt: datetime.datetime) -> dict:
-        service = self._services[title]
         return {
             "summary": title,
             "description": description,
@@ -66,10 +65,13 @@ class ServicesInfo:
                 "timeZone": TIMEZONE_STR,
             },
             "end": {
-                "dateTime": (start_dt + service["duration"]).isoformat(),
+                "dateTime": (start_dt + self.get_duration(title)).isoformat(),
                 "timeZone": TIMEZONE_STR,
             },
         }
+
+    def get_duration(self, title: str) -> datetime.timedelta:
+        return self._services[title]["duration"]
 
 
 if __name__ == "__main__":

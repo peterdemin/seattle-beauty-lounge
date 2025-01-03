@@ -1,48 +1,96 @@
-import smtplib
-import ssl
-from email.message import EmailMessage
+import datetime
+import textwrap
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
+from ical.calendar import Calendar
+from ical.calendar_stream import IcsCalendarStream
+from ical.event import Event
+
+from api.constants import EMAIL, LOCATION, PHONE, TIMEZONE
 from api.models import Appointment
+from api.services import ServicesInfo
+from api.smtp_client import SMTPClientDummy
 
 
-class EmailTaskDummy:
+class EmailTask:
+    _CALENDAR_TEMPLATE = textwrap.dedent(
+        f"""
+        Seattle Beauty Lounge
 
-    def send_confirmation_email(self, appointment: Appointment):
-        del appointment
+        Address: {LOCATION}
+        Phone: {PHONE}
+        Email: {EMAIL}
+        """
+    ).strip()
+    _EMAIL_TEMPLATE = textwrap.dedent(
+        f"""
+        Hello {{appointment.clientName}},
 
+        Your appointment has been booked.
 
-class EmailTask(EmailTaskDummy):
-    SMTP_HOST = "smtp.gmail.com"
-    SMTP_PORT = 587
+        We'll see you on {{date_str}} at {{time_str}} for {{appointment.serviceId}}.
 
-    def __init__(self, sender_email: str, sender_password: str) -> None:
-        self._sender_email = sender_email
-        self._sender_password = sender_password
+        Thank you for choosing Seattle Beauty Lounge!
+
+        Address: {LOCATION}
+        Phone: {PHONE}
+        Email: {EMAIL}
+        """
+    ).strip()
+
+    def __init__(
+        self,
+        smtp_client: SMTPClientDummy,
+        services_info: ServicesInfo,
+    ) -> None:
+        self._smtp_client = smtp_client
+        self._services_info = services_info
 
     def send_confirmation_email(self, appointment: Appointment):
         """Sends a confirmation email to the appointment.clientEmail."""
-        self._send(self._compose_confirmation(appointment))
+        self._smtp_client.send(self._compose_confirmation(appointment))
 
-    def _send(self, msg: EmailMessage) -> None:
-        context = ssl.create_default_context()
-        with smtplib.SMTP(self.SMTP_HOST, self.SMTP_PORT) as smtp:
-            smtp.starttls(context=context)
-            smtp.login(self._sender_email, self._sender_password)
-            smtp.send_message(msg)
-
-    def _compose_confirmation(self, appointment: Appointment) -> EmailMessage:
-        subject = "Your Appointment with Seattle Beauty Lounge is Confirmed"
-        body = (
-            f"Hello {appointment.clientName},\n\n"
-            f"Your appointment has been booked.\n"
-            f"Service ID: {appointment.serviceId}\n"
-            f"Date: {appointment.date}\n"
-            f"Time: {appointment.time}\n\n"
-            "Thank you for choosing Seattle Beauty Lounge!\n"
-        )
-        msg = EmailMessage()
-        msg["Subject"] = subject
-        msg["From"] = self._sender_email
+    def _compose_confirmation(self, appointment: Appointment) -> MIMEMultipart:
+        msg = MIMEMultipart()
+        msg["Subject"] = "Appointment with Seattle Beauty Lounge"
+        msg["From"] = EMAIL
         msg["To"] = appointment.clientEmail
-        msg.set_content(body)
+        msg.attach(
+            MIMEText(
+                self._EMAIL_TEMPLATE.format(
+                    appointment=appointment,
+                    date_str=appointment.date.strftime("%A, %B %d"),
+                    time_str=appointment.time.strftime("%H:%M"),
+                )
+            )
+        )
+        part = MIMEText(
+            self._compose_ics(appointment),
+            "calendar",
+            "utf-8",
+        )
+        part["Content-Disposition"] = 'attachment; filename="invite.ics"'
+        msg.attach(part)
         return msg
+
+    def _compose_ics(self, appointment: Appointment) -> str:
+        start = TIMEZONE.localize(
+            datetime.datetime.combine(
+                appointment.date,
+                appointment.time,
+            )
+        )
+        end = start + self._services_info.get_duration(appointment.serviceId)
+        calendar = Calendar()
+        calendar.events.append(
+            Event(
+                summary=appointment.serviceId,
+                description=self._CALENDAR_TEMPLATE.format(appointment=appointment),
+                location=LOCATION,
+                contacts=[PHONE, EMAIL],
+                start=start.isoformat(),
+                end=end.isoformat(),
+            ),
+        )
+        return IcsCalendarStream.calendar_to_ics(calendar)

@@ -1,6 +1,6 @@
 import json
 
-from api.calendar_client import CalendarEventParser, CalendarService, DayBreaker
+from api.calendar_client import CalendarEventParser, CalendarServiceDummy, DayBreaker
 from api.kv import KiwiStore
 
 
@@ -9,7 +9,7 @@ class AvailabilityTask:
         self,
         key: str,
         kv: KiwiStore,
-        calendar_service: CalendarService,
+        calendar_service: CalendarServiceDummy,
         calendar_event_parser: CalendarEventParser,
         day_breaker: DayBreaker,
     ) -> None:

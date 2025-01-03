@@ -7,7 +7,18 @@ from googleapiclient.discovery import build
 from api.constants import TIMEZONE
 
 
-class CalendarService:
+class CalendarServiceDummy:
+
+    def fetch(self, limit_days: int) -> list[dict]:
+        del limit_days
+        return []
+
+    def insert(self, body: dict) -> dict:
+        del body
+        return {}
+
+
+class CalendarService(CalendarServiceDummy):
     CALENDAR_ID = "primary"
 
     def __init__(self, creds: Credentials) -> None:

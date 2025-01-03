@@ -3,16 +3,16 @@ from fastapi import BackgroundTasks, FastAPI
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
 from api.slots import SlotsLoader
-from api.tasks.calendar import CalendarTaskDummy
-from api.tasks.emails import EmailTaskDummy
+from api.tasks.calendar import CalendarTask
+from api.tasks.emails import EmailTask
 
 
 class AppointmentsAPI:
     def __init__(
         self,
         db: Database,
-        email_task: EmailTaskDummy,
-        calendar_task: CalendarTaskDummy,
+        email_task: EmailTask,
+        calendar_task: CalendarTask,
         slots_loader: SlotsLoader,
     ) -> None:
         self._db = db

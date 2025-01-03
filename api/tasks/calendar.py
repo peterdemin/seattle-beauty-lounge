@@ -1,29 +1,22 @@
 import datetime
 import textwrap
 
-from api.calendar_client import CalendarService
+from api.calendar_client import CalendarServiceDummy
 from api.constants import TIMEZONE
 from api.models import Appointment
 from api.services import ServicesInfo
 
 
-class CalendarTaskDummy:
-    """Dummy is interface definition with no-op implementation."""
-
-    def create_event(self, appointment: Appointment) -> None:
-        del appointment
-
-
-class CalendarTask(CalendarTaskDummy):
+class CalendarTask:
     _DESCRIPTION_TEMPLATE = textwrap.dedent(
         """
         Name: {appointment.clientName}
         Phone: {appointment.clientPhone}
         Email: {appointment.clientEmail}
-    """
+        """
     ).strip()
 
-    def __init__(self, calendar_service: CalendarService, services_info: ServicesInfo) -> None:
+    def __init__(self, calendar_service: CalendarServiceDummy, services_info: ServicesInfo) -> None:
         self._calendar_service = calendar_service
         self._services_info = services_info
 
