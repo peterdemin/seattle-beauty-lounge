@@ -11,11 +11,12 @@
         {{ service.description }}
       </p>
       <div class="px-4 flex items-center place-content-end">
-        <div class="text-stone-900 text-xl text-base p-5">
-            {{ service.duration }} | {{ service.price }}
+        <div class="text-stone-900 text-xl text-base p-5 flex flex-col items-end justify-center">
+            <div>{{ service.duration }}</div>
+            <div>{{ service.price }}</div>
         </div>
         <button
-            class="book-btn m-6 p-5 aspect-square rounded-full text-2xl text-cyan-400 font-bold nm-convex-stone-200-lg hover:nm-flat-stone-200-lg"
+            class="book-btn mx-6 px-5 aspect-square rounded-full text-2xl text-cyan-400 font-bold nm-convex-stone-200-lg hover:nm-flat-stone-200-lg"
             data-service-id="{{ service.title }}"
             data-duration="{{ service.duration_min }}"
             type=button>
