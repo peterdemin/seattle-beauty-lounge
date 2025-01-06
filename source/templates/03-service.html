@@ -1,6 +1,6 @@
-<div class="sm:max-w-md sm:rounded-xl bg-neutral overflow-hidden">
+<div class="sm:max-w-md sm:rounded bg-neutral shadow-lg drop-shadow-lg">
     {% if service.image %}
-    <img class="w-full max-h-96 aspect-video object-cover object-top" src="{{ service.image.url }}" alt="{{ service.title }}">
+    <img class="w-full max-h-96 aspect-video object-cover object-top sm:rounded " src="{{ service.image.url }}" alt="{{ service.title }}">
     {% endif %}
     <div class="pb-4">
       <h2 class="w-full py-2 px-4 text-3xl text-primary">
@@ -15,7 +15,7 @@
             <div>{{ service.price }}</div>
         </div>
         <button
-            class="book-btn mx-2 px-5 aspect-square rounded-full text-2xl font-bold bg-primary text-neutral"
+            class="book-btn mx-2 px-5 aspect-square rounded-full text-2xl font-bold bg-primary text-neutral shadow drop-shadow-lg"
             data-service-id="{{ service.title }}"
             data-duration="{{ service.duration_min }}"
             type=button>

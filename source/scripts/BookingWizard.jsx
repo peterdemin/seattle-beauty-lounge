@@ -142,7 +142,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 				/>
 			)}
 			{currentStep === "confirmation" && (
-				<div>
+				<div class="mb-6">
 					<h2 className="text-2xl text-center font-light text-primary">
 						Thank you, {clientName}! Your appointment is confirmed.
 					</h2>
