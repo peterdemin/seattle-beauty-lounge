@@ -40,6 +40,7 @@ def test_submit_appointment(test_client: TestClient) -> None:
         "clientName": "Jane Doe",
         "clientPhone": "555-123-4567",
         "date": "2025-01-10",
+        "remindedAt": 0,
         "id": 1,
         "serviceId": "Brow shaping and tinting",
         "time": "13:30:00",

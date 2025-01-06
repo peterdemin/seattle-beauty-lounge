@@ -2,6 +2,7 @@ import json
 
 from api.calendar_client import CalendarEventParser, CalendarServiceDummy, DayBreaker
 from api.kv import KiwiStore
+from api.task_scheduler import TaskScheduler
 
 
 class AvailabilityTask:
@@ -31,3 +32,6 @@ class AvailabilityTask:
                 )
             ),
         )
+
+    def register(self, task_scheduler: TaskScheduler) -> None:
+        task_scheduler.every().minute.do(self)

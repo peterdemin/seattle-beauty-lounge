@@ -183,3 +183,4 @@ api/test.db
 # Environment configs
 /.env.prod
 /.env.staging
+/Session.vim

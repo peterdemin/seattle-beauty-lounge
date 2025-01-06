@@ -2,6 +2,7 @@ import threading
 import time
 
 import schedule
+import sentry_sdk
 
 
 class TaskScheduler:
@@ -28,7 +29,10 @@ class TaskScheduler:
 
     def _run(self) -> None:
         while not self._stop_event.is_set():
-            schedule.run_pending()
+            try:
+                schedule.run_pending()
+            except Exception as exc:
+                sentry_sdk.capture_exception(exc)
             if not self._stop_event.is_set():
                 time.sleep(0.1)
 

@@ -59,7 +59,7 @@ class SlotsLoader:
             to a list of (start, end) time pairs formatted as "HH:MM"
         """
         if today is None:
-            now = datetime.datetime.now(tz=datetime.timezone.utc).astimezone(TIMEZONE)
+            now = TIMEZONE.localize(datetime.datetime.now(tz=datetime.timezone.utc))
             today = now.date()
         hours = self._hours_of_operation
         result = {}

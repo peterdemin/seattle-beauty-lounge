@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     stripe_api_key: str = ""
     sentry_dsn: str = ""
 
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_from_number: str = ""
+
     @classmethod
     def test_settings(cls) -> "Settings":
         return cls(
@@ -28,4 +32,7 @@ class Settings(BaseSettings):
             location_prefix="",
             stripe_api_key="",
             sentry_dsn="",
+            twilio_account_sid="",
+            twilio_auth_token="",
+            twilio_from_number="",
         )

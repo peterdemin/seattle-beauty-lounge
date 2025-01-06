@@ -12,6 +12,7 @@ class Appointment(SQLModel, table=True):
     clientName: str
     clientPhone: str
     clientEmail: str
+    remindedAt: int = Field(default=0)
 
 
 class AppointmentCreate(SQLModel):

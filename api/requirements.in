@@ -12,6 +12,7 @@ schedule
 ical
 
 stripe
+twilio
 
 google-auth
 google-auth-oauthlib
