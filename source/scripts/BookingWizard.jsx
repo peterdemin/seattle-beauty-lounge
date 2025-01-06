@@ -229,7 +229,7 @@ function NextButton({ handleNext, disabled }) {
 	return (
 		<div className="flex place-content-end">
 			<button
-				className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
+				className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary
                    disabled:invisible
                    hover:bg-primary hover:text-neutral"
 				onClick={handleNext}
@@ -370,7 +370,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 
 			<div className="mt-4 flex place-content-end">
 				<button
-					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary
+					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary
                     hover:bg-primary hover:text-neutral"
 					type="submit"
 				>
@@ -413,7 +413,7 @@ function ReviewAndConfirmStep({
 			</p>
 			<div className="flex place-content-center my-4">
 				<button
-					className="py-2 px-5 rounded-lg text-2xl text-primary font-bold border-2 border-primary hover:bg-primary hover:text-neutral"
+					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
 					onClick={onConfirm}
 					type="button"
 				>
