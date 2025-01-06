@@ -28,7 +28,7 @@ class ReminderTask:
         self._db = db
 
     def __call__(self, job_time: Optional[datetime.datetime] = None) -> None:
-        job_time = job_time or TIMEZONE.localize(datetime.datetime.now(tz=datetime.timezone.utc))
+        job_time = job_time or datetime.datetime.now(tz=datetime.timezone.utc).astimezone(TIMEZONE)
         if not self._should_run(job_time):
             return
         tomorrow = job_time.date() + datetime.timedelta(days=1)
