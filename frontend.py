@@ -13,7 +13,7 @@ import docutils.frontend
 import docutils.parsers.rst
 import jinja2
 from bs4 import BeautifulSoup
-from docutils.nodes import Element, TextElement
+from docutils.nodes import Element, TextElement, image
 from markdown_it import MarkdownIt
 from PIL import Image
 
@@ -236,7 +236,7 @@ class ServiceParser:
                 return
             if elem.children and len(elem.children) == 1:
                 child = elem.children[0]
-                if type(child) is Element and child.tagname == "image":
+                if type(child) is image:
                     result.image = self._make_image(child["uri"])
                     return
             result.short_text = " ".join(c.astext().strip() for c in elem.children)
