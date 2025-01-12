@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Seattle Beauty Lounge</title>
+    <meta name="description" content="Seattle Beauty Lounge" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {% if style_name %}
+      <link rel="stylesheet" href="assets/{{ style_name }}" media="none" onload="media='all'">
+      <noscript><link rel="stylesheet" href="assets/{{ style_name }}"></noscript>
+    {% endif %}
+    {% if style %}
+      <style>
+        {# Embed <link href="https://fonts.googleapis.com/css2?family=Italianno&display=swap" rel="stylesheet"> #}
+        @font-face {
+          font-family: 'Italianno';
+          font-style: normal;
+          font-weight: 400;
+          font-display: swap;
+          src: url(https://fonts.gstatic.com/s/italianno/v17/dg4n_p3sv6gCJkwzT6RXiJwoYQAugw.woff2) format('woff2');
+          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        .italianno-regular {
+          font-family: "Italianno", serif;
+          font-weight: 400;
+          font-style: normal;
+        }
+        {{ style|safe }}
+      </style>
+    {% endif %}
+  </head>
+  <body class="bg-neutral">
+    <div class="lg:py-24 py-6 sm:px-3 flex justify-center items-center">
+      <h1 class="sm:m-8 text-center md:text-9xl text-7xl text-primary drop-shadow-lg italianno-regular">
+        Seattle Beauty Lounge
+      </h1>
+      <div class="w-fit bg-primary p-1 rounded-full">
+        <img class="rounded-full" src="images/00-outside.webp" />
+      </div>
+    </div>
+    {% include "05-book.html" %}
+    <section class="max-w-lg mx-auto">
+      {% if service.image %}
+      <img class="w-full max-h-96 aspect-video object-cover object-top sm:rounded " src="{{ service.image.url }}" alt="{{ service.title }}">
+      {% endif %}
+      <div class="pb-4">
+        <h2 class="w-full py-2 px-4 text-3xl text-primary">
+          {{ service.title }}
+        </h2>
+        <div class="px-4 flex items-center place-content-end">
+          <div class="text-stone-900 text-xl text-base p-5 flex flex-col items-end justify-center">
+              <div>{{ service.duration }}</div>
+              <div>{{ service.price }}</div>
+          </div>
+          <button
+              class="book-btn mx-2 px-5 aspect-square rounded-full text-2xl font-bold bg-primary text-neutral shadow drop-shadow-lg"
+              data-service-id="{{ service.title }}"
+              data-duration="{{ service.duration_min }}"
+              type=button>
+                  Book
+          </button>
+        </div>
+        <p class="text-stone-900 px-4 text-base mb-5">
+          {{ service.full_html|safe }}
+        </p>
+        <div class="px-4 flex items-center place-content-end">
+          <div class="text-stone-900 text-xl text-base p-5 flex flex-col items-end justify-center">
+              <div>{{ service.duration }}</div>
+              <div>{{ service.price }}</div>
+          </div>
+          <button
+              class="book-btn mx-2 px-5 aspect-square rounded-full text-2xl font-bold bg-primary text-neutral shadow drop-shadow-lg"
+              data-service-id="{{ service.title }}"
+              data-duration="{{ service.duration_min }}"
+              type=button>
+                  Book
+          </button>
+        </div>
+      </div>
+    </section>
+    {% if script %}
+      <script>{{ script|safe }}</script>
+    {% endif %}
+    {% if script_name %}
+      <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
+    {% endif %}
+  </body>
+</html>

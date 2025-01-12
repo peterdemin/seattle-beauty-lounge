@@ -5,11 +5,26 @@ import shutil
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from typing import Iterable
 
+import docutils.core
+import docutils.frontend
+import docutils.parsers.rst
 import jinja2
+from bs4 import BeautifulSoup
 from markdown_it import MarkdownIt
 from PIL import Image
+
+
+@dataclass
+class ServiceInfo:
+    basename: str
+    title: str
+    price: str
+    duration: str
+    short_text: str
+    full_html: str
 
 
 class Builder:
@@ -70,6 +85,12 @@ class Builder:
             hours=hours,
             cancellation_policy=cancellation_policy,
         )
+        for service in self.iter_rst_services():
+            self.render_details_with_style(
+                service,
+                script_name=script_name,
+                style=style,
+            )
 
     def render_index_with_style(self, **params) -> None:
         self.save_rendered_index(f"{self.BUILD_DIR}/index.html", **params)
@@ -101,6 +122,18 @@ class Builder:
         return self.env.get_template("01-index.html").render(
             services=list(self.iter_services()), **kwargs
         )
+
+    def render_details_with_style(self, service: ServiceInfo, **kwargs) -> None:
+        self.save_rendered_details(f"{self.BUILD_DIR}/index.html", service, **kwargs)
+        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
+        self.save_rendered_details(f"{self.PUBLIC_DIR}/{service.basename}.html", service, **kwargs)
+
+    def save_rendered_details(self, path: str, service: ServiceInfo, **kwargs) -> None:
+        with open(path, "wt", encoding="utf-8") as fobj:
+            fobj.write(self.render_details(service, **kwargs))
+
+    def render_details(self, service: ServiceInfo, **kwargs) -> str:
+        return self.env.get_template("06-details.html").render(service=service, **kwargs)
 
     def render_services(self) -> str:
         return self.env.get_template("02-services.html").render(services=list(self.iter_services()))
@@ -134,6 +167,11 @@ class Builder:
                     "duration_min": duration_min,
                 }
 
+    def iter_rst_services(self) -> Iterable[ServiceInfo]:
+        service_parser = ServiceParser()
+        for path in sorted(glob.glob(f"{self.SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst")):
+            yield service_parser.parse_rst(path)
+
     def export_images(self) -> None:
         for image in self.find_images().values():
             target_dir = os.path.dirname(image["public"])
@@ -157,13 +195,58 @@ class Builder:
                 "url": os.path.relpath(path, self.SOURCE_DIR),
             }
             for path in glob.glob(f"{self.SOURCE_DIR}/images/*")
+            + glob.glob(f"{self.SOURCE_DIR}/[0-9]-*/images/*")
         }
 
     def get_file_index(self, path: str) -> str:
         return os.path.basename(path).split("-", 1)[0]
 
 
-if __name__ == "__main__":
+class ServiceParser:
+    def parse_rst(self, path: str) -> ServiceInfo:
+        with open(path, "rt", encoding="utf-8") as fobj:
+            rst = fobj.read()
+        doctree = docutils.core.publish_doctree(rst)
+        title = ""
+        price = ""
+        duration = ""
+        short_text = ""
+        cutoff = 0
+        for cutoff, child in enumerate(doctree.children):
+            if child.tagname == "title" and not title:
+                title = child.astext()  # First wins
+            elif child.tagname == "transition":
+                break
+            elif child.tagname == "paragraph":
+                parts = child.rawsource.split(":")
+                if len(parts) == 2:
+                    if parts[0].lower().strip() in ("price", "cost"):
+                        price = parts[1].strip()
+                        continue
+                    if parts[0].lower().strip() in ("time", "duration"):
+                        duration = parts[1].strip()
+                        continue
+                short_text = " ".join(c.astext().strip() for c in child.children)
+        doctree.children[: cutoff + 1] = []
+        soup = BeautifulSoup(
+            docutils.core.publish_from_doctree(doctree, writer_name="html"), "html.parser"
+        )
+        div = soup.html.body.div
+        assert div is not None
+        div["class"] = "p-6 font-light text-black [AMP_p]:py-2"
+        del div["id"]
+        full_html = div.prettify().replace("AMP", "&")
+        return ServiceInfo(
+            basename=os.path.splitext(os.path.basename(path))[0],
+            title=title,
+            price=price,
+            duration=duration,
+            short_text=short_text,
+            full_html=full_html,
+        )
+
+
+def main():
     if len(sys.argv) > 1:
         mode = sys.argv[1]
     else:
@@ -178,5 +261,12 @@ if __name__ == "__main__":
                 continue
             print(".", end="")
             time.sleep(0.1)
+    elif len(sys.argv) > 2 and sys.argv[2] == "rst":
+        for svc in builder.iter_rst_services():
+            builder.render_details_with_style(svc)
     else:
         builder.build_public()
+
+
+if __name__ == "__main__":
+    main()
