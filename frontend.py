@@ -13,32 +13,56 @@ import docutils.frontend
 import docutils.parsers.rst
 import jinja2
 from bs4 import BeautifulSoup
+from docutils.nodes import Element, TextElement
 from markdown_it import MarkdownIt
 from PIL import Image
 
 
 @dataclass
+class ServiceImage:
+    source: str
+    public: str
+    url: str
+
+
+@dataclass
 class ServiceInfo:
     basename: str
-    title: str
-    price: str
-    duration: str
-    short_text: str
-    full_html: str
+    image: ServiceImage
+    title: str = ""
+    price: str = ""
+    duration: str = ""
+    duration_min: int = 0
+    short_text: str = ""
+    full_html: str = ""
+    url: str = ""
+
+    def is_valid(self) -> bool:
+        return all(
+            [
+                self.basename,
+                self.title,
+                self.price,
+                self.duration,
+                self.duration_min,
+                self.short_text,
+            ]
+        )
+
+
+SOURCE_DIR = "source"
+PUBLIC_DIR = "public"
 
 
 class Builder:
-    SOURCE_DIR = "source"
     STYLES_DIR = f"{SOURCE_DIR}/styles"
     TEMPLATES_DIR = f"{SOURCE_DIR}/templates"
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
-    PUBLIC_DIR = "public"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
     SERVICE_IMAGE_MAX_SIZE = (500, 500)
-    RE_NUMBER = re.compile(r"(\d+).*")
 
     def __init__(self, mode: str) -> None:
         self._mode = mode
@@ -56,6 +80,27 @@ class Builder:
             os.makedirs(self.PUBLIC_ASSETS_DIR)
         if not os.path.exists(self.BUILD_ASSETS_DIR):
             os.makedirs(self.BUILD_ASSETS_DIR)
+        # Build Javascript for BookingWizard.jsx:
+        script_name, style = self._build_javascript()
+        services = list(self.iter_rst_services())
+        hours = list(self.iter_hours())
+        cancellation_policy = self.load_cancellation_policy()
+        for service in services:
+            self.render_details_with_style(
+                service=service,
+                script_name=script_name,
+                style=style,
+            )
+        self.export_images()
+        self.render_index_with_style(
+            services=services,
+            script_name=script_name,
+            style=style,
+            hours=hours,
+            cancellation_policy=cancellation_policy,
+        )
+
+    def _build_javascript(self) -> tuple[str, str]:
         # Build Javascript for BookingWizard.jsx:
         subprocess.run(
             ["npm", "run", self._mode],
@@ -75,31 +120,16 @@ class Builder:
             with open(path, "rt", encoding="utf-8") as fobj:
                 style = fobj.read()
             break  # Just one bundle
-        # Render template with embedded tailwind css
-        hours = list(self.iter_hours())
-        cancellation_policy = self.load_cancellation_policy()
-        self.export_images()
-        self.render_index_with_style(
-            script_name=script_name,
-            style=style,
-            hours=hours,
-            cancellation_policy=cancellation_policy,
-        )
-        for service in self.iter_rst_services():
-            self.render_details_with_style(
-                service,
-                script_name=script_name,
-                style=style,
-            )
+        return script_name, style
 
-    def render_index_with_style(self, **params) -> None:
-        self.save_rendered_index(f"{self.BUILD_DIR}/index.html", **params)
+    def render_index_with_style(self, services: list[ServiceInfo], **params) -> None:
+        self.save_rendered_index(f"{self.BUILD_DIR}/index.html", services, **params)
         params["style"] = params.get("style", "") + self.gen_tailwind_css()
-        self.save_rendered_index(f"{self.PUBLIC_DIR}/index.html", **params)
+        self.save_rendered_index(f"{PUBLIC_DIR}/index.html", services, **params)
 
-    def save_rendered_index(self, path: str, **params) -> None:
+    def save_rendered_index(self, path: str, services: list[ServiceInfo], **params) -> None:
         with open(path, "wt", encoding="utf-8") as fobj:
-            fobj.write(self.render_index(**params))
+            fobj.write(self.render_index(services, **params))
 
     def gen_tailwind_css(self) -> str:
         """Must be called after index.html is rendered"""
@@ -118,25 +148,19 @@ class Builder:
         with open(f"{self.BUILD_ASSETS_DIR}/style.css", "rt", encoding="utf-8") as fobj:
             return fobj.read()
 
-    def render_index(self, **kwargs) -> str:
-        return self.env.get_template("01-index.html").render(
-            services=list(self.iter_services()), **kwargs
-        )
+    def render_index(self, services: list[ServiceInfo], **kwargs) -> str:
+        return self.env.get_template("01-index.html").render(services=services, **kwargs)
 
     def render_details_with_style(self, service: ServiceInfo, **kwargs) -> None:
+        if not service.url:
+            return
         self.save_rendered_details(f"{self.BUILD_DIR}/index.html", service, **kwargs)
         kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
-        self.save_rendered_details(f"{self.PUBLIC_DIR}/{service.basename}.html", service, **kwargs)
+        self.save_rendered_details(f"{PUBLIC_DIR}/{service.url}", service, **kwargs)
 
     def save_rendered_details(self, path: str, service: ServiceInfo, **kwargs) -> None:
         with open(path, "wt", encoding="utf-8") as fobj:
-            fobj.write(self.render_details(service, **kwargs))
-
-    def render_details(self, service: ServiceInfo, **kwargs) -> str:
-        return self.env.get_template("06-details.html").render(service=service, **kwargs)
-
-    def render_services(self) -> str:
-        return self.env.get_template("02-services.html").render(services=list(self.iter_services()))
+            fobj.write(self.env.get_template("06-details.html").render(service=service, **kwargs))
 
     def load_cancellation_policy(self) -> str:
         with open(f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8") as fobj:
@@ -148,111 +172,111 @@ class Builder:
                 day, hours = line.strip().split(None, 1)
                 yield {"day": day, "hours": hours}
 
-    def iter_services(self) -> Iterable[dict]:
-        images = self.find_images()
-        for path in sorted(glob.glob(f"{self.SOURCE_DIR}/services/*.md")):
-            idx = self.get_file_index(path)
-            with open(path, "rt", encoding="utf-8") as fobj:
-                lines = [line.strip() for line in fobj]
-                price, duration = lines[-1].split(None, 1)
-                duration_min = 0
-                if mobj := self.RE_NUMBER.match(duration):
-                    duration_min = int(mobj.group(1))
-                yield {
-                    "image": images.get(idx, ""),
-                    "title": lines[0].strip(" #"),
-                    "description": lines[2],
-                    "price": price,
-                    "duration": duration,
-                    "duration_min": duration_min,
-                }
-
     def iter_rst_services(self) -> Iterable[ServiceInfo]:
         service_parser = ServiceParser()
-        for path in sorted(glob.glob(f"{self.SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst")):
+        for path in sorted(glob.glob(f"{SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst")):
             yield service_parser.parse_rst(path)
 
     def export_images(self) -> None:
-        for image in self.find_images().values():
-            target_dir = os.path.dirname(image["public"])
+        for source, target in self.find_images():
+            target_dir = os.path.dirname(target)
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
-            if os.path.basename(image["source"]).startswith("0"):
-                shutil.copy(image["source"], image["public"])
+            if os.path.basename(source).startswith("0"):
+                shutil.copy(source, target)
             else:
-                self.export_thumbnail(image["source"], image["public"])
+                self.export_thumbnail(source, target)
 
     def export_thumbnail(self, source: str, target: str) -> None:
         image = Image.open(source)
         image.thumbnail(self.SERVICE_IMAGE_MAX_SIZE)
         image.save(target)
 
-    def find_images(self) -> dict[str, dict[str, str]]:
-        return {
-            self.get_file_index(path): {
-                "source": path,
-                "public": os.path.join(self.PUBLIC_DIR, os.path.relpath(path, self.SOURCE_DIR)),
-                "url": os.path.relpath(path, self.SOURCE_DIR),
-            }
-            for path in glob.glob(f"{self.SOURCE_DIR}/images/*")
-            + glob.glob(f"{self.SOURCE_DIR}/[0-9]-*/images/*")
-        }
+    def find_images(self) -> list[tuple[str, str]]:
+        return [
+            (path, os.path.join(PUBLIC_DIR, "images", os.path.basename(path)))
+            for path in glob.glob(f"{SOURCE_DIR}/images/*")
+            + glob.glob(f"{SOURCE_DIR}/[0-9]-*/images/*")
+        ]
 
     def get_file_index(self, path: str) -> str:
         return os.path.basename(path).split("-", 1)[0]
 
 
 class ServiceParser:
+    RE_NUMBER = re.compile(r"(\d+).*")
+
     def parse_rst(self, path: str) -> ServiceInfo:
+        basename = os.path.splitext(os.path.basename(path))[0]
+        result = ServiceInfo(
+            basename=basename,
+            image=ServiceImage(source="", public="", url=""),
+        )
         with open(path, "rt", encoding="utf-8") as fobj:
             rst = fobj.read()
         doctree = docutils.core.publish_doctree(rst)
-        title = ""
-        price = ""
-        duration = ""
-        short_text = ""
         cutoff = 0
         for cutoff, child in enumerate(doctree.children):
-            if child.tagname == "title" and not title:
-                title = child.astext()  # First wins
-            elif child.tagname == "transition":
+            if child.tagname == "transition":
                 break
-            elif child.tagname == "paragraph":
-                parts = child.rawsource.split(":")
-                if len(parts) == 2:
-                    if parts[0].lower().strip() in ("price", "cost"):
-                        price = parts[1].strip()
-                        continue
-                    if parts[0].lower().strip() in ("time", "duration"):
-                        duration = parts[1].strip()
-                        continue
-                short_text = " ".join(c.astext().strip() for c in child.children)
+            self._parse_info(child, result)
         doctree.children[: cutoff + 1] = []
+        result.full_html = self._render_full_html(doctree)
+        if result.full_html:
+            result.url = f"{basename}.html"
+        if not result.is_valid():
+            raise ValueError(f"Service info is incomplete: {result}")
+        return result
+
+    def _parse_info(self, elem: TextElement, result: ServiceInfo) -> None:
+        if elem.tagname == "title" and not result.title:
+            result.title = elem.astext()  # First wins
+        elif elem.tagname == "paragraph":
+            if self._maybe_parse_kv(elem, result):
+                return
+            if elem.children and len(elem.children) == 1:
+                child = elem.children[0]
+                if type(child) is Element and child.tagname == "image":
+                    result.image = self._make_image(child["uri"])
+                    return
+            result.short_text = " ".join(c.astext().strip() for c in elem.children)
+
+    def _maybe_parse_kv(self, elem: TextElement, result: ServiceInfo) -> bool:
+        parts = elem.rawsource.split(":")
+        if len(parts) == 2:
+            if parts[0].lower().strip() in ("price", "cost"):
+                result.price = parts[1].strip()
+                return True
+            if parts[0].lower().strip() in ("time", "duration"):
+                result.duration = parts[1].strip()
+                if mobj := self.RE_NUMBER.match(result.duration):
+                    result.duration_min = int(mobj.group(1))
+                return True
+        return False
+
+    def _render_full_html(self, doctree: Element) -> str:
+        if not doctree.children:
+            return ""
         soup = BeautifulSoup(
             docutils.core.publish_from_doctree(doctree, writer_name="html"), "html.parser"
         )
-        div = soup.html.body.div
+        div = soup.html.body.div  # pyright: ignore
         assert div is not None
         div["class"] = "p-6 font-light text-black [AMP_p]:py-2"
         del div["id"]
-        full_html = div.prettify().replace("AMP", "&")
-        return ServiceInfo(
-            basename=os.path.splitext(os.path.basename(path))[0],
-            title=title,
-            price=price,
-            duration=duration,
-            short_text=short_text,
-            full_html=full_html,
+        return div.prettify().replace("AMP", "&")
+
+    def _make_image(self, path: str) -> ServiceImage:
+        return ServiceImage(
+            source=path,
+            public=os.path.join(PUBLIC_DIR, "images", os.path.basename(path)),
+            url=os.path.relpath(path, SOURCE_DIR),
         )
 
 
-def main():
-    if len(sys.argv) > 1:
-        mode = sys.argv[1]
-    else:
-        raise RuntimeError("Pass mode [development|staging|production] as the first parameter")
+def main(mode: str = "development", watch: bool = False):
     builder = Builder(mode)
-    if len(sys.argv) > 2 and sys.argv[2] == "watch":
+    if watch:
         while True:
             try:
                 builder.build_public()
@@ -261,12 +285,16 @@ def main():
                 continue
             print(".", end="")
             time.sleep(0.1)
-    elif len(sys.argv) > 2 and sys.argv[2] == "rst":
-        for svc in builder.iter_rst_services():
-            builder.render_details_with_style(svc)
     else:
         builder.build_public()
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        mode = sys.argv[1]
+    else:
+        raise RuntimeError("Pass mode [development|staging|production] as the first parameter")
+    watch = False
+    if len(sys.argv) > 2 and sys.argv[2] == "watch":
+        watch = True
+    main(mode, watch)

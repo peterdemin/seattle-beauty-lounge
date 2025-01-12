@@ -184,3 +184,4 @@ api/test.db
 /.env.prod
 /.env.staging
 /Session.vim
+*.swp

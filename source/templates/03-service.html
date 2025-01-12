@@ -1,13 +1,17 @@
 <div class="sm:max-w-md sm:rounded bg-neutral sm:shadow-lg sm:drop-shadow-lg">
-    {% if service.image %}
-    <img class="w-full max-h-96 aspect-video object-cover object-top sm:rounded " src="{{ service.image.url }}" alt="{{ service.title }}">
+    {% if service.image.url %}
+      {% if service.url %}<a href="{{ service.url }}">{% endif %}
+      <img class="w-full max-h-96 aspect-video object-cover object-top sm:rounded " src="{{ service.image.url }}" alt="{{ service.title }}">
+      {% if service.url %}</a>{% endif %}
     {% endif %}
     <div class="pb-4">
       <h2 class="w-full py-2 px-4 text-3xl text-primary">
+        {% if service.url %}<a href="{{ service.url }}">{% endif %}
         {{ service.title }}
+        {% if service.url %}</a>{% endif %}
       </h2>
       <p class="text-stone-900 px-4 text-base mb-5">
-        {{ service.description }}
+        {{ service.short_text }}
       </p>
       <div class="px-4 flex items-center place-content-end">
         <div class="text-stone-900 text-xl text-base p-5 flex flex-col items-end justify-center">

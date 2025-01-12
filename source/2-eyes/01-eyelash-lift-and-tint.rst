@@ -12,9 +12,11 @@ Price: $100
 Enhance your natural lashes with a lift and tint treatment for a
 long-lasting curled effect and darker, more defined lashes.
 
---------------
-
 |image1|
+
+.. |image1| image:: images/2.01-1.png
+
+--------------
 
 An eyelash lift and tint is a beauty treatment that enhances the
 appearance of your natural eyelashes by curling and darkening them.
@@ -35,5 +37,3 @@ risks, such as skin irritation or allergies.
 Some recommend pairing an eyelash lift and tint with an eyebrow tint to
 frame your face. You can also use a lash growth serum to help your
 lashes grow longer.
-
-.. |image1| image:: images/2.01-1.png

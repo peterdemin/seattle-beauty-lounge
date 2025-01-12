@@ -35,17 +35,19 @@
     {% endif %}
   </head>
   <body class="bg-neutral">
-    <div class="lg:py-24 py-6 sm:px-3 flex justify-center items-center">
-      <h1 class="sm:m-8 text-center md:text-9xl text-7xl text-primary drop-shadow-lg italianno-regular">
-        Seattle Beauty Lounge
-      </h1>
-      <div class="w-fit bg-primary p-1 rounded-full">
-        <img class="rounded-full" src="images/00-outside.webp" />
+    <a href="/">
+      <div class="lg:py-24 py-6 sm:px-3 flex justify-center items-center">
+        <h1 class="sm:m-8 text-center md:text-9xl text-7xl text-primary drop-shadow-lg italianno-regular">
+          Seattle Beauty Lounge
+        </h1>
+        <div class="w-fit bg-primary p-1 rounded-full">
+          <img class="rounded-full" src="images/00-outside.webp" />
+        </div>
       </div>
-    </div>
+    </a>
     {% include "05-book.html" %}
     <section class="max-w-lg mx-auto">
-      {% if service.image %}
+      {% if service.image_path %}
       <img class="w-full max-h-96 aspect-video object-cover object-top sm:rounded " src="{{ service.image.url }}" alt="{{ service.title }}">
       {% endif %}
       <div class="pb-4">
