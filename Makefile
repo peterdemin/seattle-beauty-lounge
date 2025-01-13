@@ -43,6 +43,11 @@ dev: fe
 slots:
 	python -m api.sync_local peter@seattle-beauty-lounge.com
 
+.PHONY: content
+content:
+	gdocsync source
+	python -m api.services
+
 .PHONY: install
 install:
 	pip install -r requirements/dev.txt
