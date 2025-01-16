@@ -14,6 +14,7 @@ from api.calendar_client import (
 from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
+from api.endpoints.backoffice import BackofficeAPI
 from api.endpoints.payment import PaymentAPI
 from api.endpoints.square_payment import SquarePaymentAPI
 from api.google_auth import GoogleAuth
@@ -100,6 +101,10 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         slots_loader=SlotsLoader.load(
             day_breaker=FreshDayBreaker(kv),
         ),
+    ).register(app, prefix=settings.location_prefix)
+    BackofficeAPI(
+        db,
+        services_info,
     ).register(app, prefix=settings.location_prefix)
     PaymentAPI(
         "https://seattle-beauty-lounge.com",
