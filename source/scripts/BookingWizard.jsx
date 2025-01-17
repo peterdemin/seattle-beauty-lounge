@@ -14,7 +14,8 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	const [currentStep, setCurrentStep] = useState(1);
 
 	// Wizard State
-	const [selectedService, setSelectedService] = useState(null);
+	const [selectedServiceId, setSelectedServiceId] = useState(null);
+	const [selectedServiceTitle, setSelectedServiceTitle] = useState(null);
 	const [availability, setAvailability] = useState([]);
 	const [duration, setDuration] = useState(null);
 	const [slots, setSlots] = useState(null);
@@ -51,7 +52,8 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 	useEffect(() => {
 		for (const element of document.getElementsByClassName("book-btn")) {
 			element.addEventListener("click", () => {
-				setSelectedService(element.dataset.serviceId);
+				setSelectedServiceId(element.dataset.serviceId);
+				setSelectedServiceTitle(element.dataset.serviceTitle);
 				setDuration(element.dataset.duration);
 				if (element.dataset.serviceId) {
 					setCurrentStep(2);
@@ -68,7 +70,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 
 	async function handleSubmitAppointment() {
 		const payload = {
-			serviceId: selectedService,
+			serviceId: selectedServiceId,
 			date: selectedDate,
 			time: selectedTime,
 			clientName,
@@ -142,7 +144,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			)}
 			{currentStep === 6 && (
 				<ReviewAndConfirmStep
-					serviceId={selectedService}
+					serviceTitle={selectedServiceTitle}
 					date={selectedDate}
 					time={selectedTime}
 					clientName={clientName}
@@ -392,7 +394,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 }
 
 function ReviewAndConfirmStep({
-	serviceId,
+	serviceTitle,
 	date,
 	time,
 	clientName,
@@ -412,8 +414,8 @@ function ReviewAndConfirmStep({
 				Review and Confirm
 			</h2>
 			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
-				I, <span>{clientName}</span>, want to book <span>{serviceId}</span> on{" "}
-				<span>{formatDate(date)}</span> at <span>{time}</span>.
+				I, <span>{clientName}</span>, want to book <span>{serviceTitle}</span>{" "}
+				on <span>{formatDate(date)}</span> at <span>{time}</span>.
 			</p>
 			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
 				You can contact me by phone: <span>{clientPhone}</span>

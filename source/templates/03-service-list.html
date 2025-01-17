@@ -8,11 +8,12 @@
 </thead>
 <tbody class="divide-y divide-slate-700">
   {% for service in services %}
-    {% if service.index == 1 %}
+    {% if service.index == "01" %}
       <tr><td colspan="3" class="py-2 font-medium text-center">{{ service.category_name }}</td></tr>
     {% endif %}
     <tr class="book-btn cursor-pointer"
-        data-service-id="{{ service.title }}"
+        data-service-id="{{ service.full_index }}"
+        data-service-title="{{ service.title }}"
         data-duration="{{ service.duration_min }}"
     >
       <td class="pr-4">{{ service.title }}</td>

@@ -24,7 +24,7 @@ def test_submit_appointment(test_client: TestClient) -> None:
         "/appointments",
         json={
             "id": 1,
-            "serviceId": "Brow shaping and tinting",
+            "serviceId": "2.02",
             "date": "2025-01-10",
             "time": "13:30",
             "clientName": "Jane Doe",
@@ -42,6 +42,6 @@ def test_submit_appointment(test_client: TestClient) -> None:
         "date": "2025-01-10",
         "remindedAt": 0,
         "id": 1,
-        "serviceId": "Brow shaping and tinting",
+        "serviceId": "2.02",
         "time": "13:30:00",
     }

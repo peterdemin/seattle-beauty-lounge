@@ -6,8 +6,10 @@ from sqlmodel import select
 from api.constants import TIMEZONE
 from api.db import Database
 from api.models import Appointment
+from api.service_catalog import ServiceCatalog
 from api.sms_client import SMSClientDummy
 from api.tasks.reminder import ReminderTask
+from lib.service import ImageInfo, ServiceInfo
 
 
 def test_reminder_task_happy_path() -> None:
@@ -17,7 +19,7 @@ def test_reminder_task_happy_path() -> None:
     with db.session() as session:
         session.add(
             Appointment(
-                serviceId="service",
+                serviceId="1.23",
                 date=datetime.date(2014, 4, 14),
                 time=datetime.time(10, 11),
                 clientName="clientName",
@@ -26,7 +28,20 @@ def test_reminder_task_happy_path() -> None:
             )
         )
         session.commit()
-    reminder = ReminderTask(sms_client=sms_client, db=db)
+    reminder = ReminderTask(
+        sms_client=sms_client,
+        db=db,
+        service_catalog=ServiceCatalog(
+            [
+                ServiceInfo(
+                    source_path="1-cat/23-name.rst",
+                    image=ImageInfo.dummy(),
+                    title="service",
+                    duration_min=3,
+                )
+            ]
+        ),
+    )
     job_time = TIMEZONE.localize(datetime.datetime(2014, 4, 13, 14, 0))
     reminder(job_time)
     sms_client.send.assert_called_once_with(
@@ -42,7 +57,7 @@ def test_reminder_task_happy_path() -> None:
 def test_reminder_task_skips_at_night() -> None:
     db = mock.Mock(spec=Database)
     sms_client = SMSClientDummy()
-    reminder = ReminderTask(sms_client=sms_client, db=db)
+    reminder = ReminderTask(sms_client=sms_client, db=db, service_catalog=ServiceCatalog([]))
     job_time = TIMEZONE.localize(datetime.datetime(2014, 4, 13, 2, 0))
     reminder(job_time)
     db.session.assert_not_called()

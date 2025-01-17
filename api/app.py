@@ -17,7 +17,7 @@ from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.payment import PaymentAPI
 from api.google_auth import GoogleAuth
 from api.kv import KiwiStore
-from api.services import ServicesInfo
+from api.service_catalog import ServiceCatalog
 from api.slots import FreshDayBreaker, SlotsLoader
 from api.sms_client import SMSClient
 from api.smtp_client import SMTPClient, SMTPClientDummy
@@ -52,7 +52,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         yield
         task_scheduler.stop()
 
-    services_info = ServicesInfo.load()
+    service_catalog = ServiceCatalog()
     calendar_service = (
         CalendarService(GoogleAuth.delegated(settings.sender_email))
         if settings.enable_calendar
@@ -68,15 +68,18 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         ).register(task_scheduler)
     calendar_task = CalendarTask(
         calendar_service=calendar_service,
-        services_info=services_info,
+        service_catalog=service_catalog,
     )
     if settings.twilio_account_sid:
-        sms_client = SMSClient(
-            account_sid=settings.twilio_account_sid,
-            auth_token=settings.twilio_auth_token,
-            from_number=settings.twilio_from_number,
-        )
-        ReminderTask(sms_client=sms_client, db=db).register(task_scheduler)
+        ReminderTask(
+            sms_client=SMSClient(
+                account_sid=settings.twilio_account_sid,
+                auth_token=settings.twilio_auth_token,
+                from_number=settings.twilio_from_number,
+            ),
+            db=db,
+            service_catalog=service_catalog,
+        ).register(task_scheduler)
 
     email_task = EmailTask(
         smtp_client=(
@@ -84,7 +87,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             if settings.enable_emails
             else SMTPClientDummy()
         ),
-        services_info=services_info,
+        service_catalog=service_catalog,
     )
 
     app = FastAPI(lifespan=lifespan)

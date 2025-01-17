@@ -7,6 +7,7 @@ from sqlmodel import select
 from api.constants import TIMEZONE
 from api.db import Database
 from api.models import Appointment
+from api.service_catalog import ServiceCatalog
 from api.sms_client import SMSClientDummy
 from api.task_scheduler import TaskScheduler
 
@@ -14,7 +15,7 @@ from api.task_scheduler import TaskScheduler
 class ReminderTask:
     _BATCH_LIMIT = 10
     _MESSAGE_TEMPLATE = (
-        "{appointment.clientName}, you have {appointment.serviceId} scheduled "
+        "{appointment.clientName}, you have {title} scheduled "
         "for tomorrow, {date_str} at {time_str}."
     )
     _ACTIVE_HOURS = (9, 18)
@@ -23,9 +24,11 @@ class ReminderTask:
         self,
         sms_client: SMSClientDummy,
         db: Database,
+        service_catalog: ServiceCatalog,
     ) -> None:
         self._sms_client = sms_client
         self._db = db
+        self._service_catalog = service_catalog
 
     def __call__(self, job_time: Optional[datetime.datetime] = None) -> None:
         job_time = job_time or datetime.datetime.now(tz=datetime.timezone.utc).astimezone(TIMEZONE)
@@ -59,6 +62,7 @@ class ReminderTask:
             appointment.clientPhone,
             self._MESSAGE_TEMPLATE.format(
                 appointment=appointment,
+                title=self._service_catalog.get_title(appointment.serviceId),
                 date_str=appointment.date.strftime("%A, %B %d"),
                 time_str=appointment.time.strftime("%H:%M"),
             ),

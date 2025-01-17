@@ -1,12 +1,10 @@
 import glob
 import os
-import posixpath
 import re
 import shutil
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
 from typing import Iterable
 
 import docutils.core
@@ -18,76 +16,9 @@ from docutils.nodes import Element, TextElement, image
 from markdown_it import MarkdownIt
 from PIL import Image
 
+from lib.service import PUBLIC_DIR, ImageInfo, ServiceInfo, dump_services
+
 SOURCE_DIR = "source"
-PUBLIC_DIR = "public"
-
-
-@dataclass
-class ImageInfo:
-    source: str
-    public: str
-    url: str
-
-    EXTENSION = ".webp"
-
-    @classmethod
-    def from_source(cls, path: str) -> "ImageInfo":
-        target_basename = os.path.splitext(os.path.basename(path))[0] + cls.EXTENSION
-        return ImageInfo(
-            source=path,
-            public=os.path.join(PUBLIC_DIR, "images", target_basename),
-            url=posixpath.join("images", target_basename),
-        )
-
-
-@dataclass
-class ServiceInfo:
-    source_path: str
-    image: ImageInfo
-    title: str = ""
-    price: str = ""
-    duration: str = ""
-    duration_min: int = 0
-    short_text: str = ""
-    full_html: str = ""
-    url: str = ""
-
-    CATEGORY_NAMES = {
-        1: "Facials",
-        2: "Lashes & Brows",
-        3: "Makeup",
-    }
-
-    def is_valid(self) -> bool:
-        return all(
-            [
-                self.basename,
-                self.title,
-                self.price,
-                self.duration,
-                self.duration_min,
-                self.short_text,
-            ]
-        )
-
-    @property
-    def basename(self) -> str:
-        return os.path.splitext(os.path.basename(self.source_path))[0]
-
-    def set_image_from_uri(self, uri: str) -> None:
-        self.image = ImageInfo.from_source(os.path.join(os.path.dirname(self.source_path), uri))
-
-    @property
-    def index(self) -> int:
-        return int(os.path.basename(self.source_path).split("-")[0])
-
-    @property
-    def category_index(self) -> int:
-        return int(os.path.basename(os.path.dirname(self.source_path)).split("-")[0])
-
-    @property
-    def category_name(self) -> str:
-        return self.CATEGORY_NAMES[self.category_index]
 
 
 class Builder:
@@ -118,7 +49,7 @@ class Builder:
             os.makedirs(self.BUILD_ASSETS_DIR)
         # Build Javascript for BookingWizard.jsx:
         script_name, style = self._build_javascript()
-        services = list(self.iter_rst_services())
+        services = ServiceParser().parse_all()
         hours = list(self.iter_hours())
         cancellation_policy = self.load_cancellation_policy()
         for service in services:
@@ -135,6 +66,7 @@ class Builder:
             hours=hours,
             cancellation_policy=cancellation_policy,
         )
+        dump_services(services)
 
     def _build_javascript(self) -> tuple[str, str]:
         # Build Javascript for BookingWizard.jsx:
@@ -208,11 +140,6 @@ class Builder:
                 day, hours = line.strip().split(None, 1)
                 yield {"day": day, "hours": hours}
 
-    def iter_rst_services(self) -> Iterable[ServiceInfo]:
-        service_parser = ServiceParser()
-        for path in sorted(glob.glob(f"{SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst")):
-            yield service_parser.parse_rst(path)
-
 
 class ImagePublisher:
     IMAGE_GLOBS = (f"{SOURCE_DIR}/images/*", f"{SOURCE_DIR}/[0-9]-*/images/*")
@@ -241,12 +168,13 @@ class ImagePublisher:
 
 class ServiceParser:
     RE_NUMBER = re.compile(r"(\d+).*")
+    SERVICE_PTRN = f"{SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst"
+
+    def parse_all(self) -> list[ServiceInfo]:
+        return [self.parse_rst(path) for path in sorted(glob.glob(self.SERVICE_PTRN))]
 
     def parse_rst(self, path: str) -> ServiceInfo:
-        result = ServiceInfo(
-            source_path=path,
-            image=ImageInfo(source="", public="", url=""),
-        )
+        result = ServiceInfo(source_path=path, image=ImageInfo.dummy())
         with open(path, "rt", encoding="utf-8") as fobj:
             rst = fobj.read()
         doctree = docutils.core.publish_doctree(rst)

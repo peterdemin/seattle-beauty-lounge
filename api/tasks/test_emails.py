@@ -4,9 +4,10 @@ import re
 from unittest import mock
 
 from api.models import Appointment
-from api.services import ServicesInfo
+from api.service_catalog import ServiceCatalog
 from api.smtp_client import SMTPClientDummy
 from api.tasks.emails import EmailTask
+from lib.service import ImageInfo, ServiceInfo
 
 RE_BOUNDARY = re.compile(r"==(=+[^=]+)==")
 RE_NON_DETERMINISTIC = re.compile(r"(?m)^(DTSTAMP|UID):(\S+)$")
@@ -16,18 +17,21 @@ def test_send_confirmation_email_example():
     smtp_client = mock.Mock(spec=SMTPClientDummy)
     email_task = EmailTask(
         smtp_client=smtp_client,
-        services_info=ServicesInfo(
-            {
-                "service": {
-                    "duration": datetime.timedelta(seconds=40),
-                }
-            }
+        service_catalog=ServiceCatalog(
+            [
+                ServiceInfo(
+                    source_path="1-cat/23-name.rst",
+                    image=ImageInfo.dummy(),
+                    title="service",
+                    duration_min=3,
+                )
+            ]
         ),
     )
     email_task.send_confirmation_email(
         Appointment(
             id=1,
-            serviceId="service",
+            serviceId="1.23",
             date=datetime.date(2014, 4, 14),
             time=datetime.time(1, 10, 20),
             clientName="clientName",
@@ -80,7 +84,7 @@ BEGIN:VEVENT
 DTSTAMP:<scrambled>
 UID:<scrambled>
 DTSTART;TZID="UTC-07:00":20140414T011020
-DTEND;TZID="UTC-07:00":20140414T011100
+DTEND;TZID="UTC-07:00":20140414T011320
 SUMMARY:service
 CONTACT:301-658-8708
 CONTACT:kate@seattle-beauty-lounge.com

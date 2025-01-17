@@ -1,7 +1,7 @@
 import datetime
 
 from api.constants import TIMEZONE, TIMEZONE_STR
-from api.services import ServicesInfo
+from api.service_catalog import ServiceCatalog
 
 MICROBLADING_EVENT = {
     "summary": "Eyebrow microblading",
@@ -12,9 +12,9 @@ MICROBLADING_EVENT = {
 
 
 def test_load_from_pickle():
-    services_info = ServicesInfo.load()
-    event = services_info.compose_event(
-        title="Eyebrow microblading",
+    service_catalog = ServiceCatalog()
+    event = service_catalog.compose_event(
+        full_index="2.04",
         description="Description",
         start_dt=TIMEZONE.localize(
             datetime.datetime.combine(

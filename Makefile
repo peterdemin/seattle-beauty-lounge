@@ -46,7 +46,6 @@ slots:
 .PHONY: content
 content:
 	gdocsync source
-	python -m api.services
 
 .PHONY: install
 install:

@@ -9,7 +9,7 @@ from ical.event import Event
 
 from api.constants import EMAIL, LOCATION, PHONE, TIMEZONE
 from api.models import Appointment
-from api.services import ServicesInfo
+from api.service_catalog import ServiceCatalog
 from api.smtp_client import SMTPClientDummy
 
 
@@ -29,7 +29,7 @@ class EmailTask:
 
         Your appointment has been booked.
 
-        We'll see you on {{date_str}} at {{time_str}} for {{appointment.serviceId}}.
+        We'll see you on {{date_str}} at {{time_str}} for {{title}}.
 
         Thank you for choosing Seattle Beauty Lounge!
 
@@ -42,10 +42,10 @@ class EmailTask:
     def __init__(
         self,
         smtp_client: SMTPClientDummy,
-        services_info: ServicesInfo,
+        service_catalog: ServiceCatalog,
     ) -> None:
         self._smtp_client = smtp_client
-        self._services_info = services_info
+        self._service_catalog = service_catalog
 
     def send_confirmation_email(self, appointment: Appointment):
         """Sends a confirmation email to the appointment.clientEmail."""
@@ -60,6 +60,7 @@ class EmailTask:
             MIMEText(
                 self._EMAIL_TEMPLATE.format(
                     appointment=appointment,
+                    title=self._service_catalog.get_title(appointment.serviceId),
                     date_str=appointment.date.strftime("%A, %B %d"),
                     time_str=appointment.time.strftime("%H:%M"),
                 )
@@ -81,11 +82,11 @@ class EmailTask:
                 appointment.time,
             )
         )
-        end = start + self._services_info.get_duration(appointment.serviceId)
+        end = start + self._service_catalog.get_duration(appointment.serviceId)
         calendar = Calendar()
         calendar.events.append(
             Event(
-                summary=appointment.serviceId,
+                summary=self._service_catalog.get_title(appointment.serviceId),
                 description=self._CALENDAR_TEMPLATE.format(appointment=appointment),
                 location=LOCATION,
                 contacts=[PHONE, EMAIL],
