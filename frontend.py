@@ -1,5 +1,6 @@
 import glob
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -17,18 +18,32 @@ from docutils.nodes import Element, TextElement, image
 from markdown_it import MarkdownIt
 from PIL import Image
 
+SOURCE_DIR = "source"
+PUBLIC_DIR = "public"
+
 
 @dataclass
-class ServiceImage:
+class ImageInfo:
     source: str
     public: str
     url: str
 
+    EXTENSION = ".webp"
+
+    @classmethod
+    def from_source(cls, path: str) -> "ImageInfo":
+        target_basename = os.path.splitext(os.path.basename(path))[0] + cls.EXTENSION
+        return ImageInfo(
+            source=path,
+            public=os.path.join(PUBLIC_DIR, "images", target_basename),
+            url=posixpath.join("images", target_basename),
+        )
+
 
 @dataclass
 class ServiceInfo:
-    basename: str
-    image: ServiceImage
+    source_path: str
+    image: ImageInfo
     title: str = ""
     price: str = ""
     duration: str = ""
@@ -49,9 +64,12 @@ class ServiceInfo:
             ]
         )
 
+    @property
+    def basename(self) -> str:
+        return os.path.splitext(os.path.basename(self.source_path))[0]
 
-SOURCE_DIR = "source"
-PUBLIC_DIR = "public"
+    def set_image_from_uri(self, uri: str) -> None:
+        self.image = ImageInfo.from_source(os.path.join(os.path.dirname(self.source_path), uri))
 
 
 class Builder:
@@ -62,7 +80,6 @@ class Builder:
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
-    SERVICE_IMAGE_MAX_SIZE = (500, 500)
 
     def __init__(self, mode: str) -> None:
         self._mode = mode
@@ -74,6 +91,7 @@ class Builder:
             "commonmark",
             {"breaks": True, "html": True},
         )
+        self.image_publisher = ImagePublisher()
 
     def build_public(self) -> None:
         if not os.path.exists(self.PUBLIC_ASSETS_DIR):
@@ -91,7 +109,7 @@ class Builder:
                 script_name=script_name,
                 style=style,
             )
-        self.export_images()
+        self.image_publisher.export_images()
         self.render_index_with_style(
             services=services,
             script_name=script_name,
@@ -177,40 +195,39 @@ class Builder:
         for path in sorted(glob.glob(f"{SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst")):
             yield service_parser.parse_rst(path)
 
+
+class ImagePublisher:
+    IMAGE_GLOBS = (f"{SOURCE_DIR}/images/*", f"{SOURCE_DIR}/[0-9]-*/images/*")
+    SERVICE_IMAGE_MAX_SIZE = (500, 500)
+
     def export_images(self) -> None:
-        for source, target in self.find_images():
-            target_dir = os.path.dirname(target)
+        for im in self.find_images():
+            target_dir = os.path.dirname(im.public)
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
-            if os.path.basename(source).startswith("0"):
-                shutil.copy(source, target)
+            if os.path.basename(im.source).startswith("0"):
+                shutil.copy(im.source, im.public)
             else:
-                self.export_thumbnail(source, target)
+                self.export_thumbnail(im.source, im.public)
 
     def export_thumbnail(self, source: str, target: str) -> None:
         image = Image.open(source)
         image.thumbnail(self.SERVICE_IMAGE_MAX_SIZE)
         image.save(target)
 
-    def find_images(self) -> list[tuple[str, str]]:
-        return [
-            (path, os.path.join(PUBLIC_DIR, "images", os.path.basename(path)))
-            for path in glob.glob(f"{SOURCE_DIR}/images/*")
-            + glob.glob(f"{SOURCE_DIR}/[0-9]-*/images/*")
-        ]
-
-    def get_file_index(self, path: str) -> str:
-        return os.path.basename(path).split("-", 1)[0]
+    def find_images(self) -> Iterable[ImageInfo]:
+        for ptrn in self.IMAGE_GLOBS:
+            for path in glob.glob(ptrn):
+                yield ImageInfo.from_source(path)
 
 
 class ServiceParser:
     RE_NUMBER = re.compile(r"(\d+).*")
 
     def parse_rst(self, path: str) -> ServiceInfo:
-        basename = os.path.splitext(os.path.basename(path))[0]
         result = ServiceInfo(
-            basename=basename,
-            image=ServiceImage(source="", public="", url=""),
+            source_path=path,
+            image=ImageInfo(source="", public="", url=""),
         )
         with open(path, "rt", encoding="utf-8") as fobj:
             rst = fobj.read()
@@ -223,7 +240,7 @@ class ServiceParser:
         doctree.children[: cutoff + 1] = []
         result.full_html = self._render_full_html(doctree)
         if result.full_html:
-            result.url = f"{basename}.html"
+            result.url = f"{result.basename}.html"
         if not result.is_valid():
             raise ValueError(f"Service info is incomplete: {result}")
         return result
@@ -237,7 +254,7 @@ class ServiceParser:
             if elem.children and len(elem.children) == 1:
                 child = elem.children[0]
                 if type(child) is image:
-                    result.image = self._make_image(child["uri"])
+                    result.set_image_from_uri(child["uri"])
                     return
             result.short_text = " ".join(c.astext().strip() for c in elem.children)
 
@@ -266,12 +283,8 @@ class ServiceParser:
         del div["id"]
         return div.prettify().replace("AMP", "&")
 
-    def _make_image(self, path: str) -> ServiceImage:
-        return ServiceImage(
-            source=path,
-            public=os.path.join(PUBLIC_DIR, "images", os.path.basename(path)),
-            url=os.path.relpath(path, SOURCE_DIR),
-        )
+    def _make_image(self, path: str) -> ImageInfo:
+        return ImageInfo.from_source(path)
 
 
 def main(mode: str = "development", watch: bool = False):
