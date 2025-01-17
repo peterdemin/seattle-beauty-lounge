@@ -52,6 +52,12 @@ class ServiceInfo:
     full_html: str = ""
     url: str = ""
 
+    CATEGORY_NAMES = {
+        1: "Facials",
+        2: "Lashes & Brows",
+        3: "Makeup",
+    }
+
     def is_valid(self) -> bool:
         return all(
             [
@@ -70,6 +76,18 @@ class ServiceInfo:
 
     def set_image_from_uri(self, uri: str) -> None:
         self.image = ImageInfo.from_source(os.path.join(os.path.dirname(self.source_path), uri))
+
+    @property
+    def index(self) -> int:
+        return int(os.path.basename(self.source_path).split("-")[0])
+
+    @property
+    def category_index(self) -> int:
+        return int(os.path.basename(os.path.dirname(self.source_path)).split("-")[0])
+
+    @property
+    def category_name(self) -> str:
+        return self.CATEGORY_NAMES[self.category_index]
 
 
 class Builder:

@@ -11,7 +11,7 @@ import PayButton from "./PayButton.jsx";
 import getAvailableSlots from "./availability.js";
 
 function BookingWizard({ apiUrl, stripePublishableKey }) {
-	const [currentStep, setCurrentStep] = useState(2);
+	const [currentStep, setCurrentStep] = useState(1);
 
 	// Wizard State
 	const [selectedService, setSelectedService] = useState(null);
@@ -53,7 +53,11 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			element.addEventListener("click", () => {
 				setSelectedService(element.dataset.serviceId);
 				setDuration(element.dataset.duration);
-				setCurrentStep(2);
+				if (element.dataset.serviceId) {
+					setCurrentStep(2);
+				} else {
+					setCurrentStep(1);
+				}
 				document.getElementById("book-modal").classList.remove("hidden");
 			});
 		}
@@ -85,6 +89,12 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 			// Handle errors
 			alert("Error submitting appointment");
 		}
+	}
+
+	if (currentStep === 1) {
+		document.getElementById("service-table").classList.remove("hidden");
+	} else {
+		document.getElementById("service-table").classList.add("hidden");
 	}
 
 	// Render steps conditionally:
