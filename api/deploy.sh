@@ -12,6 +12,8 @@ if [ ! -e /home/api/.venv/bin/pip-sync ]; then
 fi
 
 # Sync API source
+rsync -a --delete lib/ /home/api/lib
+chown -R api:api /home/api/lib
 rsync -a --delete api/ /home/api/api
 chown -R api:api /home/api/api
 

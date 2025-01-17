@@ -4,13 +4,17 @@ set -e -o pipefail
 
 make clean
 
-scp .env.prod seattle-beauty-lounge.com:
-ssh seattle-beauty-lounge.com "sudo ls /home/api >/dev/null 2>&1 && sudo mv .env.prod /home/api/.env && sudo chown api:api /home/api/.env || true"
+HOST=seattle-beauty-lounge.com
+ENV_SLUG=prod
 
-rsync -a --delete api seattle-beauty-lounge.com:
-ssh seattle-beauty-lounge.com "sudo api/deploy.sh"
+scp .env.${ENV_SLUG} ${HOST}:
+ssh ${HOST} "sudo ls /home/api >/dev/null 2>&1 && sudo mv .env.${ENV_SLUG} /home/api/.env && sudo chown api:api /home/api/.env || true"
 
-make production
+rsync -a --delete lib ${HOST}:
+rsync -a --delete api ${HOST}:
+ssh ${HOST} "sudo api/deploy.sh"
+
+make ${ENV_SLUG}
 make compress  # Must be run separately to detect targets
-rsync -a --delete public seattle-beauty-lounge.com:
-ssh seattle-beauty-lounge.com "sudo rsync -a --delete public/ /var/www/html"
+rsync -a --delete public ${HOST}:
+ssh ${HOST} "sudo rsync -a --delete public/ /var/www/html"
