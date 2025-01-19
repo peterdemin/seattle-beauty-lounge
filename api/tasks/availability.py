@@ -21,13 +21,18 @@ class AvailabilityTask:
         self._day_breaker = day_breaker
 
     def __call__(self, limit: int = 7 * 7) -> None:
+        try:
+            events = self._calendar_service.fetch(limit)
+        except Exception:
+            # Whatever, next attempt is in one minute
+            return
         self._kv.set(
             self._key,
             json.dumps(
                 self._day_breaker.group_time_ranges(
                     map(
                         self._calendar_event_parser,
-                        self._calendar_service.fetch(limit),
+                        events,
                     )
                 )
             ),

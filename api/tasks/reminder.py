@@ -3,6 +3,7 @@ import time
 from typing import Optional
 
 from sqlmodel import select
+from tenacity import retry, stop_after_delay, wait_fixed
 
 from api.constants import TIMEZONE
 from api.db import Database
@@ -67,3 +68,7 @@ class ReminderTask:
                 time_str=appointment.time.strftime("%H:%M"),
             ),
         )
+
+    @retry(stop=stop_after_delay(60), wait=wait_fixed(1))
+    def _send(self, phone_number: str, message: str) -> None:
+        self._sms_client.send(phone_number, message)

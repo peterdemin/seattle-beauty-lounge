@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from ical.calendar import Calendar
 from ical.calendar_stream import IcsCalendarStream
 from ical.event import Event
+from tenacity import retry, stop_after_delay, wait_fixed
 
 from api.constants import EMAIL, LOCATION, PHONE, TIMEZONE
 from api.models import Appointment
@@ -49,7 +50,11 @@ class EmailTask:
 
     def send_confirmation_email(self, appointment: Appointment):
         """Sends a confirmation email to the appointment.clientEmail."""
-        self._smtp_client.send(self._compose_confirmation(appointment))
+        self._send(self._compose_confirmation(appointment))
+
+    @retry(stop=stop_after_delay(60), wait=wait_fixed(1))
+    def _send(self, message: MIMEMultipart) -> None:
+        self._smtp_client.send(message)
 
     def _compose_confirmation(self, appointment: Appointment) -> MIMEMultipart:
         msg = MIMEMultipart()

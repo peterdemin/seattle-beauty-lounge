@@ -10,6 +10,7 @@ cachetools
 types-cachetools
 schedule
 ical
+tenacity
 
 stripe
 squareup

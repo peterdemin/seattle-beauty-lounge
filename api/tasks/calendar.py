@@ -1,6 +1,8 @@
 import datetime
 import textwrap
 
+from tenacity import retry, stop_after_delay, wait_fixed
+
 from api.calendar_client import CalendarServiceDummy
 from api.constants import TIMEZONE
 from api.models import Appointment
@@ -23,7 +25,7 @@ class CalendarTask:
         self._service_catalog = service_catalog
 
     def create_event(self, appointment: Appointment) -> None:
-        self._calendar_service.insert(
+        self._insert(
             self._service_catalog.compose_event(
                 full_index=appointment.serviceId,
                 description=self._DESCRIPTION_TEMPLATE.format(appointment=appointment),
@@ -35,3 +37,7 @@ class CalendarTask:
                 ),
             )
         )
+
+    @retry(stop=stop_after_delay(60), wait=wait_fixed(1))
+    def _insert(self, body: dict) -> None:
+        self._calendar_service.insert(body)
