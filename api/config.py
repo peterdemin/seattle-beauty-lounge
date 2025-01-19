@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     enable_calendar: bool = False
 
     stripe_api_key: str = ""
+    square_application_id: str = ""
+    square_access_token: str = ""
+    square_location_id: str = ""
+    square_environment: str = ""
     sentry_dsn: str = ""
 
     twilio_account_sid: str = ""
@@ -31,6 +35,10 @@ class Settings(BaseSettings):
             proxy_frontend=False,
             location_prefix="",
             stripe_api_key="",
+            square_application_id="",
+            square_access_token="",
+            square_location_id="",
+            square_environment="",
             sentry_dsn="",
             twilio_account_sid="",
             twilio_auth_token="",

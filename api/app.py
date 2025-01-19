@@ -15,12 +15,14 @@ from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.payment import PaymentAPI
+from api.endpoints.square_payment import SquarePaymentAPI
 from api.google_auth import GoogleAuth
 from api.kv import KiwiStore
 from api.service_catalog import ServiceCatalog
 from api.slots import FreshDayBreaker, SlotsLoader
 from api.sms_client import SMSClient
 from api.smtp_client import SMTPClient, SMTPClientDummy
+from api.square_client import SquareClient
 from api.task_scheduler import TaskScheduler
 from api.tasks.availability import AvailabilityTask
 from api.tasks.calendar import CalendarTask
@@ -103,6 +105,14 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         "https://seattle-beauty-lounge.com",
         settings.stripe_api_key,
     ).register(app, prefix=settings.location_prefix)
+    SquarePaymentAPI(
+        square_client=SquareClient(
+            access_token=settings.square_access_token,
+            square_environment=settings.square_environment,
+            square_location_id=settings.square_location_id,
+            application_id=settings.square_application_id,
+        )
+    ).register(app, prefix=settings.location_prefix + "/square")
 
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")

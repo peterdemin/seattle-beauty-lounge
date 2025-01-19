@@ -7,10 +7,16 @@ import { CheckoutProvider } from "@stripe/react-stripe-js";
 import { PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useForm } from "react-hook-form";
+import SquarePayment from "/SquarePayment.jsx";
 import PayButton from "./PayButton.jsx";
 import getAvailableSlots from "./availability.js";
 
-function BookingWizard({ apiUrl, stripePublishableKey }) {
+function BookingWizard({
+	apiUrl,
+	stripePublishableKey,
+	squareApplicationId,
+	squareLocationId,
+}) {
 	const [currentStep, setCurrentStep] = useState(1);
 
 	// Wizard State
@@ -68,35 +74,35 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 		});
 	}, []);
 
-	async function handleSubmitAppointment() {
-		const payload = {
-			serviceId: selectedServiceId,
-			date: selectedDate,
-			time: selectedTime,
-			clientName,
-			clientPhone,
-			clientEmail,
-		};
-
-		const res = await fetch(`${apiUrl}/appointments`, {
+	function handleSubmitAppointment(token) {
+		fetch(`${apiUrl}/appointments`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
+			body: JSON.stringify({
+				serviceId: selectedServiceId,
+				date: selectedDate,
+				time: selectedTime,
+				clientName,
+				clientPhone,
+				clientEmail,
+				token,
+			}),
+		}).then((res) => {
+			if (res.ok) {
+				setCurrentStep(99);
+			} else {
+				alert("Error submitting appointment");
+			}
 		});
-
-		if (res.ok) {
-			// Success - show confirmation
-			setCurrentStep("confirmation");
-		} else {
-			// Handle errors
-			alert("Error submitting appointment");
-		}
 	}
 
-	if (currentStep === 1) {
-		document.getElementById("service-table").classList.remove("hidden");
-	} else {
-		document.getElementById("service-table").classList.add("hidden");
+	const serviceTableEl = document.getElementById("service-table");
+	if (serviceTableEl) {
+		if (currentStep === 1) {
+			document.getElementById("service-table").classList.remove("hidden");
+		} else {
+			document.getElementById("service-table").classList.add("hidden");
+		}
 	}
 
 	// Render steps conditionally:
@@ -130,7 +136,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 						setClientName(name);
 						setClientPhone(phone);
 						setClientEmail(email);
-						setCurrentStep(5);
+						setCurrentStep(6);
 					}}
 				/>
 			)}
@@ -142,7 +148,14 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 					onConfirm={handleSubmitAppointment}
 				/>
 			)}
-			{currentStep === 6 && (
+			<SquarePayment
+				active={currentStep === 6}
+				apiUrl={apiUrl}
+				applicationId={squareApplicationId}
+				locationId={squareLocationId}
+				onPayment={handleSubmitAppointment}
+			/>
+			{currentStep === 7 && (
 				<ReviewAndConfirmStep
 					serviceTitle={selectedServiceTitle}
 					date={selectedDate}
@@ -153,7 +166,7 @@ function BookingWizard({ apiUrl, stripePublishableKey }) {
 					onConfirm={handleSubmitAppointment}
 				/>
 			)}
-			{currentStep === "confirmation" && (
+			{currentStep === 99 && (
 				<div class="mb-6">
 					<h2 className="text-2xl text-center font-light text-primary">
 						Thank you, {clientName}! Your appointment is confirmed.
@@ -437,35 +450,35 @@ function ReviewAndConfirmStep({
 }
 
 const CheckoutStep = ({ clientEmail, clientSecret, onConfirm, stripe }) => {
-	if (clientSecret) {
-		return (
-			<CheckoutProvider
-				stripe={stripe}
-				options={{
-					clientSecret,
-					elementsOptions: {
-						appearance: {
-							theme: "night",
-							variables: {
-								colorPrimary: "#0dc0ca",
-								colorBackground: "#ffe8cb",
-								colorText: "#000000",
-								colorDanger: "#df1b41",
-								spacingUnit: "2px",
-								borderRadius: "4px",
-							},
+	if (!clientSecret) {
+		return null;
+	}
+	return (
+		<CheckoutProvider
+			stripe={stripe}
+			options={{
+				clientSecret,
+				elementsOptions: {
+					appearance: {
+						theme: "night",
+						variables: {
+							colorPrimary: "#0dc0ca",
+							colorBackground: "#ffe8cb",
+							colorText: "#000000",
+							colorDanger: "#df1b41",
+							spacingUnit: "2px",
+							borderRadius: "4px",
 						},
 					},
-				}}
-			>
-				<form>
-					<PaymentElement options={{ layout: "accordion" }} />
-					<PayButton email={clientEmail} onConfirm={onConfirm} />
-				</form>
-			</CheckoutProvider>
-		);
-	}
-	return null;
+				},
+			}}
+		>
+			<form>
+				<PaymentElement options={{ layout: "accordion" }} />
+				<PayButton email={clientEmail} onConfirm={onConfirm} />
+			</form>
+		</CheckoutProvider>
+	);
 };
 
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -493,6 +506,8 @@ ReactDOM.createRoot(document.getElementById("book")).render(
 		<BookingWizard
 			apiUrl={import.meta.env.VITE_API_URL}
 			stripePublishableKey={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
+			squareApplicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
+			squareLocationId={import.meta.env.VITE_SQUARE_LOCATION_ID}
 		/>
 	</StrictMode>,
 );
