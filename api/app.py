@@ -102,10 +102,11 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             day_breaker=FreshDayBreaker(kv),
         ),
     ).register(app, prefix=settings.location_prefix)
-    BackofficeAPI(
-        db,
-        services_info,
-    ).register(app, prefix=settings.location_prefix)
+    if settings.enable_admin:
+        BackofficeAPI(
+            db,
+            service_catalog,
+        ).register(app, prefix=settings.location_prefix + "/admin")
     PaymentAPI(
         "https://seattle-beauty-lounge.com",
         settings.stripe_api_key,

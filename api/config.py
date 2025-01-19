@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_from_number: str = ""
 
+    enable_admin: bool = False
+
     @classmethod
     def test_settings(cls) -> "Settings":
         return cls(
@@ -43,4 +45,5 @@ class Settings(BaseSettings):
             twilio_account_sid="",
             twilio_auth_token="",
             twilio_from_number="",
+            enable_admin=False,
         )
