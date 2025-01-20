@@ -3,29 +3,42 @@ import ReactDOM from "react-dom/client";
 
 function AdminDashboard({ apiUrl, appointmentId }) {
 	const [data, setData] = useState(null);
+	const [message, setMessage] = useState(null);
 
 	useEffect(() => {
 		if (!apiUrl) {
 			return;
 		}
 		fetch(`${apiUrl}/admin/appointment/${appointmentId}`)
-			.then((res) => res.json())
+			.then((res) => {
+				if (res.ok) {
+					return res.json();
+				}
+				res.text().then((text) => {
+					setMessage(`Failed to fetch appointment details: ${text}`);
+				});
+				return null;
+			})
 			.then((json) => setData(json));
 	}, [apiUrl, appointmentId]);
 
 	return (
 		<>
-			{data !== null && (
+			{data && (
 				<>
 					<FullAppointment data={data.appointment} />
 					<AppointmentHistory data={data.more} />
 				</>
 			)}
+			{message && <div class="text-red-600">{message}</div>}
 		</>
 	);
 }
 
 function FullAppointment({ data }) {
+	if (!data) {
+		return null;
+	}
 	const date = new Date(`${data.date}T${data.time}`);
 	const dateStr = new Intl.DateTimeFormat("en-US", {
 		year: "numeric",
@@ -146,13 +159,19 @@ function AppointmentHistory({ data }) {
 			([month, monthItems]) => {
 				const dayElems = groupDatesByDate(monthItems).map(([day, dayItems]) => {
 					const timeElems = dayItems.map(([_, item]) => (
-						<li key="{item.id}" className="w-20 text-right">
-							<a href={`?app=${item.id}`}>{formatTime(item.time)}</a>
-						</li>
+						<a
+							key="{item.id}"
+							className="w-24 text-right font-mono mb-4 mr-4 p-2"
+							href={`?app=${item.id}`}
+						>
+							{formatTime(item.time)} [{item.serviceId.substr(0, 4)}]
+						</a>
 					));
 					return (
 						<div key={day} className="flex items-baseline">
-							<div className="text-lg w-10 text-right shrink-0 pr-4">{day}</div>
+							<div className="text-lg w-10 text-right shrink-0 pr-4 font-mono">
+								{day}
+							</div>
 							<ul className="flex grow flex-wrap pl-2 border-l-2 border-black">
 								{timeElems}
 							</ul>
@@ -161,7 +180,7 @@ function AppointmentHistory({ data }) {
 				});
 				return (
 					<div key={month} className="flex items-baseline">
-						<div className="text-lg shrink-0 w-24">{month}</div>
+						<div className="text-lg shrink-0 w-fit px-2">{month}</div>
 						<ul>{dayElems}</ul>
 					</div>
 				);
@@ -169,7 +188,7 @@ function AppointmentHistory({ data }) {
 		);
 		return (
 			<div key={year} className="flex pr-5 items-baseline">
-				<div className="text-xl w-20">{year}</div>
+				<div className="text-xl w-fit pr-2">{year}</div>
 				<ul>{monthElems}</ul>
 			</div>
 		);
