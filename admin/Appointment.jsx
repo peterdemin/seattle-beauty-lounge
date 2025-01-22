@@ -9,7 +9,7 @@ function AdminDashboard({ apiUrl, appointmentId }) {
 		if (!apiUrl) {
 			return;
 		}
-		fetch(`${apiUrl}/admin/appointment/${appointmentId}`)
+		fetch(`${apiUrl}/appointment/${appointmentId}`)
 			.then((res) => {
 				if (res.ok) {
 					return res.json();
@@ -205,7 +205,7 @@ function AppointmentHistory({ data }) {
 ReactDOM.createRoot(document.getElementById("admin")).render(
 	<StrictMode>
 		<AdminDashboard
-			apiUrl="/api" // {import.meta.env.VITE_API_URL}
+			apiUrl="/admin/api" // {import.meta.env.VITE_API_URL}
 			appointmentId={new URLSearchParams(location.search).get("app")}
 		/>
 	</StrictMode>,

@@ -25,6 +25,7 @@ class Builder:
     STYLES_DIR = f"{SOURCE_DIR}/styles"
     TEMPLATES_DIR = f"{SOURCE_DIR}/templates"
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
+    ADMIN_DIR = "admin/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
@@ -67,6 +68,32 @@ class Builder:
             cancellation_policy=cancellation_policy,
         )
         dump_services(services)
+        self.build_admin()
+
+    def build_admin(self) -> None:
+        subprocess.run(
+            ["npm", "run", "admin"],
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            [
+                "npx",
+                "tailwindcss",
+                "-c",
+                "admin/tailwind.config.js",
+                "-o",
+                "admin/dist/assets/admin.css",
+                "-i",
+                "source/styles/input.css",
+            ],
+            capture_output=True,
+            check=True,
+        )
+        for path in glob.glob(f"{self.ADMIN_DIR}/*.js"):
+            shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
+        shutil.copy("admin/dist/index.html", f"{PUBLIC_DIR}/admin.html")
+        shutil.copy(f"{self.ADMIN_DIR}/admin.css", f"{self.PUBLIC_ASSETS_DIR}/")
 
     def _build_javascript(self) -> tuple[str, str]:
         # Build Javascript for BookingWizard.jsx:

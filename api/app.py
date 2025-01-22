@@ -106,7 +106,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         BackofficeAPI(
             db,
             service_catalog,
-        ).register(app, prefix=settings.location_prefix + "/admin")
+        ).register(app, prefix="/admin" + settings.location_prefix)
     PaymentAPI(
         "https://seattle-beauty-lounge.com",
         settings.stripe_api_key,
