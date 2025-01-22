@@ -1,11 +1,15 @@
 upstream api {
-    server unix:/tmp/api.sock;
+	server unix:/tmp/api.sock;
 }
 
 server {
 	root /var/www/html;
 	index index.html;
 	server_name www.seattle-beauty-lounge.com seattle-beauty-lounge.com; # managed by Certbot
+
+	if ($host = www.seattle-beauty-lounge.com) {
+		return 301 https://seattle-beauty-lounge.com$request_uri;
+	}
 
 	location /api {
 		proxy_pass http://api;
@@ -14,7 +18,7 @@ server {
 	}
 
 	location / {
-        gzip_static on;
+		gzip_static on;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri $uri/ =404;
@@ -40,7 +44,7 @@ server {
 	}
 
 	location / {
-        gzip_static on;
+		gzip_static on;
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri $uri/ =404;
@@ -54,26 +58,26 @@ server {
 }
 
 server {
-    if ($host = seattle-beauty-lounge.com) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
+	if ($host = seattle-beauty-lounge.com) {
+		return 301 https://$host$request_uri;
+	} # managed by Certbot
 
-    if ($host = www.seattle-beauty-lounge.com) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
+	if ($host = www.seattle-beauty-lounge.com) {
+		return 301 https://seattle-beauty-lounge.com$request_uri;
+	} # managed by Certbot
 
 	listen 80 ;
 	listen [::]:80 ;
-    server_name www.seattle-beauty-lounge.com seattle-beauty-lounge.com;
-    return 404; # managed by Certbot
+	server_name www.seattle-beauty-lounge.com seattle-beauty-lounge.com;
+	return 404; # managed by Certbot
 }
 
 server {
-    if ($host = a.seattle-beauty-lounge.com) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
+	if ($host = a.seattle-beauty-lounge.com) {
+		return 301 https://$host$request_uri;
+	} # managed by Certbot
 
-    server_name a.seattle-beauty-lounge.com;
-    listen 100.103.200.72:80;
-    return 404; # managed by Certbot
+	server_name a.seattle-beauty-lounge.com;
+	listen 100.103.200.72:80;
+	return 404; # managed by Certbot
 }
