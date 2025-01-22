@@ -3,18 +3,6 @@ upstream api {
 }
 
 server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-
-	root /var/www/html;
-	index index.html;
-	server_name _;
-	location / {
-		try_files $uri $uri/ =404;
-	}
-}
-
-server {
 	root /var/www/html;
 	index index.html;
 	server_name seattle-beauty-lounge.com; # managed by Certbot
@@ -45,12 +33,6 @@ server {
 	index index.html;
 	server_name a.seattle-beauty-lounge.com; # managed by Certbot
 
-	location /api {
-		proxy_pass http://api;
-		proxy_set_header  X-Forwarded-Proto https;
-		proxy_set_header Host $http_host;
-	}
-
 	location /admin/ {
 		proxy_pass http://api/admin/;
 		proxy_set_header  X-Forwarded-Proto https;
@@ -79,5 +61,15 @@ server {
 	listen 80 ;
 	listen [::]:80 ;
     server_name seattle-beauty-lounge.com;
+    return 404; # managed by Certbot
+}
+
+server {
+    if ($host = a.seattle-beauty-lounge.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    server_name a.seattle-beauty-lounge.com;
+    listen 100.84.215.39:80;
     return 404; # managed by Certbot
 }

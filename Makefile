@@ -21,8 +21,8 @@ fe:
 staging: clean
 	python3 frontend.py staging
 
-.PHONY: production
-production: clean
+.PHONY: prod
+prod: clean
 	python3 frontend.py production
 
 .PHONY: compress

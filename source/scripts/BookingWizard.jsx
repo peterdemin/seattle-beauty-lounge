@@ -136,7 +136,7 @@ function BookingWizard({
 						setClientName(name);
 						setClientPhone(phone);
 						setClientEmail(email);
-						setCurrentStep(6);
+						setCurrentStep(5);
 					}}
 				/>
 			)}

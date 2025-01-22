@@ -23,7 +23,7 @@ if [ ! -e /usr/bin/certbot ]; then
     snap install --classic certbot
     ln -s /snap/bin/certbot /usr/bin/certbot
 fi
-certbot --non-interactive --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com -d a.seattle-beauty-lounge.com
+certbot --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com -d a.seattle-beauty-lounge.com --preferred-challenges dns
 
 # Variables for database and user
 DB_NAME="api"
