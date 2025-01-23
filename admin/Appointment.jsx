@@ -102,6 +102,7 @@ function FullAppointment({ data }) {
 				)}
 				<button
 					className="ml-8 px-6 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
+					onClick={() => payInApp(data.service.priceCents)}
 					type="button"
 				>
 					Pay
@@ -200,6 +201,27 @@ function AppointmentHistory({ data }) {
 			<ul className="w-fit mx-auto flex flex-col">{dateBreakdown}</ul>
 		</>
 	);
+}
+
+function payInApp(amountCents, notes) {
+	window.location =
+		// biome-ignore lint/style/useTemplate: this looks nicer
+		"square-commerce-v1://payment/create?data=" +
+		encodeURIComponent(
+			JSON.stringify({
+				amount_money: {
+					amount: amountCents,
+					currency_code: "USD",
+				},
+				callback_url: "https://seattle-beauty-lounge.com/confirm.html",
+				client_id: import.meta.env.VITE_SQUARE_CLIENT_ID,
+				version: "1.3",
+				notes: notes,
+				options: {
+					supported_tender_types: ["CREDIT_CARD"],
+				},
+			}),
+		);
 }
 
 ReactDOM.createRoot(document.getElementById("admin")).render(
