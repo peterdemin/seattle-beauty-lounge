@@ -30,7 +30,7 @@ function AdminDashboard({ apiUrl, appointmentId, clientId }) {
 					<AppointmentHistory data={data.more} />
 				</>
 			)}
-			{message && <div class="text-red-600">{message}</div>}
+			{message && <div className="text-red-600">{message}</div>}
 		</>
 	);
 }
@@ -39,6 +39,7 @@ function FullAppointment({ data, clientId }) {
 	if (!data) {
 		return null;
 	}
+	const [paymentActive, setPaymentActive] = useState(false);
 	const date = new Date(`${data.date}T${data.time}`);
 	const dateStr = new Intl.DateTimeFormat("en-US", {
 		year: "numeric",
@@ -102,11 +103,16 @@ function FullAppointment({ data, clientId }) {
 				)}
 				<button
 					className="ml-8 px-6 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
-					onClick={() => payInApp(clientId, data.service.price_cents, "")}
+					onClick={() => setPaymentActive(true)}
 					type="button"
 				>
-					Pay
+					Charge
 				</button>
+				<PaymentForm
+					clientId={clientId}
+					service={data.service}
+					active={paymentActive}
+				/>
 			</div>
 		</div>
 	);
@@ -200,6 +206,101 @@ function AppointmentHistory({ data }) {
 			<h2 className="text-3xl font-light pt-10 pb-5">Appointment History</h2>
 			<ul className="w-fit mx-auto flex flex-col">{dateBreakdown}</ul>
 		</>
+	);
+}
+
+function PaymentForm({ clientId, service, active }) {
+	const [tip, setTip] = useState(0);
+	const hidden = active ? "" : "hidden ";
+	const modalClass = `${hidden} overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex flex-col md:justify-center items-center w-full h-full md:bg-opacity-90 bg-primary`;
+	const subtotal = (service.price_cents - 5000) / 100;
+	const total = (subtotal + (service.price_cents * tip) / 10000).toFixed(2);
+	const tipClass =
+		"p-4 mx-2 border-2 rounded-lg text-center basis-1/4 font-bold";
+	const activeTipClass = `bg-primary text-neutral border-primary ${tipClass}`;
+	const inactiveTipClass = `border-black text-black ${tipClass}`;
+	return (
+		<div tabindex="-1" aria-hidden="true" className={modalClass}>
+			<div className="relative mx-auto my-auto p-4 w-full md:max-w-3xl md:h-fit bg-neutral md:rounded-lg md:shadow">
+				<div className="flex items-center justify-between p-4 md:p-5 rounded-t">
+					<h2 className="w-full my-2 lg:text-5xl text-3xl font-medium leading-tight text-center text-primary">
+						Pay for service
+					</h2>
+					<button
+						id="book-close"
+						type="button"
+						className="text-primary bg-transparent hover:bg-primary hover:text-neutral rounded-full text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+						data-modal-hide="default-modal"
+					>
+						<svg
+							className="w-3 h-3"
+							aria-hidden="true"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 14 14"
+						>
+							<path
+								stroke="currentColor"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+							/>
+						</svg>
+						<span className="sr-only">Cancel</span>
+					</button>
+				</div>
+				<div className="max-w-xl mx-auto text-black text-2xl">
+					<div>Service price: {service.price}</div>
+					<div>Deposit: -$50</div>
+					<div>Subtotal: ${subtotal}</div>
+					<div className="text-3xl py-4 text-center w-full font-light">
+						Add tip
+					</div>
+					<div className="py-4 flex justify-between place-items-center">
+						<button
+							className={tip === 15 ? activeTipClass : inactiveTipClass}
+							type="button"
+							onClick={() => setTip(15)}
+						>
+							15%
+						</button>
+						<button
+							className={tip === 20 ? activeTipClass : inactiveTipClass}
+							type="button"
+							onClick={() => setTip(20)}
+						>
+							20%
+						</button>
+						<button
+							className={tip === 25 ? activeTipClass : inactiveTipClass}
+							type="button"
+							onClick={() => setTip(25)}
+						>
+							25%
+						</button>
+						<button
+							className={inactiveTipClass}
+							type="button"
+							onClick={() => setTip(0)}
+						>
+							No tip
+						</button>
+					</div>
+
+					<div className="flex items-center place-content-end py-8">
+						<div className="font-bold">Total: ${total}</div>
+						<button
+							className="ml-8 px-6 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary drop-shadow-lg"
+							onClick={() => payInApp(clientId, total * 100, "")}
+							type="button"
+						>
+							Pay
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

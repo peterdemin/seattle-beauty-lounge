@@ -2,7 +2,7 @@
 	"scripts": {
 		"dev": "vite",
 		"admindev": "vite --config vite.config.admin.js",
-		"admincss": "npx tailwindcss -c admin/tailwind.config.js -o admin/style.css -i source/styles/input.css -w",
+		"admincss": "npx tailwindcss -c admin/tailwind.config.admin.js -o admin/style.css -i source/styles/input.css -w",
 
 		"development": "vite build --mode development",
 		"staging": "vite build --mode staging",
