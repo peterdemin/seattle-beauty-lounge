@@ -102,7 +102,7 @@ function FullAppointment({ data, clientId }) {
 				)}
 				<button
 					className="ml-8 px-6 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
-					onClick={() => payInApp(clientId, data.service.priceCents, "")}
+					onClick={() => payInApp(clientId, data.service.price_cents, "")}
 					type="button"
 				>
 					Pay
