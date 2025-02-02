@@ -504,7 +504,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 ReactDOM.createRoot(document.getElementById("book")).render(
 	<StrictMode>
 		<BookingWizard
-			apiUrl={import.meta.env.VITE_API_URL}
+			apiUrl="/api"
 			stripePublishableKey={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
 			squareApplicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
 			squareLocationId={import.meta.env.VITE_SQUARE_LOCATION_ID}

@@ -1,12 +1,16 @@
 {
 	"scripts": {
 		"dev": "vite",
+		"admindev": "vite --config vite.config.admin.js",
+		"admincss": "npx tailwindcss -c admin/tailwind.config.js -o admin/style.css -i source/styles/input.css -w",
+
 		"development": "vite build --mode development",
 		"staging": "vite build --mode staging",
 		"production": "vite build --mode production",
-		"admin": "vite build --config vite.config.admin.js",
-		"admindev": "vite --config vite.config.admin.js",
-		"admincss": "npx tailwindcss -c admin/tailwind.config.js -o admin/style.css -i source/styles/input.css -w"
+
+		"admindevelopment": "vite build --config vite.config.admin.js --mode development",
+		"adminstaging": "vite build --config vite.config.admin.js --mode staging",
+		"adminproduction": "vite build --config vite.config.admin.js --mode production"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",

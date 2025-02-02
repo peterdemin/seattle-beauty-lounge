@@ -11,7 +11,7 @@ COMPRESSED_CSS := $(CSS_FILES:.css=.css.gz)
 
 .PHONY: clean
 clean:
-	rm -rf public .build dist source/scripts/dist __pycache__ api/__pycache__ api/**/__pycache__
+	rm -rf public .build dist source/scripts/dist admin/dist/ __pycache__ api/__pycache__ api/**/__pycache__
 
 .PHONY: fe
 fe:

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -exo pipefail
+set -eo pipefail
 
 # Bootstrap system user with virtualenv
 id -u api &>/dev/null || sudo adduser --system --group api --home /home/api

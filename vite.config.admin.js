@@ -16,8 +16,14 @@ export default defineConfig({
 
 	build: {
 		sourcemap: true,
+		rollupOptions: {
+			input: {
+				app: "admin/admin.html",
+			},
+		},
 	},
 	server: {
+		open: "/admin.html",
 		proxy: {
 			"/api": "http://localhost:8000",
 		},

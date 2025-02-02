@@ -1,7 +1,7 @@
 import React, { useState, useEffect, StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
-function AdminDashboard({ apiUrl, appointmentId }) {
+function AdminDashboard({ apiUrl, appointmentId, clientId }) {
 	const [data, setData] = useState(null);
 	const [message, setMessage] = useState(null);
 
@@ -26,7 +26,7 @@ function AdminDashboard({ apiUrl, appointmentId }) {
 		<>
 			{data && (
 				<>
-					<FullAppointment data={data.appointment} />
+					<FullAppointment data={data.appointment} clientId={clientId} />
 					<AppointmentHistory data={data.more} />
 				</>
 			)}
@@ -35,7 +35,7 @@ function AdminDashboard({ apiUrl, appointmentId }) {
 	);
 }
 
-function FullAppointment({ data }) {
+function FullAppointment({ data, clientId }) {
 	if (!data) {
 		return null;
 	}
@@ -102,7 +102,7 @@ function FullAppointment({ data }) {
 				)}
 				<button
 					className="ml-8 px-6 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
-					onClick={() => payInApp(data.service.priceCents)}
+					onClick={() => payInApp(clientId, data.service.priceCents, "")}
 					type="button"
 				>
 					Pay
@@ -203,7 +203,7 @@ function AppointmentHistory({ data }) {
 	);
 }
 
-function payInApp(amountCents, notes) {
+function payInApp(clientId, amountCents, notes) {
 	window.location =
 		// biome-ignore lint/style/useTemplate: this looks nicer
 		"square-commerce-v1://payment/create?data=" +
@@ -214,7 +214,7 @@ function payInApp(amountCents, notes) {
 					currency_code: "USD",
 				},
 				callback_url: "https://seattle-beauty-lounge.com/confirm.html",
-				client_id: import.meta.env.VITE_SQUARE_CLIENT_ID,
+				client_id: clientId,
 				version: "1.3",
 				notes: notes,
 				options: {
@@ -227,7 +227,8 @@ function payInApp(amountCents, notes) {
 ReactDOM.createRoot(document.getElementById("admin")).render(
 	<StrictMode>
 		<AdminDashboard
-			apiUrl="/admin/api" // {import.meta.env.VITE_API_URL}
+			apiUrl="/admin/api"
+			clientId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
 			appointmentId={new URLSearchParams(location.search).get("app")}
 		/>
 	</StrictMode>,

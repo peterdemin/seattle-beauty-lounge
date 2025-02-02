@@ -72,7 +72,7 @@ class Builder:
 
     def build_admin(self) -> None:
         subprocess.run(
-            ["npm", "run", "admin"],
+            ["npm", "run", f"admin{self._mode}"],
             capture_output=True,
             check=True,
         )
@@ -81,7 +81,7 @@ class Builder:
                 "npx",
                 "tailwindcss",
                 "-c",
-                "admin/tailwind.config.js",
+                "admin/tailwind.config.admin.js",
                 "-o",
                 "admin/dist/assets/admin.css",
                 "-i",
@@ -92,7 +92,7 @@ class Builder:
         )
         for path in glob.glob(f"{self.ADMIN_DIR}/*.js"):
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
-        shutil.copy("admin/dist/index.html", f"{PUBLIC_DIR}/admin.html")
+        shutil.copy("admin/dist/admin.html", f"{PUBLIC_DIR}/admin.html")
         shutil.copy(f"{self.ADMIN_DIR}/admin.css", f"{self.PUBLIC_ASSETS_DIR}/")
 
     def _build_javascript(self) -> tuple[str, str]:
@@ -198,7 +198,13 @@ class ServiceParser:
     SERVICE_PTRN = f"{SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst"
 
     def parse_all(self) -> list[ServiceInfo]:
-        return [self.parse_rst(path) for path in sorted(glob.glob(self.SERVICE_PTRN))]
+        result: list[ServiceInfo] = []
+        for path in sorted(glob.glob(self.SERVICE_PTRN)):
+            try:
+                result.append(self.parse_rst(path))
+            except ValueError as exc:
+                print(f"Skipping {path}: {exc}")
+        return result
 
     def parse_rst(self, path: str) -> ServiceInfo:
         result = ServiceInfo(source_path=path, image=ImageInfo.dummy())
@@ -214,8 +220,8 @@ class ServiceParser:
         result.full_html = self._render_full_html(doctree)
         if result.full_html:
             result.url = f"{result.basename}.html"
-        if not result.is_valid():
-            raise ValueError(f"Service info is incomplete: {result}")
+        if missing_fields := result.check_missing_fields():
+            raise ValueError(f"Service info is incomplete: {missing_fields}")
         return result
 
     def _parse_info(self, elem: TextElement, result: ServiceInfo) -> None:
@@ -236,6 +242,9 @@ class ServiceParser:
         if len(parts) == 2:
             if parts[0].lower().strip() in ("price", "cost"):
                 result.price = parts[1].strip()
+                if numbers := self.RE_NUMBER.findall(result.price):
+                    if len(numbers) == 1:
+                        result.price_cents = int(numbers[0]) * 100
                 return True
             if parts[0].lower().strip() in ("time", "duration"):
                 result.duration = parts[1].strip()

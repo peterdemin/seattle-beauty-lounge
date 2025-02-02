@@ -36,6 +36,7 @@ class ServiceInfo:
     image: ImageInfo
     title: str = ""
     price: str = ""
+    price_cents: int = 0
     duration: str = ""
     duration_min: int = 0
     short_text: str = ""
@@ -47,18 +48,18 @@ class ServiceInfo:
         "2": "Lashes & Brows",
         "3": "Makeup",
     }
+    REQUIRED_FIELDS = [
+        "basename",
+        "title",
+        "price",
+        "price_cents",
+        "duration",
+        "duration_min",
+        "short_text",
+    ]
 
-    def is_valid(self) -> bool:
-        return all(
-            [
-                self.basename,
-                self.title,
-                self.price,
-                self.duration,
-                self.duration_min,
-                self.short_text,
-            ]
-        )
+    def check_missing_fields(self) -> list[str]:
+        return [f for f in self.REQUIRED_FIELDS if not getattr(self, f)]
 
     @property
     def basename(self) -> str:
