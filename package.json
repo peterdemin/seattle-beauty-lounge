@@ -3,11 +3,9 @@
 		"dev": "vite",
 		"admindev": "vite --config vite.config.admin.js",
 		"admincss": "npx tailwindcss -c admin/tailwind.config.admin.js -o admin/style.css -i source/styles/input.css -w",
-
 		"development": "vite build --mode development",
 		"staging": "vite build --mode staging",
 		"production": "vite build --mode production",
-
 		"admindevelopment": "vite build --config vite.config.admin.js --mode development",
 		"adminstaging": "vite build --config vite.config.admin.js --mode staging",
 		"adminproduction": "vite build --config vite.config.admin.js --mode production"
@@ -22,8 +20,6 @@
 	"dependencies": {
 		"@sentry/react": "^8.47.0",
 		"@square/web-sdk": "^2.0.1",
-		"@stripe/react-stripe-js": "^3.1.1",
-		"@stripe/stripe-js": "^5.4.0",
 		"react": "^19.0.0",
 		"react-day-picker": "^9.4.4",
 		"react-dom": "^19.0.0",

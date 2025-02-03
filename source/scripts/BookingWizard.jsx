@@ -3,20 +3,11 @@ import { DayPicker } from "react-day-picker";
 import ReactDOM from "react-dom/client";
 import "/rdp-style.css";
 import * as Sentry from "@sentry/react";
-import { CheckoutProvider } from "@stripe/react-stripe-js";
-import { PaymentElement } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import { useForm } from "react-hook-form";
 import SquarePayment from "/SquarePayment.jsx";
-import PayButton from "./PayButton.jsx";
 import getAvailableSlots from "./availability.js";
 
-function BookingWizard({
-	apiUrl,
-	stripePublishableKey,
-	squareApplicationId,
-	squareLocationId,
-}) {
+function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 	const [currentStep, setCurrentStep] = useState(1);
 
 	// Wizard State
@@ -30,11 +21,6 @@ function BookingWizard({
 	const [clientName, setClientName] = useState(null);
 	const [clientPhone, setClientPhone] = useState(null);
 	const [clientEmail, setClientEmail] = useState(null);
-	const [stripeClientSecret, setStripeClientSecret] = useState(null);
-
-	const stripe = loadStripe(stripePublishableKey, {
-		betas: ["custom_checkout_beta_5"],
-	});
 
 	useEffect(() => {
 		fetch(`${apiUrl}/availability`)
@@ -48,12 +34,6 @@ function BookingWizard({
 		}
 		setSlots(getAvailableSlots(availability, duration));
 	}, [availability, duration]);
-
-	useEffect(() => {
-		fetch(`${apiUrl}/checkout`, { method: "POST" })
-			.then((response) => response.json())
-			.then((json) => setStripeClientSecret(json.clientSecret));
-	}, [apiUrl]);
 
 	useEffect(() => {
 		for (const element of document.getElementsByClassName("book-btn")) {
@@ -138,14 +118,6 @@ function BookingWizard({
 						setClientEmail(email);
 						setCurrentStep(5);
 					}}
-				/>
-			)}
-			{currentStep === 5 && (
-				<CheckoutStep
-					clientEmail={clientEmail}
-					clientSecret={stripeClientSecret}
-					stripe={stripe}
-					onConfirm={handleSubmitAppointment}
 				/>
 			)}
 			<SquarePayment
@@ -449,38 +421,6 @@ function ReviewAndConfirmStep({
 	);
 }
 
-const CheckoutStep = ({ clientEmail, clientSecret, onConfirm, stripe }) => {
-	if (!clientSecret) {
-		return null;
-	}
-	return (
-		<CheckoutProvider
-			stripe={stripe}
-			options={{
-				clientSecret,
-				elementsOptions: {
-					appearance: {
-						theme: "night",
-						variables: {
-							colorPrimary: "#0dc0ca",
-							colorBackground: "#ffe8cb",
-							colorText: "#000000",
-							colorDanger: "#df1b41",
-							spacingUnit: "2px",
-							borderRadius: "4px",
-						},
-					},
-				},
-			}}
-		>
-			<form>
-				<PaymentElement options={{ layout: "accordion" }} />
-				<PayButton email={clientEmail} onConfirm={onConfirm} />
-			</form>
-		</CheckoutProvider>
-	);
-};
-
 if (import.meta.env.VITE_SENTRY_DSN) {
 	Sentry.init({
 		dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -505,7 +445,6 @@ ReactDOM.createRoot(document.getElementById("book")).render(
 	<StrictMode>
 		<BookingWizard
 			apiUrl="/api"
-			stripePublishableKey={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
 			squareApplicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
 			squareLocationId={import.meta.env.VITE_SQUARE_LOCATION_ID}
 		/>

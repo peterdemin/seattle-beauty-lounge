@@ -15,7 +15,6 @@ from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.backoffice import BackofficeAPI
-from api.endpoints.payment import PaymentAPI
 from api.endpoints.square_payment import SquarePaymentAPI
 from api.google_auth import GoogleAuth
 from api.kv import KiwiStore
@@ -107,10 +106,6 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             db,
             service_catalog,
         ).register(app, prefix="/admin" + settings.location_prefix)
-    PaymentAPI(
-        "https://seattle-beauty-lounge.com",
-        settings.stripe_api_key,
-    ).register(app, prefix=settings.location_prefix)
     SquarePaymentAPI(
         square_client=SquareClient(
             access_token=settings.square_access_token,
