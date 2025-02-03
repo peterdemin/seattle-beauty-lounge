@@ -1,8 +1,10 @@
 from fastapi import BackgroundTasks, FastAPI
+from fastapi.responses import JSONResponse
 
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
 from api.slots import SlotsLoader
+from api.square_client import SquareClientDummy
 from api.tasks.calendar import CalendarTask
 from api.tasks.emails import EmailTask
 
@@ -14,23 +16,33 @@ class AppointmentsAPI:
         email_task: EmailTask,
         calendar_task: CalendarTask,
         slots_loader: SlotsLoader,
+        square_client: SquareClientDummy,
     ) -> None:
         self._db = db
         self._email_task = email_task
         self._calendar_task = calendar_task
         self._slots_loader = slots_loader
+        self._square_client = square_client
 
     def create_appointment(
         self,
         appointment_data: AppointmentCreate,
         background_tasks: BackgroundTasks,
-    ):
+    ) -> JSONResponse | Appointment:
         """Creates a new appointment.
 
         - Stores it in the DB,
         - Starts a background task to send a confirmation email.
         """
         appointment = Appointment.model_validate(appointment_data)
+        with self._db.session() as session:
+            session.add(appointment)
+            session.commit()
+            session.refresh(appointment)
+        receipt: dict = self._square_client.create_payment(appointment_data.payment)
+        if receipt.get("error"):
+            return JSONResponse(status_code=422, content=receipt)
+        appointment.depositToken = receipt["payment"]["id"]
         with self._db.session() as session:
             session.add(appointment)
             session.commit()
@@ -52,8 +64,8 @@ class AppointmentsAPI:
         app.add_api_route(
             prefix + "/appointments",
             self.create_appointment,
-            response_model=Appointment,
             methods=["POST"],
+            response_model=None,
         )
         app.add_api_route(
             prefix + "/availability",

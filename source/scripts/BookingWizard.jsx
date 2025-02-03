@@ -54,8 +54,8 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 		});
 	}, []);
 
-	function handleSubmitAppointment(token) {
-		fetch(`${apiUrl}/appointments`, {
+	async function handleSubmitAppointment(payment) {
+		const res = await fetch(`${apiUrl}/appointments`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -65,15 +65,15 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 				clientName,
 				clientPhone,
 				clientEmail,
-				token,
+				payment: payment,
 			}),
-		}).then((res) => {
-			if (res.ok) {
-				setCurrentStep(99);
-			} else {
-				alert("Error submitting appointment");
-			}
 		});
+		if (res.ok) {
+			setCurrentStep(99);
+			return "";
+		}
+		const resp = await res.json();
+		return resp.error;
 	}
 
 	const serviceTableEl = document.getElementById("service-table");
@@ -116,7 +116,7 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 						setClientName(name);
 						setClientPhone(phone);
 						setClientEmail(email);
-						setCurrentStep(5);
+						setCurrentStep(6);
 					}}
 				/>
 			)}

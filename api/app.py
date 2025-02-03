@@ -15,14 +15,13 @@ from api.config import Settings
 from api.db import Database
 from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.backoffice import BackofficeAPI
-from api.endpoints.square_payment import SquarePaymentAPI
 from api.google_auth import GoogleAuth
 from api.kv import KiwiStore
 from api.service_catalog import ServiceCatalog
 from api.slots import FreshDayBreaker, SlotsLoader
 from api.sms_client import SMSClient
 from api.smtp_client import SMTPClient, SMTPClientDummy
-from api.square_client import SquareClient
+from api.square_client import SquareClient, SquareClientDummy
 from api.task_scheduler import TaskScheduler
 from api.tasks.availability import AvailabilityTask
 from api.tasks.calendar import CalendarTask
@@ -93,6 +92,13 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     )
 
     app = FastAPI(lifespan=lifespan)
+    if settings.square_access_token and settings.square_environment:
+        square_client = SquareClient(
+            access_token=settings.square_access_token,
+            square_environment=settings.square_environment,
+        )
+    else:
+        square_client = SquareClientDummy()
     AppointmentsAPI(
         db,
         email_task=email_task,
@@ -100,20 +106,13 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         slots_loader=SlotsLoader.load(
             day_breaker=FreshDayBreaker(kv),
         ),
+        square_client=square_client,
     ).register(app, prefix=settings.location_prefix)
     if settings.enable_admin:
         BackofficeAPI(
             db,
             service_catalog,
         ).register(app, prefix="/admin" + settings.location_prefix)
-    SquarePaymentAPI(
-        square_client=SquareClient(
-            access_token=settings.square_access_token,
-            square_environment=settings.square_environment,
-            square_location_id=settings.square_location_id,
-            application_id=settings.square_application_id,
-        )
-    ).register(app, prefix=settings.location_prefix + "/square")
 
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")

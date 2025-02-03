@@ -38,7 +38,7 @@ class Settings(BaseSettings):
             square_application_id="",
             square_access_token="",
             square_location_id="",
-            square_environment="",
+            square_environment="test",
             sentry_dsn="",
             twilio_account_sid="",
             twilio_auth_token="",

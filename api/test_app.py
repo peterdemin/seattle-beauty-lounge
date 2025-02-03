@@ -30,11 +30,16 @@ def test_submit_appointment(test_client: TestClient) -> None:
             "clientName": "Jane Doe",
             "clientPhone": "555-123-4567",
             "clientEmail": "janedoe@gmail.com",
+            "payment": {
+                "token": "token",
+                "idempotencyKey": "idempotencyKey",
+            },
         },
     )
     assert response.status_code == 200
     result = response.json()
-    result["id"] = 1
+    if result.get("id"):
+        result["id"] = 1
     assert result == {
         "clientEmail": "janedoe@gmail.com",
         "clientName": "Jane Doe",
@@ -44,4 +49,29 @@ def test_submit_appointment(test_client: TestClient) -> None:
         "id": 1,
         "serviceId": "2.02",
         "time": "13:30:00",
+        "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
+    }
+
+
+def test_submit_appointment_without_token_fails(test_client: TestClient) -> None:
+    response = test_client.post(
+        "/appointments",
+        json={
+            "id": 1,
+            "serviceId": "2.02",
+            "date": "2025-01-10",
+            "time": "13:30",
+            "clientName": "Jane Doe",
+            "clientPhone": "555-123-4567",
+            "clientEmail": "janedoe@gmail.com",
+            "payment": {
+                "token": "",
+                "idempotencyKey": "idempotencyKey",
+            },
+        },
+    )
+    assert response.status_code == 422
+    result = response.json()
+    assert result == {
+        "error": "no token",
     }

@@ -3,6 +3,8 @@ from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
+from api.square_client import Payment
+
 
 class Appointment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -13,6 +15,7 @@ class Appointment(SQLModel, table=True):
     clientPhone: str
     clientEmail: str
     remindedAt: int = Field(default=0)
+    depositToken: str = Field(default="")
 
 
 class AppointmentCreate(SQLModel):
@@ -22,6 +25,7 @@ class AppointmentCreate(SQLModel):
     clientName: str
     clientPhone: str
     clientEmail: str
+    payment: Payment
 
 
 class Kiwi(SQLModel, table=True):

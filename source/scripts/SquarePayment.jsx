@@ -1,13 +1,7 @@
 import * as Square from "@square/web-sdk";
 import { useEffect, useRef, useState } from "react";
 
-function SquarePayment({
-	applicationId,
-	locationId,
-	apiUrl,
-	active,
-	onPayment,
-}) {
+function SquarePayment({ applicationId, locationId, active, onPayment }) {
 	const [payments, setPayments] = useState(null);
 	const idempotencyKey = useRef(null);
 	const [message, setMessage] = useState("");
@@ -34,39 +28,15 @@ function SquarePayment({
 
 	const onTokenize = (token) => {
 		setMessage("");
-		fetch(`${apiUrl}/square/pay`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				idempotencyKey: idempotencyKey.current,
-				token,
-			}),
-		})
-			.then((res) => {
-				if (res.ok) {
-					return res.json();
-				}
-				console.error(res);
-				setMessage("Failed to book an appointment. Please try again later.");
-			})
-			.then((json) => {
-				if (json.payment) {
-					onPayment(token);
-					return;
-				}
-				console.error(json);
-				if (json.error) {
-					setMessage(`ERROR: ${json.error}`);
-					return;
-				}
-				setMessage(`ERROR: ${JSON.stringify(json)}`);
-			})
-			.catch((error) => {
-				console.error(error);
-				setMessage(
-					"Booking failed because network server is unreachable. Please check your network connection and try again.",
-				);
-			});
+		onPayment({
+			idempotencyKey: idempotencyKey.current,
+			token,
+		}).then((err) => {
+			if (err) {
+				console.error(err);
+				setMessage(`Failed to book an appointment. Error: ${err}`);
+			}
+		});
 	};
 
 	return (
@@ -92,26 +62,18 @@ function CreditCard({ payments, callback }) {
 		}
 		setIsSubmitting(true);
 		setMessage("");
-		card
-			.tokenize()
-			.then((result) => {
-				if (result.status === "OK") {
-					callback(result.token);
-				} else {
-					let message = `Payment failed with status: ${result.status}.`;
-					if (result.errors) {
-						message += ` Error: ${result.errors[0].message}`;
-					}
-					setMessage(message);
+		card.tokenize().then((result) => {
+			if (result.status === "OK") {
+				callback(result.token);
+			} else {
+				let message = `Payment failed with status: ${result.status}.`;
+				if (result.errors) {
+					message += ` Error: ${result.errors[0].message}`;
 				}
-				setIsSubmitting(false);
-			})
-			.catch(() => {
-				setMessage(
-					"Booking failed because network server is unreachable. Please check your network connection and try again.",
-				);
-				setIsSubmitting(false);
-			});
+				setMessage(message);
+			}
+			setIsSubmitting(false);
+		});
 	};
 
 	useEffect(() => {
