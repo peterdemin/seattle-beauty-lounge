@@ -13,9 +13,7 @@ class Settings(BaseSettings):
     enable_emails: bool = False
     enable_calendar: bool = False
 
-    square_application_id: str = ""
     square_access_token: str = ""
-    square_location_id: str = ""
     square_environment: str = ""
     sentry_dsn: str = ""
 
@@ -35,9 +33,7 @@ class Settings(BaseSettings):
             enable_calendar=False,
             proxy_frontend=False,
             location_prefix="",
-            square_application_id="",
             square_access_token="",
-            square_location_id="",
             square_environment="test",
             sentry_dsn="",
             twilio_account_sid="",
