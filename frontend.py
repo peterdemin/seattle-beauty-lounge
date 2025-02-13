@@ -261,9 +261,22 @@ class ServiceParser:
         )
         div = soup.html.body.div  # pyright: ignore
         assert div is not None
-        div["class"] = "p-6 font-light text-black [AMP_p]:py-2"
+        div["class"] = "p-6 font-light text-black"
         del div["id"]
-        return div.prettify().replace("AMP", "&")
+        for element in div.find_all("p"):
+            element["class"] = "py-2"
+        for element in div.find_all("h1"):
+            element["class"] = "py-2 text-2xl text-primary"
+        for element in div.find_all("h2"):
+            element["class"] = "py-2 text-xl"
+        for element in div.find_all("h3"):
+            element["class"] = "py-2 text-lg"
+        for element in div.find_all("img"):
+            path, _ = os.path.splitext(element["src"])
+            element["src"] = f"{path}.webp"
+            element["class"] = "w-full"
+
+        return div.prettify()
 
     def _make_image(self, path: str) -> ImageInfo:
         return ImageInfo.from_source(path)
