@@ -275,6 +275,8 @@ class ServiceParser:
             path, _ = os.path.splitext(element["src"])
             element["src"] = f"{path}.webp"
             element["class"] = "w-full"
+        for element in div.find_all("ul"):
+            element["class"] = "list-disc list-inside"
 
         return div.prettify()
 
