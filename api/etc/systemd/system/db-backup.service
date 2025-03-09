@@ -4,5 +4,5 @@ Requires=postgresql.service
 
 [Service]
 User=postgres
-ExecStart=/home/api/backup.sh
+ExecStart=/home/api/api/db-backup.sh
 Type=oneshot
