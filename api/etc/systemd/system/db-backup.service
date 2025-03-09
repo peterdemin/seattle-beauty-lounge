@@ -1,0 +1,8 @@
+[Unit]
+Description=PostgreSQL Backup
+Requires=postgresql.service
+
+[Service]
+User=postgres
+ExecStart=/home/api/backup.sh
+Type=oneshot

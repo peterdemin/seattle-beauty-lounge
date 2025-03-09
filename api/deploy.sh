@@ -20,12 +20,13 @@ chown -R api:api /home/api/api
 # Install requirements and etc files
 pushd /home/api/
 sudo -u api .venv/bin/pip-sync api/requirements.txt
-cp api/etc/systemd/system/api.service /etc/systemd/system/api.service
+cp api/etc/systemd/system/* /etc/systemd/system/
 cp api/etc/nginx/sites-available/default /etc/nginx/sites-available/default
 popd
 
 # Restart daemon
 systemctl daemon-reload
+systemctl enable --now db-backup.timer
 systemctl restart api.service
 systemctl status api.service
 systemctl reload nginx.service
