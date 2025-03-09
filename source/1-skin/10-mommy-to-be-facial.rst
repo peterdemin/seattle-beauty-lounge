@@ -1,4 +1,4 @@
-.. modified_time: 2025-02-16T05:16:38.202Z
+.. modified_time: 2025-02-16T06:51:09.458Z
 
 .. _h.fhgtqdfp0j4c:
 
@@ -15,8 +15,6 @@ Your skin will feel hydrated, refreshed, and glowing after the first
 treatment. This facial is gentle enough for regular treatments
 throughout pregnancy and postpartum, ensuring long-term skin balance and
 hydration. Daily SPF and hydration are recommended to maintain results.
-
-|
 
 --------------
 
