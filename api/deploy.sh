@@ -27,6 +27,7 @@ popd
 # Restart daemon
 systemctl daemon-reload
 systemctl enable --now db-backup.timer
+systemctl enable api.service
 systemctl restart api.service
 systemctl status api.service
 systemctl reload nginx.service
