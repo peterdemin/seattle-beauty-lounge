@@ -5,7 +5,6 @@ Requires=postgresql.service
 [Service]
 User=postgres
 Environment=BACKUP_DIR="/var/backups/postgresql"
-ExecStart=mkdir -p "${BACKUP_DIR}"
 ExecStart=/bin/bash -c 'pg_dumpall | gzip > "$BACKUP_DIR/$(date +%%Y%%m%%dT%%H%%M%%S).sql.gz"'
 ExecStart=find "${BACKUP_DIR}" -maxdepth 1 -type f -name '*.sql.gz' -mtime +30 -exec rm {} \;
 Type=oneshot

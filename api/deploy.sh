@@ -24,6 +24,11 @@ cp api/etc/systemd/system/* /etc/systemd/system/
 cp api/etc/nginx/sites-available/default /etc/nginx/sites-available/default
 popd
 
+# This section must be in sync with db-backup.service
+BACKUP_DIR="/var/backups/postgresql"
+mkdir -p "${BACKUP_DIR}"
+chown postgres:postgres "${BACKUP_DIR}"
+
 # Restart daemon
 systemctl daemon-reload
 systemctl enable --now db-backup.timer
