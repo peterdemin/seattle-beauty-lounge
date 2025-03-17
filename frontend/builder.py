@@ -4,19 +4,19 @@ import shutil
 import subprocess
 from typing import Iterable
 
-import jinja2
 from markdown_it import MarkdownIt
 
 from lib.service import PUBLIC_DIR, ServiceInfo, dump_services
 
 from .constants import SOURCE_DIR
 from .image_publisher import ImagePublisher
+from .renderer import Renderer
 from .service_parser import ServiceParser
+from .tailwind import Tailwind
 
 
 class Builder:
     STYLES_DIR = f"{SOURCE_DIR}/styles"
-    TEMPLATES_DIR = f"{SOURCE_DIR}/templates"
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
     ADMIN_DIR = "admin/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
@@ -24,12 +24,10 @@ class Builder:
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
 
-    def __init__(self, mode: str) -> None:
+    def __init__(self, mode: str, renderer: Renderer, tailwind: Tailwind) -> None:
         self._mode = mode
-        self.env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(self.TEMPLATES_DIR),
-            autoescape=jinja2.select_autoescape(),
-        )
+        self._renderer = renderer
+        self._tailwind = tailwind
         self.markdown = MarkdownIt(
             "commonmark",
             {"breaks": True, "html": True},
@@ -69,19 +67,9 @@ class Builder:
             capture_output=True,
             check=True,
         )
-        subprocess.run(
-            [
-                "npx",
-                "tailwindcss",
-                "-c",
-                "admin/tailwind.config.admin.js",
-                "-o",
-                "admin/dist/assets/admin.css",
-                "-i",
-                "source/styles/input.css",
-            ],
-            capture_output=True,
-            check=True,
+        self._tailwind(
+            "admin/tailwind.config.admin.js",
+            "admin/dist/assets/admin.css",
         )
         for path in glob.glob(f"{self.ADMIN_DIR}/*.js"):
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
@@ -110,45 +98,24 @@ class Builder:
             break  # Just one bundle
         return script_name, style
 
-    def render_index_with_style(self, services: list[ServiceInfo], **params) -> None:
-        self.save_rendered_index(f"{self.BUILD_DIR}/index.html", services, **params)
+    def render_index_with_style(self, **params) -> None:
+        self._renderer.render_index(f"{self.BUILD_DIR}/index.html", **params)
         params["style"] = params.get("style", "") + self.gen_tailwind_css()
-        self.save_rendered_index(f"{PUBLIC_DIR}/index.html", services, **params)
-
-    def save_rendered_index(self, path: str, services: list[ServiceInfo], **params) -> None:
-        with open(path, "wt", encoding="utf-8") as fobj:
-            fobj.write(self.render_index(services, **params))
-
-    def gen_tailwind_css(self) -> str:
-        """Must be called after index.html is rendered"""
-        subprocess.run(
-            [
-                "npx",
-                "tailwindcss",
-                "-i",
-                f"./{self.STYLES_DIR}/input.css",
-                "-o",
-                f"{self.BUILD_ASSETS_DIR}/style.css",
-            ],
-            capture_output=True,
-            check=True,
-        )
-        with open(f"{self.BUILD_ASSETS_DIR}/style.css", "rt", encoding="utf-8") as fobj:
-            return fobj.read()
-
-    def render_index(self, services: list[ServiceInfo], **kwargs) -> str:
-        return self.env.get_template("01-index.html").render(services=services, **kwargs)
+        self._renderer.render_index(f"{PUBLIC_DIR}/index.html", **params)
 
     def render_details_with_style(self, service: ServiceInfo, **kwargs) -> None:
         if not service.url:
             return
-        self.save_rendered_details(f"{self.BUILD_DIR}/index.html", service, **kwargs)
+        self._renderer.render_details(f"{self.BUILD_DIR}/index.html", service=service, **kwargs)
         kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
-        self.save_rendered_details(f"{PUBLIC_DIR}/{service.url}", service, **kwargs)
+        self._renderer.render_details(f"{PUBLIC_DIR}/{service.url}", service=service, **kwargs)
 
-    def save_rendered_details(self, path: str, service: ServiceInfo, **kwargs) -> None:
-        with open(path, "wt", encoding="utf-8") as fobj:
-            fobj.write(self.env.get_template("06-details.html").render(service=service, **kwargs))
+    def gen_tailwind_css(self) -> str:
+        """Must be called after index.html is rendered"""
+        return self._tailwind(
+            "tailwind.config.js",
+            f"{self.BUILD_ASSETS_DIR}/style.css",
+        )
 
     def load_cancellation_policy(self) -> str:
         with open(f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8") as fobj:

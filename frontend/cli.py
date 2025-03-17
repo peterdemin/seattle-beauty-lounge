@@ -4,10 +4,12 @@ import time
 import jinja2.exceptions
 
 from .builder import Builder
+from .renderer import Renderer
+from .tailwind import Tailwind
 
 
 def build(mode: str = "development", watch: bool = False):
-    builder = Builder(mode)
+    builder = Builder(mode, renderer=Renderer(), tailwind=Tailwind())
     if watch:
         while True:
             try:
