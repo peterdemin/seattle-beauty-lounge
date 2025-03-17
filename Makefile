@@ -15,15 +15,15 @@ clean:
 
 .PHONY: fe
 fe:
-	python3 frontend.py development
+	frontend development
 
 .PHONY: staging
 staging: clean
-	python3 frontend.py staging
+	frontend staging
 
 .PHONY: prod
 prod: clean
-	python3 frontend.py production
+	frontend production
 
 .PHONY: compress
 compress: $(COMPRESSED_HTML) $(COMPRESSED_JS) $(COMPRESSED_CSS)
@@ -33,7 +33,7 @@ compress: $(COMPRESSED_HTML) $(COMPRESSED_JS) $(COMPRESSED_CSS)
 
 .PHONY: watch
 watch:
-	python3 -u frontend.py development watch
+	PYTHONUNBUFFERED=x frontend development watch
 
 .PHONY: dev
 dev: fe
@@ -49,7 +49,7 @@ content:
 
 .PHONY: install
 install:
-	pip install -r requirements/dev.txt
+	pip install -e . -r requirements/dev.txt
 
 .PHONY: js
 js:
@@ -65,13 +65,13 @@ test:
 
 .PHONY: fmt
 fmt:
-	isort api frontend.py
-	black api frontend.py
+	isort api frontend lib
+	black api frontend lib
 
 .PHONY: lint
 lint:
-	flake8 api frontend.py
-	pyright api frontend.py
+	flake8 api frontend lib
+	pyright api frontend lib
 	npx biome check --fix --unsafe source/scripts/*.jsx
 
 .PHONY: gitconfig
@@ -107,3 +107,4 @@ upgrade:
 .PHONY: sync
 sync:
 	pip-sync requirements/dev.txt
+	pip install -e .

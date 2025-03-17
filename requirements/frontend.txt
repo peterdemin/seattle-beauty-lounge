@@ -6,18 +6,18 @@
 #    pip-compile-multi
 #
 beautifulsoup4==4.12.3
-    # via -r source/requirements.in
+    # via -r requirements/frontend.in
 docutils==0.21.2
-    # via -r source/requirements.in
+    # via -r requirements/frontend.in
 jinja2==3.1.5
-    # via -r source/requirements.in
+    # via -r requirements/frontend.in
 markdown-it-py==3.0.0
-    # via -r source/requirements.in
+    # via -r requirements/frontend.in
 markupsafe==3.0.2
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
 pillow==11.0.0
-    # via -r source/requirements.in
+    # via -r requirements/frontend.in
 soupsieve==2.6
     # via beautifulsoup4
