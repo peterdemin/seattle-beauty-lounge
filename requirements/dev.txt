@@ -7,7 +7,7 @@
 #
 -r ../api/requirements.txt
 -r ../jigs/load-testing/requirements.txt
--r ../source/requirements.txt
+-r frontend.txt
 -r prereq.txt
 asttokens==3.0.0
     # via stack-data

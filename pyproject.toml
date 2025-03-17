@@ -2,6 +2,22 @@
 requires = ["setuptools>=56"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "frontend"
+version = "0.0.1"
+dynamic = ["dependencies"]
+license = {text = "MIT"}
+requires-python = ">=3.12"
+
+[tool.setuptools]
+packages = ["frontend", "lib"]
+
+[project.scripts]
+frontend = "frontend.cli:main"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements/frontend.txt"]}
+
 [tool.black]
 line-length = 100
 target-version = ['py312']

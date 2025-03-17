@@ -1,5 +1,5 @@
 -r prereq.in
--r ../source/requirements.in
+-r frontend.in
 -r ../api/requirements.in
 -r ../jigs/load-testing/requirements.in
 

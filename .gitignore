@@ -183,3 +183,6 @@ api/test.db
 /.env.staging
 /Session.vim
 *.swp
+
+# Project-specific
+/backups/
