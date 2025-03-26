@@ -16,7 +16,6 @@ from .tailwind import Tailwind
 
 
 class Builder:
-    STYLES_DIR = f"{SOURCE_DIR}/styles"
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
     ADMIN_DIR = "admin/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
