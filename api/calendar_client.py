@@ -99,7 +99,7 @@ class DayBreaker(DayBreakerInterface):
 
     @staticmethod
     def group_time_ranges(
-        time_ranges: Iterable[tuple[datetime.datetime, datetime.datetime]]
+        time_ranges: Iterable[tuple[datetime.datetime, datetime.datetime]],
     ) -> dict[str, list[list[str]]]:
         result = {}
         for start, end in time_ranges:
