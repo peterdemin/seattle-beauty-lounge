@@ -39,8 +39,7 @@ server {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
-	listen 80 ;
-	listen [::]:80 ;
     server_name staging.seattle-beauty-lounge.com;
+    listen 100.84.215.39:80;
     return 404; # managed by Certbot
 }

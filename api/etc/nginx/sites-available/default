@@ -63,7 +63,7 @@ server {
 	} # managed by Certbot
 
 	if ($host = www.seattle-beauty-lounge.com) {
-		return 301 https://seattle-beauty-lounge.com$request_uri;
+		return 301 https://$host$request_uri;
 	} # managed by Certbot
 
 	listen 80 ;
