@@ -84,6 +84,19 @@
         <div class="text-primary [&_a]:text-primary [&>p]:text-stone-900 font-light [&>h2]:pt-4 [&>h1]:mb-2 [&>h1]:text-center [&>h1]:font-medium [&>h1]:text-5xl [&>h2]:font-medium [&>h2]:text-lg">{{ cancellation_policy|safe }}</div>
       </div>
     </section>
+    {% if mode in ("development", "staging") %}
+    <section class="bg-gray-700 pt-96 pb-4">
+      <div class="max-w-lg mx-auto">
+        <form action="admin/api/build" method="POST">
+          <button
+              class="mx-2 px-5 rounded-lg text-xl bg-amber-400 text-gray-800"
+              type=submit>
+            Update staging
+          </button>
+        </form
+      </div>
+    </section>
+    {% endif %}
     {% if script %}
       <script>{{ script|safe }}</script>
     {% endif %}

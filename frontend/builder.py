@@ -97,17 +97,19 @@ class Builder:
             break  # Just one bundle
         return script_name, style
 
-    def render_index_with_style(self, **params) -> None:
-        self._renderer.render_index(f"{self.BUILD_DIR}/index.html", **params)
-        params["style"] = params.get("style", "") + self.gen_tailwind_css()
-        self._renderer.render_index(f"{PUBLIC_DIR}/index.html", **params)
+    def render_index_with_style(self, **kwargs) -> None:
+        kwargs["mode"] = self._mode
+        self._renderer.render_index(f"{self.BUILD_DIR}/index.html", **kwargs)
+        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
+        self._renderer.render_index(f"{PUBLIC_DIR}/index.html", **kwargs)
 
     def render_details_with_style(self, service: ServiceInfo, **kwargs) -> None:
         if not service.url:
             return
-        self._renderer.render_details(f"{self.BUILD_DIR}/index.html", service=service, **kwargs)
+        kwargs.update({"mode": self._mode, "service": service})
+        self._renderer.render_details(f"{self.BUILD_DIR}/index.html", **kwargs)
         kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
-        self._renderer.render_details(f"{PUBLIC_DIR}/{service.url}", service=service, **kwargs)
+        self._renderer.render_details(f"{PUBLIC_DIR}/{service.url}", **kwargs)
 
     def gen_tailwind_css(self) -> str:
         """Must be called after index.html is rendered"""

@@ -112,7 +112,11 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         BackofficeAPI(
             db,
             service_catalog,
-        ).register(app, prefix="/admin" + settings.location_prefix)
+        ).register(
+            app,
+            prefix="/admin" + settings.location_prefix,
+            enable_build=settings.enable_build,
+        )
 
     if settings.proxy_frontend:
         app.mount("/", StaticFiles(directory="public"), name="static")

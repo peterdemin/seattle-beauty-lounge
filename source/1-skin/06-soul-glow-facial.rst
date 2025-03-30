@@ -1,4 +1,4 @@
-.. modified_time: 2025-02-16T06:56:57.894Z
+.. modified_time: 2025-03-30T19:40:28.525Z
 
 .. _h.30j0zll:
 
@@ -22,7 +22,7 @@ that begins with a luxurious, hydrating cleanse designed to cool,
 soothe, and relax. Next, awaken your senses with a gentle exfoliation
 featuring naturally derived ingredients to remove keratin buildup,
 leaving your skin plump, balanced, and reconnected to its natural
-Circadian Rhythms.
+circadian rhythm.
 
 **Perfect For:** Aging, dry, dull, lackluster, or acne-prone skin.
 
