@@ -5,7 +5,7 @@ import "/rdp-style.css";
 import * as Sentry from "@sentry/react";
 import { useForm } from "react-hook-form";
 import SquarePayment from "/SquarePayment.jsx";
-import getAvailableSlots from "./availability.js";
+import { getAvailableSlots, insertSkips } from "./availability.js";
 
 function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 	const [currentStep, setCurrentStep] = useState(1);
@@ -247,7 +247,7 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 		if (slots === null || date === null) {
 			return;
 		}
-		setTimeslots(slots[date]);
+		setTimeslots(insertSkips(slots[date]));
 	}, [slots, date]);
 
 	const slotClass = (slot) => {
@@ -264,18 +264,22 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 				Pick a Time
 			</h2>
 			<div className="grid grid-cols-4 gap-4 mb-4">
-				{timeslots.map((slot) => (
-					<button
-						onClick={() => {
-							setSelected(slot);
-						}}
-						className={slotClass(slot)}
-						type="button"
-						key={slot}
-					>
-						{slot}
-					</button>
-				))}
+				{timeslots.map((slot) =>
+					slot === null ? (
+						<div key={slot} />
+					) : (
+						<button
+							onClick={() => {
+								setSelected(slot);
+							}}
+							className={slotClass(slot)}
+							type="button"
+							key={slot}
+						>
+							{slot}
+						</button>
+					),
+				)}
 			</div>
 			<NextButton
 				handleNext={() => {

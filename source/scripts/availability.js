@@ -14,10 +14,28 @@ function parseTime(timeString) {
  * returns "HH:MM" in 24-hour format
  */
 function formatTime(totalMinutes) {
-	const hours = Math.floor(totalMinutes / 60);
+	let hours = Math.floor(totalMinutes / 60);
 	const minutes = totalMinutes % 60;
+	let ampm = "AM";
+	if (hours >= 12) {
+		ampm = "PM";
+		if (hours > 12) {
+			hours -= 12;
+		}
+	}
 	// Pad with leading zeros if needed (e.g. "09:05")
-	return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+	return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
+}
+
+/**
+ * minutes = number of minutes (e.g. 185)
+ * returns minutes rounded up so it's divisible by STEP
+ */
+function roundUp(minutes) {
+	if (minutes % STEP === 0) {
+		return minutes;
+	}
+	return (Math.floor(minutes / STEP) + 1) * STEP;
 }
 
 /**
@@ -27,7 +45,7 @@ function formatTime(totalMinutes) {
  */
 function getSlotsForRange(range, serviceDuration) {
 	const [rangeStartStr, rangeEndStr] = range;
-	const rangeStart = parseTime(rangeStartStr);
+	const rangeStart = roundUp(parseTime(rangeStartStr));
 	const rangeEnd = parseTime(rangeEndStr);
 	const slots = [];
 	for (
@@ -52,17 +70,40 @@ function getSlotsForRange(range, serviceDuration) {
  *
  * Returns an object with the same date keys, each an array of possible start times.
  */
-function getAvailableSlots(availability, serviceDuration) {
+export function getAvailableSlots(availability, serviceDuration) {
 	const slotsByDate = {};
 	for (const date in availability) {
-		const ranges = availability[date];
 		slotsByDate[date] = [];
-		for (const range of ranges) {
-			const slots = getSlotsForRange(range, serviceDuration);
-			slotsByDate[date] = slotsByDate[date].concat(slots);
+		for (const range of availability[date]) {
+			slotsByDate[date] = slotsByDate[date].concat(
+				getSlotsForRange(range, serviceDuration),
+			);
 		}
 	}
 	return slotsByDate;
 }
 
-export default getAvailableSlots;
+export function skipCount(timeStr, idx) {
+	const targetPos = idx % 4;
+	const minutes = timeStr.split(" ")[0].split(":")[1];
+	const currentPos = { "00": 0, 15: 1, 30: 2, 45: 3 }[minutes];
+	let delta = currentPos - targetPos;
+	if (delta < 0) {
+		delta += 4;
+	}
+	return delta;
+}
+
+export function insertSkips(times) {
+	let idx = 0;
+	const res = [];
+	for (const time of times) {
+		const skips = skipCount(time, idx);
+		for (let i = 0; i < skips; i += 1) {
+			res.push(null);
+		}
+		res.push(time);
+		idx += skips + 1;
+	}
+	return res;
+}
