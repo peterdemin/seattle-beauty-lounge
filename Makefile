@@ -45,7 +45,7 @@ slots:
 
 .PHONY: content
 content:
-	gdocsync source
+	gdocsync source --email peter@seattle-beauty-lounge.com
 
 .PHONY: install
 install:
@@ -89,20 +89,11 @@ master:
 
 .PHONY: lock
 lock:
-	pip-compile-multi \
-		--use-cache \
-		--allow-unsafe \
-		--autoresolve \
-		--skip-constraints \
-		--no-upgrade
+	requirements lock
 
 .PHONY: upgrade
 upgrade:
-	pip-compile-multi \
-		--use-cache \
-		--autoresolve \
-		--skip-constraints \
-		--allow-unsafe
+	requirements upgrade
 
 .PHONY: sync
 sync:
