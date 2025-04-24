@@ -78,7 +78,7 @@ Email: kate@seattle-beauty-lounge.com
 ICS_BODY = (
     r"""
 BEGIN:VCALENDAR
-PRODID:-//github.com/allenporter/ical//9.0.2//EN
+PRODID:-//github.com/allenporter/ical//9.1.0//EN
 VERSION:2.0
 BEGIN:VEVENT
 DTSTAMP:<scrambled>

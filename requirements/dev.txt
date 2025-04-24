@@ -15,7 +15,7 @@ black==25.1.0
     # via -r requirements/dev.in
 cfgv==3.4.0
     # via pre-commit
-coverage[toml]==7.7.1
+coverage[toml]==7.8.0
     # via pytest-cov
 decorator==5.2.1
     # via
@@ -27,19 +27,19 @@ executing==2.2.0
     # via stack-data
 filelock==3.18.0
     # via virtualenv
-flake8==7.1.2
+flake8==7.2.0
     # via
     #   -r requirements/dev.in
     #   flake8-pyproject
 flake8-pyproject==1.2.3
     # via -r requirements/dev.in
-identify==2.6.9
+identify==2.6.10
     # via pre-commit
 iniconfig==2.1.0
     # via pytest
 ipdb==0.13.13
     # via -r requirements/dev.in
-ipython==9.0.2
+ipython==9.1.0
     # via ipdb
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -51,7 +51,7 @@ matplotlib-inline==0.1.7
     # via ipython
 mccabe==0.7.0
     # via flake8
-mypy-extensions==1.0.0
+mypy-extensions==1.1.0
     # via black
 nodeenv==1.9.1
     # via
@@ -73,23 +73,23 @@ pluggy==1.5.0
     # via pytest
 pre-commit==4.2.0
     # via -r requirements/dev.in
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via ipython
 ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
-pycodestyle==2.12.1
+pycodestyle==2.13.0
     # via flake8
-pyflakes==3.2.0
+pyflakes==3.3.2
     # via flake8
-pyright==1.1.398
+pyright==1.1.399
     # via -r requirements/dev.in
 pytest==8.3.5
     # via
     #   -r requirements/dev.in
     #   pytest-cov
-pytest-cov==6.0.0
+pytest-cov==6.1.1
     # via -r requirements/dev.in
 stack-data==0.6.3
     # via ipython
@@ -99,7 +99,7 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-virtualenv==20.29.3
+virtualenv==20.30.0
     # via pre-commit
 wcwidth==0.2.13
     # via prompt-toolkit

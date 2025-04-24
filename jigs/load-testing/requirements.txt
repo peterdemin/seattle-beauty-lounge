@@ -28,13 +28,13 @@ flask-cors==5.0.1
     # via locust
 flask-login==0.6.3
     # via locust
-gevent==24.11.1
+gevent==25.4.1
     # via
     #   geventhttpclient
     #   locust
 geventhttpclient==2.3.3
     # via locust
-greenlet==3.1.1
+greenlet==3.2.1
     # via gevent
 idna==3.10
     # via requests
@@ -42,7 +42,7 @@ itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
     # via flask
-locust==2.33.2
+locust==2.35.0
     # via -r jigs/load-testing/requirements.in
 markupsafe==3.0.2
     # via
@@ -52,11 +52,11 @@ msgpack==1.1.0
     # via locust
 psutil==7.0.0
     # via locust
-pyzmq==26.3.0
+pyzmq==26.4.0
     # via locust
 requests==2.32.3
     # via locust
-urllib3==2.3.0
+urllib3==2.4.0
     # via
     #   geventhttpclient
     #   requests
@@ -72,7 +72,7 @@ zope-interface==7.2
     # via gevent
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==78.1.0
+setuptools==79.0.1
     # via
     #   locust
     #   zope-event

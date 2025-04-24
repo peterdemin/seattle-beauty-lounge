@@ -5,7 +5,7 @@
 #
 #    requirements upgrade
 #
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
     # via -r requirements/frontend.in
 cachetools==5.5.2
     # via google-auth
@@ -21,9 +21,9 @@ gdocsync==0.1.3
     # via -r requirements/frontend.in
 google-api-core==2.24.2
     # via google-api-python-client
-google-api-python-client==2.166.0
+google-api-python-client==2.167.0
     # via gdocsync
-google-auth==2.38.0
+google-auth==2.39.0
     # via
     #   google-api-core
     #   google-api-python-client
@@ -33,9 +33,9 @@ google-auth-httplib2==0.2.0
     # via
     #   gdocsync
     #   google-api-python-client
-google-auth-oauthlib==1.2.1
+google-auth-oauthlib==1.2.2
     # via gdocsync
-googleapis-common-protos==1.69.2
+googleapis-common-protos==1.70.0
     # via google-api-core
 httplib2==0.22.0
     # via
@@ -45,7 +45,7 @@ idna==3.10
     # via requests
 jinja2==3.1.6
     # via -r requirements/frontend.in
-lxml==5.3.1
+lxml==5.4.0
     # via gdocsync
 markdown-it-py==3.0.0
     # via -r requirements/frontend.in
@@ -55,7 +55,7 @@ mdurl==0.1.2
     # via markdown-it-py
 oauthlib==3.2.2
     # via requests-oauthlib
-pillow==11.1.0
+pillow==11.2.1
     # via -r requirements/frontend.in
 proto-plus==1.26.1
     # via google-api-core
@@ -68,7 +68,7 @@ pyasn1==0.6.1
     # via
     #   pyasn1-modules
     #   rsa
-pyasn1-modules==0.4.1
+pyasn1-modules==0.4.2
     # via google-auth
 pyparsing==3.2.3
     # via httplib2
@@ -78,13 +78,13 @@ requests==2.32.3
     #   requests-oauthlib
 requests-oauthlib==2.0.0
     # via google-auth-oauthlib
-rsa==4.9
+rsa==4.9.1
     # via google-auth
-soupsieve==2.6
+soupsieve==2.7
     # via beautifulsoup4
-typing-extensions==4.13.0
+typing-extensions==4.13.2
     # via beautifulsoup4
 uritemplate==4.1.1
     # via google-api-python-client
-urllib3==2.3.0
+urllib3==2.4.0
     # via requests
