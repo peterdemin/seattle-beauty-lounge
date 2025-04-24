@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from square.client import Client
+from square import Square
+from square.environment import SquareEnvironment
 
 
 class Payment(BaseModel):
@@ -64,35 +65,37 @@ class SquareClientDummy:
 
 
 class SquareClient(SquareClientDummy):
-    USER_AGENT = "python3.12"
     DEPOSIT_CENTS = 5000  # $50.00
     CURRENCY = "USD"
     COUNTRY = "US"
+    _ENV_MAPPING = {
+        "sandbox": SquareEnvironment.SANDBOX,
+        "production": SquareEnvironment.PRODUCTION,
+    }
 
     def __init__(
         self,
         square_environment: str,
         access_token: str,
     ) -> None:
-        self._client = Client(
-            access_token=access_token,
-            environment=square_environment,
-            user_agent_detail=self.USER_AGENT,
+        self._client = Square(
+            environment=self._ENV_MAPPING[square_environment],
+            token=access_token,
         )
 
     def create_payment(self, payment: Payment) -> dict:
         if not self._client.payments:
             return {}
-        create_payment_response = self._client.payments.create_payment(
-            body={
-                "source_id": payment.token,
-                "idempotency_key": payment.idempotencyKey,
-                "amount_money": {
-                    "amount": self.DEPOSIT_CENTS,
-                    "currency": self.CURRENCY,
-                },
-            }
+        create_payment_response = self._client.payments.create(
+            source_id=payment.token,
+            idempotency_key=payment.idempotencyKey,
+            amount_money={
+                "amount": self.DEPOSIT_CENTS,
+                "currency": self.CURRENCY,
+            },
         )
-        if create_payment_response.is_success():
-            return create_payment_response.body
-        return {"error": create_payment_response.errors[0]["detail"]}
+        if create_payment_response.errors:
+            return {"error": create_payment_response.errors[0].detail}
+        if create_payment_response.payment:
+            return create_payment_response.payment.dict()
+        return {}
