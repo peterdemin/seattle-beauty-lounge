@@ -19,14 +19,15 @@ def client_fixture(test_settings: Settings) -> Iterator[TestClient]:
         yield client
 
 
-def test_submit_appointment(test_client: TestClient) -> None:
+@pytest.mark.parametrize("time", ["13:30", "01:30 PM", "01:30 pm", 13 * 60 * 60 + 30 * 60])
+def test_submit_appointment(test_client: TestClient, time) -> None:
     response = test_client.post(
         "/appointments",
         json={
             "id": 1,
             "serviceId": "2.02",
             "date": "2025-01-10",
-            "time": "13:30",
+            "time": time,
             "clientName": "Jane Doe",
             "clientPhone": "555-123-4567",
             "clientEmail": "janedoe@gmail.com",
@@ -36,7 +37,7 @@ def test_submit_appointment(test_client: TestClient) -> None:
             },
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.content
     result = response.json()
     if result.get("id"):
         result["id"] = 1
@@ -60,7 +61,7 @@ def test_submit_appointment_without_token_fails(test_client: TestClient) -> None
             "id": 1,
             "serviceId": "2.02",
             "date": "2025-01-10",
-            "time": "13:30",
+            "time": "01:30 pm",
             "clientName": "Jane Doe",
             "clientPhone": "555-123-4567",
             "clientEmail": "janedoe@gmail.com",
