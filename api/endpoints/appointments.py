@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
 from api.slots import SlotsLoader
-from api.square_client import SquareClientDummy
+from api.square_client import CreatePaymentResult, SquareClientDummy
 from api.tasks.calendar import CalendarTask
 from api.tasks.emails import EmailTask
 
@@ -39,10 +39,10 @@ class AppointmentsAPI:
             session.add(appointment)
             session.commit()
             session.refresh(appointment)
-        receipt: dict = self._square_client.create_payment(appointment_data.payment)
+        receipt: CreatePaymentResult = self._square_client.create_payment(appointment_data.payment)
         if receipt.get("error"):
             return JSONResponse(status_code=422, content=receipt)
-        appointment.depositToken = receipt["payment"]["id"]
+        appointment.depositToken = receipt.get("id", "Empty payment ID")
         with self._db.session() as session:
             session.add(appointment)
             session.commit()

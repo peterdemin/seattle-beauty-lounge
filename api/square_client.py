@@ -1,3 +1,5 @@
+from typing import NotRequired, TypedDict
+
 from pydantic import BaseModel
 from square import Square
 from square.environment import SquareEnvironment
@@ -8,60 +10,17 @@ class Payment(BaseModel):
     idempotencyKey: str
 
 
+class CreatePaymentResult(TypedDict):
+    error: NotRequired[str]
+    id: NotRequired[str]
+
+
 class SquareClientDummy:
 
-    def create_payment(self, payment: Payment) -> dict:
+    def create_payment(self, payment: Payment) -> CreatePaymentResult:
         if not payment.token:
             return {"error": "no token"}
-        return {
-            "payment": {
-                "id": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
-                "created_at": "2025-02-03T04:49:12.112Z",
-                "updated_at": "2025-02-03T04:49:12.340Z",
-                "amount_money": {"amount": 5000, "currency": "USD"},
-                "status": "COMPLETED",
-                "delay_duration": "PT168H",
-                "source_type": "CARD",
-                "card_details": {
-                    "status": "CAPTURED",
-                    "card": {
-                        "card_brand": "VISA",
-                        "last_4": "1111",
-                        "exp_month": 10,
-                        "exp_year": 2030,
-                        "fingerprint": "sq-1-IIAv2hH5VALaWZ5D0-vmIUAtH88q9xfkX-64tGz4jvoQZi4r0Z2xelzccPVo3SSz4g",
-                        "card_type": "CREDIT",
-                        "prepaid_type": "NOT_PREPAID",
-                        "bin": "411111",
-                    },
-                    "entry_method": "KEYED",
-                    "cvv_status": "CVV_ACCEPTED",
-                    "avs_status": "AVS_ACCEPTED",
-                    "statement_description": "SQ *DEFAULT TEST ACCOUNT",
-                    "card_payment_timeline": {
-                        "authorized_at": "2025-02-03T04:49:12.245Z",
-                        "captured_at": "2025-02-03T04:49:12.340Z",
-                    },
-                },
-                "location_id": "LH4TW6RJVR0M7",
-                "order_id": "zIt3tz8zcl3o6SbMIUeQ56ULaYbZY",
-                "risk_evaluation": {
-                    "created_at": "2025-02-03T04:49:12.245Z",
-                    "risk_level": "NORMAL",
-                },
-                "total_money": {"amount": 5000, "currency": "USD"},
-                "approved_money": {"amount": 5000, "currency": "USD"},
-                "receipt_number": "J2xe",
-                "receipt_url": "https://squareupsandbox.com/receipt/preview/J2xeb9aj55wS755Tw59hmjRKK3ZZY",
-                "delay_action": "CANCEL",
-                "delayed_until": "2025-02-10T04:49:12.112Z",
-                "application_details": {
-                    "square_product": "ECOMMERCE_API",
-                    "application_id": "sandbox-sq0idb-GCjOz8Fsffi2kHv4wUNEkA",
-                },
-                "version_token": "TD2eGbKi3ZkaluQJ2vs4UnIVoDJxsNscu4zKTTMdQNe6o",
-            }
-        }
+        return {"id": "J2xeb9aj55wS755Tw59hmjRKK3ZZY"}
 
 
 class SquareClient(SquareClientDummy):
@@ -83,7 +42,7 @@ class SquareClient(SquareClientDummy):
             token=access_token,
         )
 
-    def create_payment(self, payment: Payment) -> dict:
+    def create_payment(self, payment: Payment) -> CreatePaymentResult:
         if not self._client.payments:
             return {}
         create_payment_response = self._client.payments.create(
@@ -95,7 +54,7 @@ class SquareClient(SquareClientDummy):
             },
         )
         if create_payment_response.errors:
-            return {"error": create_payment_response.errors[0].detail}
+            return {"error": create_payment_response.errors[0].detail or "Unexpected error"}
         if create_payment_response.payment:
-            return create_payment_response.payment.dict()
+            return {"id": create_payment_response.payment.id or "Missing paymend.id"}
         return {}
