@@ -35,6 +35,8 @@ function SquarePayment({ applicationId, locationId, active, onPayment }) {
 			if (err) {
 				console.error(err);
 				setMessage(`Failed to book an appointment. Error: ${err}`);
+			} else {
+				idempotencyKey.current = null;
 			}
 		});
 	};
