@@ -2,6 +2,7 @@ from typing import NotRequired, TypedDict
 
 from pydantic import BaseModel
 from square import Square
+from square.core.api_error import ApiError
 from square.environment import SquareEnvironment
 
 
@@ -45,16 +46,20 @@ class SquareClient(SquareClientDummy):
     def create_payment(self, payment: Payment) -> CreatePaymentResult:
         if not self._client.payments:
             return {}
-        create_payment_response = self._client.payments.create(
-            source_id=payment.token,
-            idempotency_key=payment.idempotencyKey,
-            amount_money={
-                "amount": self.DEPOSIT_CENTS,
-                "currency": self.CURRENCY,
-            },
-        )
-        if create_payment_response.errors:
-            return {"error": create_payment_response.errors[0].detail or "Unexpected error"}
+        try:
+            create_payment_response = self._client.payments.create(
+                source_id=payment.token,
+                idempotency_key=payment.idempotencyKey,
+                amount_money={
+                    "amount": self.DEPOSIT_CENTS,
+                    "currency": self.CURRENCY,
+                },
+            )
+        except ApiError as exc:
+            try:
+                return {"error": exc.body["errors"][0]["detail"]}
+            except (KeyError, TypeError):
+                return {"error": "Unexpected error"}
         if create_payment_response.payment:
             return {"id": create_payment_response.payment.id or "Missing paymend.id"}
         return {}
