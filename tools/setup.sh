@@ -29,7 +29,6 @@ export NVM_DIR="$HOME/.nvm"
 nvm install "${NODE_VERSION}"
 nvm use "${NODE_VERSION}"
 npm install
-npm install -g caprover
 
 pre-commit install
 pre-commit autoupdate
