@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import time
 from typing import Optional
@@ -59,16 +60,17 @@ class ReminderTask:
         return self._ACTIVE_HOURS[0] < job_time.hour < self._ACTIVE_HOURS[1]
 
     def _send_reminder(self, appointment: Appointment) -> None:
-        self._sms_client.send(
-            appointment.clientPhone,
-            self._MESSAGE_TEMPLATE.format(
-                appointment=appointment,
-                title=self._service_catalog.get_title(appointment.serviceId),
-                date_str=appointment.date.strftime("%A, %B %d"),
-                time_str=appointment.time.strftime("%H:%M"),
-            ),
-        )
+        with contextlib.suppress(Exception):
+            self._send(
+                appointment.clientPhone,
+                self._MESSAGE_TEMPLATE.format(
+                    appointment=appointment,
+                    title=self._service_catalog.get_title(appointment.serviceId),
+                    date_str=appointment.date.strftime("%A, %B %d"),
+                    time_str=appointment.time.strftime("%H:%M"),
+                ),
+            )
 
-    @retry(stop=stop_after_delay(60), wait=wait_fixed(1))
+    @retry(stop=stop_after_delay(60), wait=wait_fixed(10))
     def _send(self, phone_number: str, message: str) -> None:
         self._sms_client.send(phone_number, message)
