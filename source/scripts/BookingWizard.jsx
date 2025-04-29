@@ -141,13 +141,14 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 			{currentStep === 99 && (
 				<div class="mb-6">
 					<h2 className="text-2xl text-center font-light text-primary">
-						Thank you, {clientName}! Your appointment is confirmed.
+						Thank you, {clientName}!<br />
+						Your appointment is confirmed.
 					</h2>
 					<p>
 						You will receive an email confirmation at {clientEmail} with the
 						booking details.
 					</p>
-					<p>We'll send a reminder the day before service to {clientPhone}</p>
+					<p>We'll send a reminder the day before service to {clientPhone}.</p>
 					<p>
 						To cancel or reschedule your appointment,
 						<br />
@@ -367,6 +368,23 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
 					placeholder="you@example.com"
 				/>
 				{errors.email && <p style={{ color: "red" }}>{errors.email.message}</p>}
+			</div>
+
+			<div className="flex gap-2 justify-baseline">
+				<input
+					type="checkbox"
+					id="consent"
+					name="consent"
+					value="yes"
+					required
+					className="appearance-none w-6 h-6 rounded-full border border-primary bg-neutral mt-1 shrink-0
+                               checked:bg-primary checked:border-0"
+				/>
+				<label for="consent">
+					I consent to receive appointment reminders via email and text. I also
+					agree to share my personal information with Square when paying with
+					credit card.
+				</label>
 			</div>
 
 			<div className="mt-4 flex place-content-end">

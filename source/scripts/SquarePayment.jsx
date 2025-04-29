@@ -43,6 +43,9 @@ function SquarePayment({ applicationId, locationId, active, onPayment }) {
 
 	return (
 		<div className={active ? "" : "hidden"}>
+			<h2 className="text-2xl text-center font-light text-primary">
+				Put a deposit
+			</h2>
 			<CreditCard payments={payments} callback={onTokenize} />
 			<div className={message ? "text-red-400 font-medium" : "invisible"}>
 				{message}
