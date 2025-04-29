@@ -80,6 +80,10 @@
     {% if script_name %}
       <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
     {% endif %}
-    <script crossorigin src="https://sandbox.web.squarecdn.com/v1/square.js" async></script>
+    {% if mode == "production" %}
+      <script crossorigin src="https://web.squarecdn.com/v1/square.js" async></script>
+    {% else %}
+      <script crossorigin src="https://sandbox.web.squarecdn.com/v1/square.js" async></script>
+    {% endif %}
   </body>
 </html>
