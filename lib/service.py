@@ -61,12 +61,12 @@ class ServiceInfo:
     def check_missing_fields(self) -> list[str]:
         return [f for f in self.REQUIRED_FIELDS if not getattr(self, f)]
 
+    def set_image_from_uri(self, uri: str) -> None:
+        self.image = ImageInfo.from_source(os.path.join(os.path.dirname(self.source_path), uri))
+
     @property
     def basename(self) -> str:
         return os.path.splitext(os.path.basename(self.source_path))[0]
-
-    def set_image_from_uri(self, uri: str) -> None:
-        self.image = ImageInfo.from_source(os.path.join(os.path.dirname(self.source_path), uri))
 
     @property
     def full_index(self) -> str:

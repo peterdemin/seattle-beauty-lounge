@@ -6,10 +6,12 @@ from typing import Iterable
 
 from markdown_it import MarkdownIt
 
+from lib.jd import JohnnyDecimal
 from lib.service import PUBLIC_DIR, ServiceInfo, dump_services
 
 from .constants import SOURCE_DIR
 from .image_publisher import ImagePublisher
+from .page import Page
 from .renderer import Renderer
 from .service_parser import ServiceParser
 from .tailwind import Tailwind
@@ -19,7 +21,7 @@ class Builder:
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
     ADMIN_DIR = "admin/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
-    MEDIA_DIR = f"{SOURCE_DIR}/7-media"
+    MEDIA_PTRN = f"{SOURCE_DIR}/7-media/[0-9][0-9]-*.rst"
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
@@ -42,8 +44,6 @@ class Builder:
         # Build Javascript for BookingWizard.jsx:
         script_name, style = self._build_javascript()
         services = ServiceParser().parse_all()
-        hours = list(self.iter_hours())
-        cancellation_policy = self.load_cancellation_policy()
         for service in services:
             self.render_details_with_style(
                 service=service,
@@ -55,8 +55,9 @@ class Builder:
             services=services,
             script_name=script_name,
             style=style,
-            hours=hours,
-            cancellation_policy=cancellation_policy,
+            hours=list(self.iter_hours()),
+            cancellation_policy=self.load_cancellation_policy(),
+            media=self.load_media(),
         )
         dump_services(services)
         self.build_admin()
@@ -128,3 +129,12 @@ class Builder:
             for line in fobj:
                 day, hours = line.strip().split(None, 1)
                 yield {"day": day, "hours": hours}
+
+    def load_media(self) -> dict[str, str]:
+        page = Page()
+        res = {}
+        for path in sorted(glob.glob(self.MEDIA_PTRN)):
+            with open(path, encoding="utf-8") as fobj:
+                html = page.render_html(fobj.read())
+            res[JohnnyDecimal(path).full_index] = html
+        return res
