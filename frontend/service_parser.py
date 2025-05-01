@@ -3,17 +3,24 @@ import os
 import re
 
 import docutils.core
-from bs4 import BeautifulSoup
 from docutils.nodes import Element, TextElement, image
 
 from lib.service import ImageInfo, ServiceInfo
 
 from .constants import SOURCE_DIR
+from .page import Page
 
 
 class ServiceParser:
     RE_NUMBER = re.compile(r"(\d+).*")
     SERVICE_PTRN = f"{SOURCE_DIR}/[123]-*/[0-9][0-9]-*.rst"
+
+    def __init__(self) -> None:
+        self._page = Page(hooks={"img": self._change_img_ext})
+
+    def _change_img_ext(self, element: Element) -> None:
+        path, _ = os.path.splitext(element["src"])
+        element["src"] = f"{path}.webp"
 
     def parse_all(self) -> list[ServiceInfo]:
         result: list[ServiceInfo] = []
@@ -74,29 +81,7 @@ class ServiceParser:
     def _render_full_html(self, doctree: Element) -> str:
         if not doctree.children:
             return ""
-        soup = BeautifulSoup(
-            docutils.core.publish_from_doctree(doctree, writer_name="html"), "html.parser"
-        )
-        div = soup.html.body.div  # pyright: ignore
-        assert div is not None
-        div["class"] = "p-6 font-light text-black"
-        del div["id"]
-        for element in div.find_all("p"):
-            element["class"] = "py-2"
-        for element in div.find_all("h1"):
-            element["class"] = "py-2 text-2xl text-primary"
-        for element in div.find_all("h2"):
-            element["class"] = "py-2 text-xl"
-        for element in div.find_all("h3"):
-            element["class"] = "py-2 text-lg"
-        for element in div.find_all("img"):
-            path, _ = os.path.splitext(element["src"])
-            element["src"] = f"{path}.webp"
-            element["class"] = "w-full"
-        for element in div.find_all("ul"):
-            element["class"] = "list-disc list-inside"
-
-        return div.prettify()
+        return self._page.render_from_doctree(doctree)
 
     def _make_image(self, path: str) -> ImageInfo:
         return ImageInfo.from_source(path)

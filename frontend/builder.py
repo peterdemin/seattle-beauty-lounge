@@ -19,6 +19,7 @@ class Builder:
     SCRIPTS_DIR = f"{SOURCE_DIR}/scripts/dist/assets"
     ADMIN_DIR = "admin/dist/assets"
     PAGES_DIR = f"{SOURCE_DIR}/pages"
+    MEDIA_DIR = f"{SOURCE_DIR}/7-media"
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
