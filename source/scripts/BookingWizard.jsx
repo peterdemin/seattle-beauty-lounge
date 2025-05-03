@@ -1,10 +1,11 @@
 import React, { useState, useEffect, StrictMode } from "react";
 import { DayPicker } from "react-day-picker";
-import ReactDOM from "react-dom/client";
+import reactDom from "react-dom/client";
 import "/rdp-style.css";
 import * as Sentry from "@sentry/react";
 import { useForm } from "react-hook-form";
 import SquarePayment from "/SquarePayment.jsx";
+import renderConfirmation from "./ConfirmationTemplate.js";
 import { getAvailableSlots, insertSkips } from "./availability.js";
 
 function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
@@ -139,28 +140,12 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 				/>
 			)}
 			{currentStep === 99 && (
-				<div class="mb-6">
-					<h2 className="text-2xl text-center font-light text-primary">
-						Thank you, {clientName}!<br />
-						Your appointment is confirmed.
-					</h2>
-					<p>
-						You will receive an email confirmation at {clientEmail} with the
-						booking details.
-					</p>
-					<p>We'll send a reminder the day before service to {clientPhone}.</p>
-					<p>
-						To cancel or reschedule your appointment,
-						<br />
-						call{" "}
-						<a
-							class="font-medium text-primary underline"
-							href="tel:+13016588708"
-						>
-							+1 (301) 658-8708
-						</a>
-					</p>
-				</div>
+				<div
+					class="mb-6"
+					dangerouslySetInnerHTML={{
+						__html: renderConfirmation(clientName, clientEmail, clientPhone),
+					}}
+				/>
 			)}
 		</div>
 	);
@@ -188,8 +173,8 @@ function PickDateStep({ slots, onDateSelect }) {
 	}
 
 	const today = new Date();
-	const first_day = addDays(today, 1); // next day
-	const last_day = addDays(today, 7 * 6); // 6 weeks
+	const firstDay = addDays(today, 1); // next day
+	const lastDay = addDays(today, 7 * 6); // 6 weeks
 
 	function handleNext() {
 		if (selectedDay) {
@@ -213,7 +198,7 @@ function PickDateStep({ slots, onDateSelect }) {
 				// You can add optional props here, like `disabled` or `fromDate/toDate`
 				// to limit the selectable date range.
 				modifiers={{
-					disabled: [{ before: first_day }, { after: last_day }].concat(
+					disabled: [{ before: firstDay }, { after: lastDay }].concat(
 						disabledDates,
 					),
 				}}
@@ -463,7 +448,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 	});
 }
 
-ReactDOM.createRoot(document.getElementById("book")).render(
+reactDom.createRoot(document.getElementById("book")).render(
 	<StrictMode>
 		<BookingWizard
 			apiUrl="/api"

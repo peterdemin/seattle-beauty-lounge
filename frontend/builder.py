@@ -1,5 +1,6 @@
 import glob
 import os
+import re
 import shutil
 import subprocess
 from typing import Iterable
@@ -11,6 +12,7 @@ from lib.service import PUBLIC_DIR, ServiceInfo, dump_services
 
 from .constants import SOURCE_DIR
 from .image_publisher import ImagePublisher
+from .javascript_embedder import JavascriptEmbedder
 from .page import Page
 from .renderer import Renderer
 from .service_parser import ServiceParser
@@ -25,6 +27,7 @@ class Builder:
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
+    _RE_PHONE_NUMBER = re.compile(r"\+1\s\(\d{3}\)\s\d{3}-\d{4}")
 
     def __init__(self, mode: str, renderer: Renderer, tailwind: Tailwind) -> None:
         self._mode = mode
@@ -35,14 +38,16 @@ class Builder:
             {"breaks": True, "html": True},
         )
         self.image_publisher = ImagePublisher()
+        self._embed_js_template = JavascriptEmbedder()
 
     def build_public(self) -> None:
         if not os.path.exists(self.PUBLIC_ASSETS_DIR):
             os.makedirs(self.PUBLIC_ASSETS_DIR)
         if not os.path.exists(self.BUILD_ASSETS_DIR):
             os.makedirs(self.BUILD_ASSETS_DIR)
+        media = self.load_media()
         # Build Javascript for BookingWizard.jsx:
-        script_name, style = self._build_javascript()
+        script_name, style = self._build_javascript(media)
         services = ServiceParser().parse_all()
         for service in services:
             self.render_details_with_style(
@@ -57,7 +62,7 @@ class Builder:
             style=style,
             hours=list(self.iter_hours()),
             cancellation_policy=self.load_cancellation_policy(),
-            media=self.load_media(),
+            media=media,
         )
         dump_services(services)
         self.build_admin()
@@ -77,8 +82,11 @@ class Builder:
         shutil.copy("admin/dist/admin.html", f"{PUBLIC_DIR}/admin.html")
         shutil.copy(f"{self.ADMIN_DIR}/admin.css", f"{self.PUBLIC_ASSETS_DIR}/")
 
-    def _build_javascript(self) -> tuple[str, str]:
+    def _build_javascript(self, media: dict[str, str]) -> tuple[str, str]:
         # Build Javascript for BookingWizard.jsx:
+        for path in glob.glob(f"{SOURCE_DIR}/scripts/*Template.js"):
+            self._embed_js_template(path, media)
+
         subprocess.run(
             ["npm", "run", self._mode],
             capture_output=True,
@@ -135,6 +143,13 @@ class Builder:
         res = {}
         for path in sorted(glob.glob(self.MEDIA_PTRN)):
             with open(path, encoding="utf-8") as fobj:
-                html = page.render_html(fobj.read())
+                html = page.render_html(self._highlight_phone_numbers(fobj.read()))
             res[JohnnyDecimal(path).full_index] = html
         return res
+
+    def _highlight_phone_numbers(self, rst: str) -> str:
+        return self._RE_PHONE_NUMBER.sub(self._phone_markup, rst)
+
+    def _phone_markup(self, mobj: re.Match) -> str:
+        digits = "".join(c for c in mobj.group(0) if c.isdigit() or c == "+")
+        return f"`{mobj.group(0)} <tel:{digits}>`_"

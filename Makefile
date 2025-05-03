@@ -61,7 +61,7 @@ jsdev:
 
 .PHONY: test
 test:
-	pytest api
+	pytest api frontend
 
 .PHONY: fmt
 fmt:
