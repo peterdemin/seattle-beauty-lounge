@@ -20,7 +20,7 @@
   </head>
   <body class="bg-neutral">
     <section>
-      <div class="w-fit mx-auto pt-12 pb-6">
+      <div class="w-fit mx-auto py-12">
         <div class="flex flex-col md:flex-row lg:gap-4 items-center">
          <img src="images/01-logo.webp" />
          <div>
@@ -54,14 +54,18 @@
       </div>
     </section>
     {% include "05-book.html" %}
+    {#
     <section class="bg-neutral py-8">
       <div class="max-w-prose mx-auto">{{ media["7.01"]|safe }}</div>
     </section>
+    #}
     {% include "02-services.html" %}
     {% include "04-hours.html" %}
+    {#
     <section class="bg-neutral py-8">
       <div class="max-w-prose mx-auto">{{ media["7.02"]|safe }}</div>
     </section>
+    #}
     <section class="bg-neutral py-8">
       <div class="max-w-prose mx-auto px-6">
         <div class="text-primary [&_a]:text-primary [&>p]:text-stone-900 font-light [&>h2]:pt-4 [&>h1]:mb-2 [&>h1]:text-center [&>h1]:font-medium [&>h1]:text-5xl [&>h2]:font-medium [&>h2]:text-lg">{{ cancellation_policy|safe }}</div>
