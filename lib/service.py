@@ -4,7 +4,7 @@ import posixpath
 from dataclasses import dataclass
 
 HERE = os.path.dirname(__file__)
-SERVICES_PICKLE = os.path.join(HERE, "services.pkl")
+CONTENT_PICKLE = os.path.join(HERE, "content.pkl")
 PUBLIC_DIR = "public"
 
 
@@ -85,11 +85,31 @@ class ServiceInfo:
         return self.CATEGORY_NAMES[self.category_index]
 
 
-def load_services() -> list[ServiceInfo]:
-    with open(SERVICES_PICKLE, "rb") as fobj:
+@dataclass
+class Snippet:
+    full_index: str
+    html: str
+    plain_text: str
+
+
+@dataclass
+class Content:
+    services: list[ServiceInfo]
+    snippets: list[Snippet]
+
+    def get_snippet(self, full_index: str) -> Snippet:
+        return {s.full_index: s for s in self.snippets}[full_index]
+
+
+def load_content() -> Content:
+    with open(CONTENT_PICKLE, "rb") as fobj:
         return pickle.load(fobj)
 
 
-def dump_services(services: list[ServiceInfo]) -> None:
-    with open(SERVICES_PICKLE, "wb") as fobj:
-        pickle.dump(services, fobj)
+def load_services() -> list[ServiceInfo]:
+    return load_content().services
+
+
+def dump_content(services: list[ServiceInfo], snippets: list[Snippet]) -> None:
+    with open(CONTENT_PICKLE, "wb") as fobj:
+        pickle.dump(Content(services=services, snippets=snippets), fobj)

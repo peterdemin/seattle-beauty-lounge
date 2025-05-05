@@ -12,6 +12,7 @@ from api.constants import EMAIL, LOCATION, PHONE, TIMEZONE
 from api.models import Appointment
 from api.service_catalog import ServiceCatalog
 from api.smtp_client import SMTPClientDummy
+from lib.service import Snippet
 
 
 class EmailTask:
@@ -24,29 +25,16 @@ class EmailTask:
         Email: {EMAIL}
         """
     ).strip()
-    _EMAIL_TEMPLATE = textwrap.dedent(
-        f"""
-        Hello {{appointment.clientName}},
-
-        Your appointment has been booked.
-
-        We'll see you on {{date_str}} at {{time_str}} for {{title}}.
-
-        Thank you for choosing Seattle Beauty Lounge!
-
-        Address: {LOCATION}
-        Phone: {PHONE}
-        Email: {EMAIL}
-        """
-    ).strip()
 
     def __init__(
         self,
         smtp_client: SMTPClientDummy,
         service_catalog: ServiceCatalog,
+        email_template: Snippet,
     ) -> None:
         self._smtp_client = smtp_client
         self._service_catalog = service_catalog
+        self._email_template = email_template
 
     def send_confirmation_email(self, appointment: Appointment):
         """Sends a confirmation email to the appointment.clientEmail."""
@@ -57,28 +45,44 @@ class EmailTask:
         self._smtp_client.send(message)
 
     def _compose_confirmation(self, appointment: Appointment) -> MIMEMultipart:
-        msg = MIMEMultipart()
-        msg["Subject"] = "Appointment with Seattle Beauty Lounge"
-        msg["From"] = EMAIL
-        msg["To"] = appointment.clientEmail
-        msg.attach(
+        paragraphs = self._email_template.plain_text.split("\n\n")
+        subject = paragraphs[0]
+        template = "\n\n".join(paragraphs[1:]).strip()
+        mixed = MIMEMultipart("mixed")
+        mixed["Subject"] = subject
+        mixed["From"] = EMAIL
+        mixed["To"] = appointment.clientEmail
+        alternative = MIMEMultipart("alternative")
+        alternative.attach(
             MIMEText(
-                self._EMAIL_TEMPLATE.format(
+                template.format(
                     appointment=appointment,
                     title=self._service_catalog.get_title(appointment.serviceId),
-                    date_str=appointment.date.strftime("%A, %B %d"),
-                    time_str=appointment.time.strftime("%H:%M"),
+                    date_str=appointment.date.strftime("%A, %B %-d"),
+                    time_str=appointment.time.strftime("%I:%M %p"),
                 )
             )
         )
+        alternative.attach(
+            MIMEText(
+                self._email_template.html.format(
+                    appointment=appointment,
+                    title=self._service_catalog.get_title(appointment.serviceId),
+                    date_str=appointment.date.strftime("%A, %B %-d"),
+                    time_str=appointment.time.strftime("%I:%M %p"),
+                ),
+                "html",
+            )
+        )
+        mixed.attach(alternative)
         part = MIMEText(
             self._compose_ics(appointment),
             "calendar",
             "utf-8",
         )
         part["Content-Disposition"] = 'attachment; filename="invite.ics"'
-        msg.attach(part)
-        return msg
+        mixed.attach(part)
+        return mixed
 
     def _compose_ics(self, appointment: Appointment) -> str:
         start = TIMEZONE.localize(

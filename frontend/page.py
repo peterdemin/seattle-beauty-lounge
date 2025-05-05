@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Callable, cast
 
 import docutils.core
@@ -42,3 +43,23 @@ class Page:
             for element in div.find_all(tag):
                 hook(cast(Element, element))
         return cast(str, div.prettify())
+
+    def render_plain_text(self, rst: str) -> str:
+        doctree = docutils.core.publish_doctree(rst)
+        lines = []
+        elems = deque(doctree.children)
+        while elems:
+            elem = elems.popleft()
+            if elem.tagname in ("bullet_list", "section"):
+                elems.extendleft(elem.children[::-1])
+            elif elem.tagname in ("title", "subtitle", "paragraph"):
+                lines.append(elem.astext().strip())
+            elif elem.tagname == "line_block":
+                lines.append("\n".join(c.astext().strip() for c in elem.children))
+            elif elem.tagname in ("list_item"):
+                lines.append("- " + elem.astext().strip())
+            elif elem.tagname in ("target", "comment"):
+                pass
+            else:
+                raise ValueError(f"Unsupported tag {elem.tagname}: {elem}")
+        return "\n\n".join(lines)

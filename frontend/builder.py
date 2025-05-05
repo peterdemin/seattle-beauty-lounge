@@ -8,7 +8,7 @@ from typing import Iterable
 from markdown_it import MarkdownIt
 
 from lib.jd import JohnnyDecimal
-from lib.service import PUBLIC_DIR, ServiceInfo, dump_services
+from lib.service import PUBLIC_DIR, ServiceInfo, Snippet, dump_content
 
 from .constants import SOURCE_DIR
 from .image_publisher import ImagePublisher
@@ -45,7 +45,8 @@ class Builder:
             os.makedirs(self.PUBLIC_ASSETS_DIR)
         if not os.path.exists(self.BUILD_ASSETS_DIR):
             os.makedirs(self.BUILD_ASSETS_DIR)
-        media = self.load_media()
+        snippets = self.load_snippets()
+        media: dict[str, str] = {snippet.full_index: snippet.html for snippet in snippets}
         # Build Javascript for BookingWizard.jsx:
         script_name, style = self._build_javascript(media)
         services = ServiceParser().parse_all()
@@ -64,7 +65,7 @@ class Builder:
             cancellation_policy=self.load_cancellation_policy(),
             media=media,
         )
-        dump_services(services)
+        dump_content(services, snippets)
         self.build_admin()
 
     def build_admin(self) -> None:
@@ -83,10 +84,10 @@ class Builder:
         shutil.copy(f"{self.ADMIN_DIR}/admin.css", f"{self.PUBLIC_ASSETS_DIR}/")
 
     def _build_javascript(self, media: dict[str, str]) -> tuple[str, str]:
-        # Build Javascript for BookingWizard.jsx:
         for path in glob.glob(f"{SOURCE_DIR}/scripts/*Template.js"):
             self._embed_js_template(path, media)
 
+        # Build Javascript for BookingWizard.jsx:
         subprocess.run(
             ["npm", "run", self._mode],
             capture_output=True,
@@ -138,14 +139,20 @@ class Builder:
                 day, hours = line.strip().split(None, 1)
                 yield {"day": day, "hours": hours}
 
-    def load_media(self) -> dict[str, str]:
+    def load_snippets(self) -> list[Snippet]:
         page = Page()
-        res = {}
+        snippets: list[Snippet] = []
         for path in sorted(glob.glob(self.MEDIA_PTRN)):
             with open(path, encoding="utf-8") as fobj:
-                html = page.render_html(self._highlight_phone_numbers(fobj.read()))
-            res[JohnnyDecimal(path).full_index] = html
-        return res
+                rst = fobj.read()
+            snippets.append(
+                Snippet(
+                    full_index=JohnnyDecimal(path).full_index,
+                    html=page.render_html(self._highlight_phone_numbers(rst)),
+                    plain_text=page.render_plain_text(rst),
+                )
+            )
+        return snippets
 
     def _highlight_phone_numbers(self, rst: str) -> str:
         return self._RE_PHONE_NUMBER.sub(self._phone_markup, rst)

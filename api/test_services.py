@@ -2,6 +2,7 @@ import datetime
 
 from api.constants import TIMEZONE, TIMEZONE_STR
 from api.service_catalog import ServiceCatalog
+from lib.service import load_content
 
 MICROBLADING_EVENT = {
     "summary": "Eyebrow microblading",
@@ -12,7 +13,7 @@ MICROBLADING_EVENT = {
 
 
 def test_load_from_pickle():
-    service_catalog = ServiceCatalog()
+    service_catalog = ServiceCatalog(load_content().services)
     event = service_catalog.compose_event(
         full_index="2.04",
         description="Description",

@@ -27,6 +27,7 @@ from api.tasks.availability import AvailabilityTask
 from api.tasks.calendar import CalendarTask
 from api.tasks.emails import EmailTask
 from api.tasks.reminder import ReminderTask
+from lib.service import load_content
 
 
 def create_app(settings: Optional[Settings] = None) -> FastAPI:
@@ -53,7 +54,8 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         yield
         task_scheduler.stop()
 
-    service_catalog = ServiceCatalog()
+    content = load_content()
+    service_catalog = ServiceCatalog(content.services)
     calendar_service = (
         CalendarService(GoogleAuth.delegated(settings.sender_email))
         if settings.enable_calendar
@@ -89,6 +91,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             else SMTPClientDummy()
         ),
         service_catalog=service_catalog,
+        email_template=content.get_snippet("7.04"),
     )
 
     app = FastAPI(lifespan=lifespan)

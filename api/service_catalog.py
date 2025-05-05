@@ -1,14 +1,12 @@
 import datetime
 
 from api.constants import TIMEZONE_STR
-from lib.service import ServiceInfo, load_services
+from lib.service import ServiceInfo
 
 
 class ServiceCatalog:
-    def __init__(self, services: list[ServiceInfo] | None = None) -> None:
-        self._services: dict[str, ServiceInfo] = {
-            s.full_index: s for s in (services if services is not None else load_services())
-        }
+    def __init__(self, services: list[ServiceInfo]) -> None:
+        self._services: dict[str, ServiceInfo] = {s.full_index: s for s in services}
 
     def compose_event(self, full_index: str, description: str, start_dt: datetime.datetime) -> dict:
         return {
