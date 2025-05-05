@@ -8,6 +8,7 @@ from api.task_scheduler import TaskScheduler
 class AvailabilityTask:
     def __init__(
         self,
+        *,
         key: str,
         kv: KiwiStore,
         calendar_service: CalendarServiceDummy,
@@ -23,7 +24,7 @@ class AvailabilityTask:
     def __call__(self, limit: int = 7 * 7) -> None:
         try:
             events = self._calendar_service.fetch(limit)
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             # Whatever, next attempt is in one minute
             return
         self._kv.set(

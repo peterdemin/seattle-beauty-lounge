@@ -30,11 +30,11 @@ class BackofficeAPI:
                 methods=["POST"],
             )
 
-    def appointment(self, id: int) -> dict[str, dict | list[dict]]:
+    def appointment(self, app_id: int) -> dict[str, dict | list[dict]]:
         with self._db.session() as session:
             appointment = session.exec(
                 select(Appointment).where(
-                    Appointment.id == id,
+                    Appointment.id == app_id,
                 )
             ).first()
             if not appointment:

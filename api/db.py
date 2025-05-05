@@ -21,14 +21,13 @@ class Database:
                 connect_args=({"check_same_thread": False}),
                 poolclass=StaticPool,
             )
-        else:
-            return create_engine(
-                database_url,
-                echo=echo,
-                connect_args=(
-                    {"check_same_thread": False} if database_url.startswith("sqlite://") else {}
-                ),
-            )
+        return create_engine(
+            database_url,
+            echo=echo,
+            connect_args=(
+                {"check_same_thread": False} if database_url.startswith("sqlite://") else {}
+            ),
+        )
 
     def create_tables(self) -> None:
         SQLModel.metadata.create_all(self._engine)

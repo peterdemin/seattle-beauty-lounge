@@ -7,7 +7,7 @@ from sqlmodel import Field, SQLModel
 from api.square_client import Payment
 
 
-def parse_time(value: Any) -> datetime.time | Any:
+def parse_time(value: Any) -> datetime.time:
     if not isinstance(value, str):
         return value
     supported_formats = ("%I:%M %p", "%H:%M")
@@ -17,6 +17,8 @@ def parse_time(value: Any) -> datetime.time | Any:
         except ValueError:
             if i == len(supported_formats) - 1:
                 raise
+    # Unreachable
+    return datetime.time()
 
 
 Time = Annotated[datetime.time, PlainValidator(parse_time)]

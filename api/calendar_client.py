@@ -28,7 +28,7 @@ class CalendarService(CalendarServiceDummy):
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         time_max = now + datetime.timedelta(days=limit_days)
         return (
-            self._service.events()
+            self._service.events()  # pylint: disable=no-member
             .list(
                 calendarId=self.CALENDAR_ID,
                 timeMin=now.isoformat(),
@@ -41,7 +41,11 @@ class CalendarService(CalendarServiceDummy):
         )
 
     def insert(self, body: dict) -> dict:
-        return self._service.events().insert(calendarId=self.CALENDAR_ID, body=body).execute()
+        return (
+            self._service.events()  # pylint: disable=no-member
+            .insert(calendarId=self.CALENDAR_ID, body=body)
+            .execute()
+        )
 
 
 class CalendarEventParser:
@@ -118,10 +122,10 @@ class DayBreaker(DayBreakerInterface):
                 for days_offset in range(1, (end - start).days):
                     date = start + datetime.timedelta(days=days_offset)
                     result.setdefault(date.date().isoformat(), []).append(["00:00", "23:59"])
-        for date in result:
+        for date, ranges in result.items():
             prev_start, prev_end = "", ""
             non_overlapping = []
-            for start, end in sorted(result[date]):
+            for start, end in sorted(ranges):
                 if start > prev_start and end < prev_end:
                     continue
                 non_overlapping.append([start, end])

@@ -31,7 +31,7 @@ class TaskScheduler:
         while not self._stop_event.is_set():
             try:
                 schedule.run_pending()
-            except Exception as exc:
+            except Exception as exc:  # pylint: disable=broad-exception-caught
                 sentry_sdk.capture_exception(exc)
             if not self._stop_event.is_set():
                 time.sleep(0.1)

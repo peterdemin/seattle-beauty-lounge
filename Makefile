@@ -71,6 +71,7 @@ fmt:
 .PHONY: lint
 lint:
 	flake8 api frontend lib
+	pylint api frontend lib
 	pyright api frontend lib
 	npx biome check --fix --unsafe source/scripts/*.jsx
 

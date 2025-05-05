@@ -74,7 +74,7 @@ ignore = ["CVS"]
 # ignore-list. The regex matches against paths and can be in Posix or Windows
 # format. Because '\' represents the directory delimiter on Windows systems, it
 # can't be used as an escape character.
-# ignore-paths =
+ignore-paths = ["api/migrations/versions"]
 
 # Files or directories matching the regular expression patterns are skipped. The
 # regex matches against base names, not paths. The default value ignores Emacs
@@ -110,7 +110,7 @@ persistent = true
 
 # Minimum Python version to use for version dependent checks. Will default to the
 # version used to run pylint.
-py-version = "3.8"
+py-version = "3.12"
 
 # Discover python modules and packages in the file system subtree.
 # recursive =
@@ -269,10 +269,10 @@ valid-metaclass-classmethod-first-arg = ["cls"]
 # ignored-parents =
 
 # Maximum number of arguments for function / method.
-max-args = 5
+max-args = 6
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes = 7
+max-attributes = 10
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr = 5

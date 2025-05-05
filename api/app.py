@@ -103,7 +103,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     else:
         square_client = SquareClientDummy()
     AppointmentsAPI(
-        db,
+        db=db,
         email_task=email_task,
         calendar_task=calendar_task,
         slots_loader=SlotsLoader.load(

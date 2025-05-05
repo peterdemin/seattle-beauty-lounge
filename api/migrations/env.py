@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 from alembic import context
 from sqlmodel import SQLModel
 

@@ -57,7 +57,7 @@ class ServiceParser:
                 return
             if elem.children and len(elem.children) == 1:
                 child = elem.children[0]
-                if type(child) is image:
+                if isinstance(child, image):
                     result.set_image_from_uri(child["uri"])
                     return
             result.short_text = " ".join(c.astext().strip() for c in elem.children)

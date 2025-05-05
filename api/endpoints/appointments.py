@@ -12,6 +12,7 @@ from api.tasks.emails import EmailTask
 class AppointmentsAPI:
     def __init__(
         self,
+        *,
         db: Database,
         email_task: EmailTask,
         calendar_task: CalendarTask,
