@@ -103,4 +103,4 @@ sync:
 
 .PHONY: ubuntu-install
 ubuntu-install:
-	tools/ubuntu_install.sh
+	sudo tools/ubuntu_install.sh
