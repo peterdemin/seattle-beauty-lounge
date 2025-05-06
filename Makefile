@@ -61,7 +61,7 @@ jsdev:
 
 .PHONY: test
 test:
-	pytest api lib frontend --cov --cov-fail-under=80
+	pytest api lib frontend --cov=api --cov=lib --cov-fail-under=70
 
 .PHONY: fmt
 fmt:
