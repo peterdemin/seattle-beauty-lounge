@@ -100,3 +100,7 @@ upgrade:
 sync:
 	pip-sync requirements/dev.txt
 	pip install -e .
+
+.PHONY: ubuntu-install
+ubuntu-install:
+	tools/ubuntu_install.sh
