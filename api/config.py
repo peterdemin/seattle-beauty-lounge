@@ -40,6 +40,6 @@ class Settings(BaseSettings):
             twilio_account_sid="",
             twilio_auth_token="",
             twilio_from_number="",
-            enable_admin=False,
-            enable_build=False,
+            enable_admin=True,
+            enable_build=True,
         )

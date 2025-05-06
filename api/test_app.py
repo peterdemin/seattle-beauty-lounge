@@ -15,6 +15,7 @@ def settings_fixture() -> Settings:
 @pytest.fixture(name="test_client")
 def client_fixture(test_settings: Settings) -> Iterator[TestClient]:
     assert not test_settings.enable_emails
+    assert not test_settings.twilio_account_sid
     with TestClient(create_app(test_settings)) as client:
         yield client
 
@@ -39,8 +40,9 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
     )
     assert response.status_code == 200, response.content
     result = response.json()
-    if result.get("id"):
-        result["id"] = 1
+    app_id = result.get("id")
+    assert app_id > 0
+    result["id"] = 1
     assert result == {
         "clientEmail": "janedoe@gmail.com",
         "clientName": "Jane Doe",
@@ -51,6 +53,42 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
         "serviceId": "2.02",
         "time": "13:30:00",
         "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
+    }
+    admin_response = test_client.get(f"/admin/appointment/{app_id}")
+    assert admin_response.status_code == 200, admin_response.content
+    result = admin_response.json()
+    assert result == {
+        "appointment": {
+            "clientEmail": "janedoe@gmail.com",
+            "clientName": "Jane Doe",
+            "clientPhone": "555-123-4567",
+            "date": "2025-01-10",
+            "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
+            "id": app_id,
+            "remindedAt": 0,
+            "service": {
+                "duration": "30 min",
+                "duration_min": 30,
+                "full_html": "",
+                "image": {
+                    "public": "public/images/2.02-1.webp",
+                    "source": "source/2-eyes/images/2.02-1.png",
+                    "url": "images/2.02-1.webp",
+                },
+                "price": "$65",
+                "price_cents": 6500,
+                "short_text": "Achieve perfectly shaped and "
+                "tinted brows that frame your face\n"
+                "beautifully with our expert brow "
+                "shaping and tinting service.",
+                "source_path": "source/2-eyes/02-brows.rst",
+                "title": "Brow shaping and tinting",
+                "url": "",
+            },
+            "serviceId": "2.02",
+            "time": "13:30:00",
+        },
+        "more": [],
     }
 
 
