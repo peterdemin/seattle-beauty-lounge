@@ -1,8 +1,10 @@
 import dataclasses
 import subprocess
+from typing import cast
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import RedirectResponse
+from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlmodel import Session, select
 
 from api.db import Database
@@ -19,7 +21,7 @@ class BackofficeAPI:
 
     def register(self, app_: FastAPI, prefix: str = "", enable_build: bool = False) -> None:
         app_.add_api_route(
-            prefix + "/appointment/{id}",
+            prefix + "/appointment/{app_id}",
             self.appointment,
             methods=["GET"],
         )
@@ -68,12 +70,15 @@ class BackofficeAPI:
                     )
                     & (Appointment.id != appointment.id)
                 )
-                .order_by(Appointment.date, Appointment.time)
+                .order_by(
+                    cast(QueryableAttribute, Appointment.date).asc(),
+                    cast(QueryableAttribute, Appointment.time).asc(),
+                ),
             ).all()
         )
 
     def _serialize_appointment(self, appointment: Appointment) -> dict:
-        result = {c.name: getattr(appointment, c.name) for c in Appointment.__table__.columns}
+        result = appointment.model_dump()
         try:
             service_info = self._service_catalog.get_service(appointment.serviceId)
         except KeyError:
