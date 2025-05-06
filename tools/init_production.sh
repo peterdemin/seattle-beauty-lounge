@@ -2,28 +2,11 @@
 
 set -e -o pipefail
 
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | tee /etc/apt/sources.list.d/tailscale.list
-
-apt-get update
-apt-get upgrade -y
-apt-get install -y \
-    ca-certificates \
-    curl \
-    nginx \
-    rsync \
-    python3 \
-    python3.12-venv \
-    python-is-python3 \
-    postgresql \
-    postgresql-contrib \
-    tailscale
-
 if [ ! -e /usr/bin/certbot ]; then
     snap install --classic certbot
     ln -s /snap/bin/certbot /usr/bin/certbot
 fi
-certbot --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com -d a.seattle-beauty-lounge.com --preferred-challenges dns
+certbot --non-interactive --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com -d www.seattle-beauty-lounge.com
 
 # Variables for database and user
 DB_NAME="api"
@@ -47,6 +30,8 @@ if [ "$USER_EXISTS" != "1" ]; then
 else
   echo "User $DB_USER already exists."
 fi
+mv alembic.minimal.ini ~api/alembic.ini
+chown api:api ~api/alembic.ini
 
 # Grant privileges to the user on the database
 echo "Granting privileges on $DB_NAME to $DB_USER..."
