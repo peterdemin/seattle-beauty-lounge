@@ -46,7 +46,8 @@ class Builder:
         if not os.path.exists(self.BUILD_ASSETS_DIR):
             os.makedirs(self.BUILD_ASSETS_DIR)
         snippets = self.load_snippets()
-        media: dict[str, str] = {snippet.full_index: snippet.html for snippet in snippets}
+        media: dict[str, Snippet] = {snippet.full_index: snippet for snippet in snippets}
+        print(list(self.iter_hours(media)))
         # Build Javascript for BookingWizard.jsx:
         script_name, style = self._build_javascript(media)
         services = ServiceParser().parse_all()
@@ -61,7 +62,7 @@ class Builder:
             services=services,
             script_name=script_name,
             style=style,
-            hours=list(self.iter_hours()),
+            hours=list(self.iter_hours(media)),
             cancellation_policy=self.load_cancellation_policy(),
             media=media,
         )
@@ -83,7 +84,7 @@ class Builder:
         shutil.copy("admin/dist/admin.html", f"{PUBLIC_DIR}/admin.html")
         shutil.copy(f"{self.ADMIN_DIR}/admin.css", f"{self.PUBLIC_ASSETS_DIR}/")
 
-    def _build_javascript(self, media: dict[str, str]) -> tuple[str, str]:
+    def _build_javascript(self, media: dict[str, Snippet]) -> tuple[str, str]:
         for path in glob.glob(f"{SOURCE_DIR}/scripts/*Template.js"):
             self._embed_js_template(path, media)
 
@@ -133,10 +134,11 @@ class Builder:
         with open(f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8") as fobj:
             return self.markdown.render(fobj.read())
 
-    def iter_hours(self) -> Iterable[dict]:
-        with open(f"{self.PAGES_DIR}/51-hours.md", "rt", encoding="utf-8") as fobj:
-            for line in fobj:
-                day, hours = line.strip().split(None, 1)
+    def iter_hours(self, media: dict[str, Snippet]) -> Iterable[dict]:
+        for line in media["7.05"].plain_text.splitlines()[1:]:
+            parts = line.strip().split(None, 1)
+            if len(parts) == 2:
+                day, hours = parts
                 yield {"day": day, "hours": hours}
 
     def load_snippets(self) -> list[Snippet]:
