@@ -32,7 +32,7 @@ class FreshDayBreaker(DayBreakerInterface):
 
 
 class SlotsLoader:
-    HOURS_FILE = "source/pages/51-hours.md"
+    HOURS_FILE = "source/7-media/05-hours-of-operation.rst"
     HOURS_PICKLE = os.path.join(HERE, "hours.pkl")
     LOOKAHEAD = 7 * 6  # 6 weeks
 
@@ -93,16 +93,23 @@ class SlotsLoader:
 
     @classmethod
     def _iter_hours(cls, hours_file: str = "") -> Iterable[dict]:
-        with open(f"{hours_file or cls.HOURS_FILE}", "rt", encoding="utf-8") as fobj:
+        with open(hours_file or cls.HOURS_FILE, "rt", encoding="utf-8") as fobj:
             for line in fobj:
-                if "-" not in line:
+                if not line.strip():
                     continue
-                day_str, hours = line.strip().split(None, 1)
-                day = parse(day_str).weekday()
-                start_str, end_str = [x.strip() for x in hours.split("-", 1)]
-                start = parse(start_str).time()
-                end = parse(end_str).time()
-                yield {"weekday": day, "start": start, "end": end}
+                parts = line.strip().split(None, 1)
+                if len(parts) != 2:
+                    continue
+                day_str, hours = parts
+                hours_parts = hours.strip().split("-")
+                if len(hours_parts) != 2:
+                    continue
+                start_str, end_str = [x.strip() for x in hours_parts]
+                yield {
+                    "weekday": parse(day_str.strip()).weekday(),
+                    "start": parse(start_str.strip()).time(),
+                    "end": parse(end_str.strip()).time(),
+                }
 
 
 if __name__ == "__main__":
