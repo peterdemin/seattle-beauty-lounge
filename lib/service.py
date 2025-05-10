@@ -18,7 +18,11 @@ class ImageInfo:
 
     @classmethod
     def from_source(cls, path: str) -> "ImageInfo":
-        target_basename = os.path.splitext(os.path.basename(path))[0] + cls.EXTENSION
+        target_basename = (
+            os.path.basename(path)
+            if os.path.basename(path).startswith("0")
+            else os.path.splitext(os.path.basename(path))[0] + cls.EXTENSION
+        )
         return ImageInfo(
             source=path,
             public=os.path.join(PUBLIC_DIR, "images", target_basename),
