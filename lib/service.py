@@ -6,6 +6,7 @@ from dataclasses import dataclass
 HERE = os.path.dirname(__file__)
 CONTENT_PICKLE = os.path.join(HERE, "content.pkl")
 PUBLIC_DIR = "public"
+FAVICON = "favicon.ico"
 
 
 @dataclass
@@ -23,11 +24,13 @@ class ImageInfo:
             if os.path.basename(path).startswith("0")
             else os.path.splitext(os.path.basename(path))[0] + cls.EXTENSION
         )
-        return ImageInfo(
-            source=path,
-            public=os.path.join(PUBLIC_DIR, "images", target_basename),
-            url=posixpath.join("images", target_basename),
-        )
+        if target_basename.endswith(FAVICON):
+            public = os.path.join(PUBLIC_DIR, FAVICON)
+            url = FAVICON
+        else:
+            public = os.path.join(PUBLIC_DIR, "images", target_basename)
+            url = posixpath.join("images", target_basename)
+        return ImageInfo(source=path, public=public, url=url)
 
     @classmethod
     def dummy(cls) -> "ImageInfo":
