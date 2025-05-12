@@ -47,7 +47,6 @@ class Builder:
             os.makedirs(self.BUILD_ASSETS_DIR)
         snippets = self.load_snippets()
         media: dict[str, Snippet] = {snippet.full_index: snippet for snippet in snippets}
-        print(list(self.iter_hours(media)))
         # Build Javascript for BookingWizard.jsx:
         script_name, style = self._build_javascript(media)
         services = ServiceParser().parse_all()
