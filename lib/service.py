@@ -1,3 +1,4 @@
+import datetime
 import os
 import pickle
 import posixpath
@@ -90,6 +91,10 @@ class ServiceInfo:
     @property
     def category_name(self) -> str:
         return self.CATEGORY_NAMES[self.category_index]
+
+    @property
+    def delta(self) -> datetime.timedelta:
+        return datetime.timedelta(minutes=self.duration_min)
 
 
 @dataclass

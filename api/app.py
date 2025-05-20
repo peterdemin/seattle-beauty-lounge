@@ -72,6 +72,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     calendar_task = CalendarTask(
         calendar_service=calendar_service,
         service_catalog=service_catalog,
+        admin_url=settings.admin_url,
     )
     if settings.twilio_account_sid:
         ReminderTask(
@@ -92,6 +93,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         ),
         service_catalog=service_catalog,
         email_template=content.get_snippet("7.04"),
+        admin_url=settings.admin_url,
     )
 
     app = FastAPI(lifespan=lifespan)

@@ -1,21 +1,71 @@
 import datetime
-from typing import Iterable
+import textwrap
+from typing import Iterable, TypedDict
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from api.constants import TIMEZONE
+from api.constants import TIMEZONE, TIMEZONE_STR
+from api.models import Appointment
+from lib.service import ServiceInfo
+
+
+class CalendarTime(TypedDict):
+    dateTime: str
+    timeZone: str
+
+
+class CalendarEventBody(TypedDict):
+    summary: str
+    description: str
+    start: CalendarTime
+    end: CalendarTime
 
 
 class CalendarServiceDummy:
+    _DESCRIPTION_TEMPLATE = textwrap.dedent(
+        """
+        Appointment: {admin_url}
+        Name: {appointment.clientName}
+        Phone: {appointment.clientPhone}
+        Email: {appointment.clientEmail}
+        """
+    ).strip()
 
     def fetch(self, limit_days: int) -> list[dict]:
         del limit_days
         return []
 
-    def insert(self, body: dict) -> dict:
+    def insert(self, body: CalendarEventBody) -> dict:
         del body
         return {}
+
+    @classmethod
+    def compose_event(
+        cls,
+        appointment: Appointment,
+        service_info: ServiceInfo,
+        admin_url: str,
+    ) -> CalendarEventBody:
+        description = cls._DESCRIPTION_TEMPLATE.format(appointment=appointment, admin_url=admin_url)
+        start_dt = TIMEZONE.localize(
+            datetime.datetime.combine(
+                appointment.date,
+                appointment.time,
+            )
+        )
+        return {
+            "summary": service_info.title,
+            "description": description,
+            "start": {
+                "dateTime": start_dt.isoformat(),
+                "timeZone": TIMEZONE_STR,
+            },
+            "end": {
+                "dateTime": (start_dt + service_info.delta).isoformat(),
+                "timeZone": TIMEZONE_STR,
+            },
+        }
 
 
 class CalendarService(CalendarServiceDummy):
@@ -40,7 +90,7 @@ class CalendarService(CalendarServiceDummy):
             .get("items", [])
         )
 
-    def insert(self, body: dict) -> dict:
+    def insert(self, body: CalendarEventBody) -> dict:
         return (
             self._service.events()  # pylint: disable=no-member
             .insert(calendarId=self.CALENDAR_ID, body=body)

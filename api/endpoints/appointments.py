@@ -49,7 +49,7 @@ class AppointmentsAPI:
             session.commit()
             session.refresh(appointment)
         background_tasks.add_task(
-            self._email_task.send_confirmation_email,
+            self._email_task.on_appointment,
             appointment,
         )
         background_tasks.add_task(

@@ -30,8 +30,9 @@ def test_send_confirmation_email_example():
             ]
         ),
         email_template=content.get_snippet("7.04"),
+        admin_url="http://admin",
     )
-    email_task.send_confirmation_email(
+    email_task.on_appointment(
         Appointment(
             id=1,
             serviceId="1.23",
@@ -42,7 +43,8 @@ def test_send_confirmation_email_example():
             clientEmail="clientEmail",
         )
     )
-    smtp_client.send.assert_called_once()
+    assert smtp_client.send.call_count == 2
+    # Confirmation to client:
     msg = smtp_client.send.call_args_list[0][0][0]
     email_body = msg.as_string()
     email_body = re.sub(r"==(=+[^=]+)==", "==boundary==", email_body)
@@ -53,6 +55,11 @@ def test_send_confirmation_email_example():
     ics_body = re.sub(r"(?m)^(DTSTAMP|UID):(\S+)$", r"\1:<scrambled>", ics_body)
     ics_body = ics_body.replace("UTC-08:00", "UTC-07:00")
     assert ics_body == ICS_BODY
+
+    # Notification to owner:
+    msg = smtp_client.send.call_args_list[1][0][0]
+    email_body = msg.as_string()
+    assert email_body == NOTIFICATION_BODY
 
 
 @pytest.mark.skipif(
@@ -79,8 +86,9 @@ def test_send_confirmation_email_integration():
             ]
         ),
         email_template=content.get_snippet("7.04"),
+        admin_url="http://admin",
     )
-    email_task.send_confirmation_email(
+    email_task.on_appointment(
         Appointment(
             id=1,
             serviceId="1.23",
@@ -194,3 +202,24 @@ END:VEVENT
 END:VCALENDAR
 """.rstrip()
 )
+
+NOTIFICATION_BODY = """
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: New appointment in Seattle Beauty Lounge
+From: kate@seattle-beauty-lounge.com
+To: kate@seattle-beauty-lounge.com
+
+Seattle Beauty Lounge
+
+Appointment: http://admin?app=1
+
+Service: service
+Date: Friday, April 4
+Time: 01:23 PM
+
+Name: clientName
+Phone: clientPhone
+Email: clientEmail
+""".strip()

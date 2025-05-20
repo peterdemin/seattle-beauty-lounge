@@ -29,4 +29,4 @@ class ServiceCatalog:
         return self._services[full_index].title
 
     def get_duration(self, full_index: str) -> datetime.timedelta:
-        return datetime.timedelta(minutes=self._services[full_index].duration_min)
+        return self._services[full_index].delta
