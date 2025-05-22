@@ -30,7 +30,7 @@ force_grid_wrap = 0
 use_parentheses = true
 line_length = 100
 
-[tool.requirements.all]
+[tool.requirements]
 allow_unsafe = true
 
 [tool.flake8]
