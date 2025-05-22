@@ -180,7 +180,7 @@ Content-Disposition: attachment; filename="invite.ics"
 ICS_BODY = (
     r"""
 BEGIN:VCALENDAR
-PRODID:-//github.com/allenporter/ical//9.1.0//EN
+PRODID:-//github.com/allenporter/ical//9.2.4//EN
 VERSION:2.0
 BEGIN:VEVENT
 DTSTAMP:<scrambled>
