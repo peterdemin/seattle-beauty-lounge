@@ -75,7 +75,7 @@ class Builder:
             check=True,
         )
         self._tailwind(
-            "admin/tailwind.config.admin.js",
+            ["./admin/admin.html", "./admin/*.jsx"],
             "admin/dist/assets/admin.css",
         )
         for path in glob.glob(f"{self.ADMIN_DIR}/*.js"):
@@ -125,7 +125,7 @@ class Builder:
     def gen_tailwind_css(self) -> str:
         """Must be called after index.html is rendered"""
         return self._tailwind(
-            "tailwind.config.js",
+            ["./.build/index.html", "./source/scripts/*.jsx"],
             f"{self.BUILD_ASSETS_DIR}/style.css",
         )
 
