@@ -148,8 +148,13 @@ class BuildJavascriptBundleStep(AggregationStep):
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
 
-    def __init__(self, embed_javascript_step: EmbedJavascriptStep, mode: str) -> None:
-        super().__init__([embed_javascript_step])
+    def __init__(
+        self,
+        embed_javascript_step: EmbedJavascriptStep,
+        create_build_assets_dir_step: CreateOutputDirectoryStep,
+        mode: str,
+    ) -> None:
+        super().__init__([embed_javascript_step, create_build_assets_dir_step])
         self._mode = mode
         self.script_name = ""
         self.style = ""
@@ -179,7 +184,7 @@ class RenderDetailsStep(AggregationStep):
         *,
         parse_services_step: ParseServicesStep,
         build_javascript_bundle_step: BuildJavascriptBundleStep,
-        create_build_dir_step: CreateOutputDirectoryStep,
+        create_build_assets_dir_step: CreateOutputDirectoryStep,
         create_public_dir_step: CreateOutputDirectoryStep,
         mode: str,
         renderer: Renderer,
@@ -191,7 +196,7 @@ class RenderDetailsStep(AggregationStep):
             [
                 parse_services_step,
                 build_javascript_bundle_step,
-                create_build_dir_step,
+                create_build_assets_dir_step,
                 create_public_dir_step,
             ]
         )
@@ -234,7 +239,7 @@ class RenderIndexStep(AggregationStep):
         *,
         parse_services_step: ParseServicesStep,
         build_javascript_bundle_step: BuildJavascriptBundleStep,
-        create_build_dir_step: CreateOutputDirectoryStep,
+        create_build_assets_dir_step: CreateOutputDirectoryStep,
         create_public_dir_step: CreateOutputDirectoryStep,
         mode: str,
         renderer: Renderer,
@@ -247,7 +252,7 @@ class RenderIndexStep(AggregationStep):
             [
                 parse_services_step,
                 build_javascript_bundle_step,
-                create_build_dir_step,
+                create_build_assets_dir_step,
                 create_public_dir_step,
             ]
         )
@@ -304,15 +309,15 @@ class BuildAdminStep(AggregationStep):
 
     def __init__(
         self,
-        create_public_dir_step: CreateOutputDirectoryStep,
+        create_public_assets_dir_step: CreateOutputDirectoryStep,
         mode: str,
         tailwind: Tailwind,
     ) -> None:
-        super().__init__([create_public_dir_step])
+        super().__init__([create_public_assets_dir_step])
         self._mode = mode
         self._tailwind = tailwind
 
-    def execute(self) -> None:
+    def _after_dependencies(self) -> None:
         subprocess.run(
             ["npm", "run", f"admin{self._mode}"],
             capture_output=True,
@@ -329,11 +334,11 @@ class BuildAdminStep(AggregationStep):
 
 
 class PublishImagesStep(AggregationStep):
-    def __init__(self, create_public_dir_step: CreateOutputDirectoryStep) -> None:
-        super().__init__([create_public_dir_step])
+    def __init__(self, create_public_assets_dir_step: CreateOutputDirectoryStep) -> None:
+        super().__init__([create_public_assets_dir_step])
         self.image_publisher = ImagePublisher()
 
-    def execute(self) -> None:
+    def _after_dependencies(self) -> None:
         self.image_publisher.export_images()
 
 
@@ -349,13 +354,15 @@ class BuildAnythingFactory(StepFactory):
         self._load_snippets_step = LoadSnippetsStep(f"{SOURCE_DIR}/7-media/[0-9][0-9]-*.rst")
         self._parse_services_step = ParseServicesStep()
         self._load_media_step = LoadMediaStep(load_snippets_step=self._load_snippets_step)
-        self._create_public_dir_step = CreateOutputDirectoryStep(self.PUBLIC_ASSETS_DIR)
-        self._create_build_dir_step = CreateOutputDirectoryStep(self.BUILD_ASSETS_DIR)
+        self._create_public_dir_step = CreateOutputDirectoryStep(PUBLIC_DIR)
+        self._create_public_assets_dir_step = CreateOutputDirectoryStep(self.PUBLIC_ASSETS_DIR)
+        self._create_build_assets_dir_step = CreateOutputDirectoryStep(self.BUILD_ASSETS_DIR)
         self._build_javascript_bundle_step = BuildJavascriptBundleStep(
             embed_javascript_step=EmbedJavascriptStep(
                 load_media_step=self._load_media_step,
                 target_ptrn=f"{SOURCE_DIR}/scripts/*Template.js",
             ),
+            create_build_assets_dir_step=self._create_build_assets_dir_step,
             mode=self._mode,
         )
 
@@ -374,7 +381,7 @@ class DumpSnippetsFactory(BuildAnythingFactory):
 class BuildAdminFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
         return BuildAdminStep(
-            create_public_dir_step=self._create_public_dir_step,
+            create_public_assets_dir_step=self._create_public_assets_dir_step,
             mode=self._mode,
             tailwind=self._tailwind,
         )
@@ -385,7 +392,7 @@ class BuildAllFactory(BuildAnythingFactory):
         return AggregationStep(
             [
                 BuildAdminStep(
-                    create_public_dir_step=self._create_public_dir_step,
+                    create_public_assets_dir_step=self._create_public_assets_dir_step,
                     mode=self._mode,
                     tailwind=self._tailwind,
                 ),
@@ -393,7 +400,7 @@ class BuildAllFactory(BuildAnythingFactory):
                     parse_services_step=self._parse_services_step,
                     build_javascript_bundle_step=self._build_javascript_bundle_step,
                     create_public_dir_step=self._create_public_dir_step,
-                    create_build_dir_step=self._create_build_dir_step,
+                    create_build_assets_dir_step=self._create_build_assets_dir_step,
                     mode=self._mode,
                     renderer=self._renderer,
                     build_dir=self.BUILD_DIR,
@@ -403,7 +410,7 @@ class BuildAllFactory(BuildAnythingFactory):
                     parse_services_step=self._parse_services_step,
                     build_javascript_bundle_step=self._build_javascript_bundle_step,
                     create_public_dir_step=self._create_public_dir_step,
-                    create_build_dir_step=self._create_build_dir_step,
+                    create_build_assets_dir_step=self._create_build_assets_dir_step,
                     mode=self._mode,
                     renderer=self._renderer,
                     build_dir=self.BUILD_DIR,
@@ -414,7 +421,9 @@ class BuildAllFactory(BuildAnythingFactory):
                     parse_services_step=self._parse_services_step,
                     load_snippets_step=self._load_snippets_step,
                 ),
-                PublishImagesStep(create_public_dir_step=self._create_public_dir_step),
+                PublishImagesStep(
+                    create_public_assets_dir_step=self._create_public_assets_dir_step
+                ),
             ]
         )
 
