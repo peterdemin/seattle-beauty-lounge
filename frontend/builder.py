@@ -1,8 +1,11 @@
+import concurrent.futures
 import glob
 import os
 import re
 import shutil
 import subprocess
+import tempfile
+import time
 from typing import Iterable
 
 from markdown_it import MarkdownIt
@@ -25,8 +28,10 @@ class BuildStep:
     def run_once(self) -> None:
         if self._done:
             return
+        start = time.time()
         self.execute()
-        print(f"Finished {self.__class__.__name__}")
+        duration = int((time.time() - start) * 1000)
+        print(f"Finished {self.__class__.__name__:30} in {duration:-5} ms")
         self._done = True
 
     def execute(self) -> None:
@@ -43,10 +48,19 @@ class AggregationStep(BuildStep):
     def __init__(self, dependencies: list[BuildStep]) -> None:
         self._dependencies = dependencies
 
+    def run_once(self) -> None:
+        if self._done:
+            return
+        self.execute()
+        self._done = True
+
     def execute(self) -> None:
         for step in self._dependencies:
             step.run_once()
+        start = time.time()
         self._after_dependencies()
+        duration = int((time.time() - start) * 1000)
+        print(f"Finished {self.__class__.__name__:30} in {duration:-5} ms")
 
     def _after_dependencies(self) -> None:
         pass
@@ -208,27 +222,30 @@ class RenderDetailsStep(AggregationStep):
         self._tailwind = tailwind
 
     def _after_dependencies(self) -> None:
-        for service in self._parse_services_step.services:
-            self._render(
-                service,
-                script_name=self._build_javascript_bundle_step.script_name,
-                style=self._build_javascript_bundle_step.style,
-            )
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            pool.map(self._render, self._parse_services_step.services)
 
-    def _render(self, service: ServiceInfo, **kwargs) -> None:
+    def _render(self, service: ServiceInfo) -> None:
         if not service.url:
             return
-        kwargs.update({"mode": self._mode, "service": service})
+        kwargs = {
+            "mode": self._mode,
+            "service": service,
+            "script_name": self._build_javascript_bundle_step.script_name,
+            "style": self._build_javascript_bundle_step.style,
+        }
         self._renderer.render_details(f"{self._build_dir}/index.html", **kwargs)
         kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
         self._renderer.render_details(f"{PUBLIC_DIR}/{service.url}", **kwargs)
 
     def gen_tailwind_css(self) -> str:
         """Must be called after index.html is rendered"""
-        return self._tailwind(
-            [f"./{self._build_dir}/index.html", f"./{SOURCE_DIR}/scripts/*.jsx"],
-            f"{self._build_dir}/assets/style.css",
-        )
+        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
+            fobj.close()
+            return self._tailwind(
+                [f"./{self._build_dir}/index.html", f"./{SOURCE_DIR}/scripts/*.jsx"],
+                fobj.name,
+            )
 
 
 class RenderIndexStep(AggregationStep):
@@ -297,10 +314,12 @@ class RenderIndexStep(AggregationStep):
 
     def gen_tailwind_css(self) -> str:
         """Must be called after index.html is rendered"""
-        return self._tailwind(
-            [f"./{self._build_dir}/index.html", f"./{SOURCE_DIR}/scripts/*.jsx"],
-            f"{self._build_dir}/assets/style.css",
-        )
+        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
+            fobj.close()
+            return self._tailwind(
+                [f"./{self._build_dir}/index.html", f"./{SOURCE_DIR}/scripts/*.jsx"],
+                fobj.name,
+            )
 
 
 class BuildAdminStep(AggregationStep):
@@ -339,7 +358,8 @@ class PublishImagesStep(AggregationStep):
         self.image_publisher = ImagePublisher()
 
     def _after_dependencies(self) -> None:
-        self.image_publisher.export_images()
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            pool.map(self.image_publisher.export_image, self.image_publisher.find_images())
 
 
 class BuildAnythingFactory(StepFactory):
@@ -383,6 +403,20 @@ class BuildAdminFactory(BuildAnythingFactory):
         return BuildAdminStep(
             create_public_assets_dir_step=self._create_public_assets_dir_step,
             mode=self._mode,
+            tailwind=self._tailwind,
+        )
+
+
+class DetailsFactory(BuildAnythingFactory):
+    def create_step(self) -> BuildStep:
+        return RenderDetailsStep(
+            parse_services_step=self._parse_services_step,
+            build_javascript_bundle_step=self._build_javascript_bundle_step,
+            create_public_dir_step=self._create_public_dir_step,
+            create_build_assets_dir_step=self._create_build_assets_dir_step,
+            mode=self._mode,
+            renderer=self._renderer,
+            build_dir=self.BUILD_DIR,
             tailwind=self._tailwind,
         )
 
@@ -433,6 +467,7 @@ class Builder:
         "all": BuildAllFactory,
         "admin": BuildAdminFactory,
         "snippets": DumpSnippetsFactory,
+        "details": DetailsFactory,
     }
 
     def __init__(self, mode: str) -> None:
