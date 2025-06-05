@@ -82,6 +82,3 @@ class ServiceParser:
         if not doctree.children:
             return ""
         return self._page.render_from_doctree(doctree)
-
-    def _make_image(self, path: str) -> ImageInfo:
-        return ImageInfo.from_source(path)

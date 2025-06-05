@@ -1,37 +1,47 @@
-import sys
+import argparse
 import time
 
 import jinja2.exceptions
 
 from .builder import Builder
-from .renderer import Renderer
-from .tailwind import Tailwind
 
 
-def build(mode: str = "development", watch: bool = False):
-    builder = Builder(mode, renderer=Renderer(), tailwind=Tailwind())
+def build(builder: Builder, watch: bool, action: str):
     if watch:
         while True:
             try:
-                builder.build_public()
+                builder.build(action)
             except jinja2.exceptions.TemplateNotFound:
                 print("F", end="")
                 continue
             print(".", end="")
             time.sleep(0.1)
     else:
-        builder.build_public()
+        builder.build(action)
 
 
 def main() -> None:
-    if len(sys.argv) > 1:
-        mode = sys.argv[1]
-    else:
-        raise RuntimeError("Pass mode [development|staging|production] as the first parameter")
-    watch = False
-    if len(sys.argv) > 2 and sys.argv[2] == "watch":
-        watch = True
-    build(mode, watch)
+    parser = argparse.ArgumentParser("frontend", description="Build static website")
+    parser.add_argument(
+        "mode",
+        choices=["development", "staging", "production"],
+        help="Target environment",
+    )
+    parser.add_argument(
+        "-w",
+        "--watch",
+        action="store_true",
+        help="Run in dev mode, continuously updating (on change)",
+    )
+    parser.add_argument(
+        "-a",
+        "--action",
+        choices=Builder.get_choices(),
+        default="all",
+        help="Build target",
+    )
+    args = parser.parse_args()
+    build(Builder(args.mode), args.watch, args.action)
 
 
 if __name__ == "__main__":
