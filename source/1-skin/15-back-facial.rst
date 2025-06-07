@@ -1,4 +1,4 @@
-.. modified_time: 2025-06-07T03:38:25.405Z
+.. modified_time: 2025-06-07T03:58:34.075Z
 
 .. _h.u3umhyz4wqc9:
 
@@ -30,7 +30,7 @@ needs of the back. Because this area tends to be thicker and oilier, it
 requires a deeper level of care to effectively target congestion and
 irritation.
 
-Our Back Facial begins with **gentle steaming**, which opens the pores
+Our Back Facial begins with **gentle steaming,** which opens the pores
 and softens impurities for easier cleansing and extraction. A **deep
 cleansing** follows to remove sweat, oil, and dirt buildup. Then, an
 **exfoliation process** sloughs off dead skin cells to encourage renewal

@@ -1,4 +1,4 @@
-.. modified_time: 2025-06-07T03:24:26.661Z
+.. modified_time: 2025-06-07T04:00:57.655Z
 
 .. _h.kujdv9tk3qh8:
 
@@ -11,11 +11,10 @@ Time: 70 min
 
 Price: $200
 
-**If it is your first facial with us, please choose this option.**
-
-The European Facial, a beloved treatment for generations, blends
-traditional European techniques with modern skincare to rejuvenate and
-brighten the complexion for both women and men.
+**If it is your first facial with us, please choose this option.**\ The
+European Facial, a beloved treatment for generations, blends traditional
+European techniques with modern skincare to rejuvenate and brighten the
+complexion for both women and men.
 
 --------------
 

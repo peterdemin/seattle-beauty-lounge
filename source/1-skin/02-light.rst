@@ -1,4 +1,4 @@
-.. modified_time: 2025-05-27T01:32:47.403Z
+.. modified_time: 2025-06-07T03:52:04.361Z
 
 .. _h.t9qk5ht96xqv:
 
@@ -18,7 +18,7 @@ proven, FDA-cleared treatment of acne, aging skin, aches, and pain.
 
 --------------
 
-The wrinkles, acne, aches, and pains treatment modes contain a
+The treatment modes for wrinkles, acne, aches, and pains contain a
 combination of blue (465nm), red (640nm), and near-infrared (880nm)
 wavelengths.
 
@@ -32,7 +32,10 @@ modes utilize a proprietary algorithm combining blue (465nm), red
 specific wavelength and fluence combinations supported by clinical
 studies to achieve desired results.
 
-**Red Light Therapy: Key Benefits**
+.. _h.gcx2a9wa6hfe:
+
+Red Light Therapy: Key Benefits
+-------------------------------
 
 -  **Healing & Repair:** Accelerates wound healing and tissue
    regeneration.
@@ -48,7 +51,10 @@ studies to achieve desired results.
 
 |image3|
 
-**LED Light Therapy: A Dual Approach to Fighting Acne**
+.. _h.erjmige3usa:
+
+LED Light Therapy: A Dual Approach to Fighting Acne
+---------------------------------------------------
 
 LED light therapy offers a non-invasive and effective solution for mild
 to moderate acne by targeting the root causes and visible symptoms. This
@@ -64,11 +70,14 @@ reduce breakouts.
 works to decrease inflammation associated with acne. Additionally, it
 enhances overall skin tone and texture.
 
-This dual-action treatment provides a natural approach to combating acne
-by addressing both the bacterial infection and the resulting
-inflammation, leading to clearer and healthier-looking skin.
+This dual-action treatment offers a natural approach to combating acne
+by targeting both the bacterial infection and the resulting
+inflammation, resulting in clearer and healthier-looking skin.
 
-**Revitalize with LED Light Therapy**
+.. _h.dcp88mjsv72a:
+
+Revitalize with LED Light Therapy
+---------------------------------
 
 Aging leads to a slower metabolism, manifesting as wrinkles and joint
 pain. LED light therapy addresses these signs by using red and
