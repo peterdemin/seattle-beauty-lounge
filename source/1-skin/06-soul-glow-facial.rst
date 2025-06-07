@@ -1,4 +1,4 @@
-.. modified_time: 2025-03-30T19:40:28.525Z
+.. modified_time: 2025-05-27T02:30:17.304Z
 
 .. _h.30j0zll:
 
@@ -26,7 +26,8 @@ circadian rhythm.
 
 **Perfect For:** Aging, dry, dull, lackluster, or acne-prone skin.
 
-**Benefits:** Hydrating, rebalancing, detoxifying, lifting, exfoliating.
+**Benefits:** Hydrating, rebalancing, detoxifying, lifting, and
+exfoliating.
 
 **Contraindications/Considerations:** Pumpkin allergies, egg allergies,
 Accutane within the last year, compromised barrier, claustrophobia,
