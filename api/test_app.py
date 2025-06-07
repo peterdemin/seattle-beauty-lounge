@@ -69,21 +69,11 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
             "service": {
                 "duration": "30 min",
                 "duration_min": 30,
-                "full_html": "",
-                "image": {
-                    "public": "public/images/2.02-1.webp",
-                    "source": "source/2-eyes/images/2.02-1.png",
-                    "url": "images/2.02-1.webp",
-                },
                 "price": "$65",
                 "price_cents": 6500,
-                "short_text": "Achieve perfectly shaped and "
-                "tinted brows that frame your face\n"
-                "beautifully with our expert brow "
-                "shaping and tinting service.",
                 "source_path": "source/2-eyes/02-brows.rst",
-                "title": "Brow shaping and tinting",
-                "url": "",
+                "title": "Eyebrow shaping and tinting",
+                "url": "02-brows.html",
             },
             "serviceId": "2.02",
             "time": "13:30:00",

@@ -85,4 +85,6 @@ class BackofficeAPI:
             pass
         else:
             result["service"] = dataclasses.asdict(service_info)
+            for key in ("short_text", "full_html", "image"):
+                result["service"].pop(key, "")
         return result
