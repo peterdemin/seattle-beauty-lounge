@@ -1,4 +1,4 @@
-.. modified_time: 2025-06-07T03:19:37.652Z
+.. modified_time: 2025-06-07T03:30:02.139Z
 
 .. _h.wgbnopdca5q6:
 
@@ -10,6 +10,16 @@ Time: 45 minutes
 Price: $99
 
 |image1|
+
+For those with limited time, our express facial offers a swift solution
+to revitalize your skin. This treatment includes a cleanse, exfoliation,
+and hydration, providing immediate benefits such as a brighter,
+smoother, and more radiant complexion. It effectively addresses
+dullness, dryness, and congestion without the lengthy commitment of a
+full facial. Please note that this express treatment does not include a
+facial massage.
+
+--------------
 
 For those with limited time, our express facial offers a swift solution
 to revitalize your skin. This treatment includes a cleanse, exfoliation,

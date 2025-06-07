@@ -1,4 +1,4 @@
-.. modified_time: 2025-05-27T05:09:42.943Z
+.. modified_time: 2025-06-07T03:34:22.449Z
 
 .. _h.5aacqai9aw7w:
 
@@ -14,7 +14,7 @@ Price: $65
 
 |image1|
 
- 
+--------------
 
 Every decade rewrites the rules of eyebrow beauty. The 90s loved
 pencil-thin, overplucked arches. The early 2000s brought rounded,
@@ -22,10 +22,10 @@ minimal brows. And now? Thick, defined brows are the standard of modern
 beauty. But what happens if your natural brows are light, sparse, or
 just don't frame your face the way you'd like?
 
-.. _h.u6mvx0jhh1xd:
+.. _h.rpaqw9txl6gx:
 
-**What Is Brow Tinting?**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+What Is Brow Tinting?
+---------------------
 
 Eyebrow tinting is a semi-permanent treatment that uses specially
 formulated dye to enhance the color, shape, and fullness of your brows.
@@ -39,7 +39,10 @@ anyone wanting a low-maintenance beauty routine.
 
 |image2|
 
+.. _h.e1omhujkzuk6:
+
 Our customized process includes:
+--------------------------------
 
 -  Personalized color selection
 -  Precise shaping and clean-up
@@ -48,8 +51,8 @@ Our customized process includes:
 
 .. _h.832oevqtyquu:
 
-**Benefits of Eyebrow Tinting**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Benefits of Eyebrow Tinting
+---------------------------
 
 -  **Fuller, more defined brows** without the need for pencils or
    pomades
@@ -58,12 +61,12 @@ Our customized process includes:
 -  **Waterproof and sweat-proof**—perfect for summer, the gym, and
    travel
 -  Great for clients with **blonde, gray, or thinning brows**
--  **Zero downtime**—results are instant and the process is painless
+-  **Zero downtime**—results are instant, and the process is painless
 
 .. _h.kv2hvtgo3jzv:
 
-**Aftercare Tips**
-~~~~~~~~~~~~~~~~~~
+Aftercare Tips
+--------------
 
 To get the most out of your tint:
 
