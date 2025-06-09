@@ -1,11 +1,11 @@
-.. modified_time: 2025-06-07T03:30:02.139Z
+.. modified_time: 2025-06-09T02:47:18.759Z
 
 .. _h.wgbnopdca5q6:
 
 Express Glow
 ============
 
-Time: 45 minutes
+Time: 45 min
 
 Price: $99
 
