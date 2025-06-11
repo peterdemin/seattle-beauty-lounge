@@ -262,16 +262,16 @@ class RenderDetailsStep(AggregationStep):
             "script_name": self._build_javascript_bundle_step.script_name,
             "style": self._build_javascript_bundle_step.style,
         }
-        self._renderer.render_details(f"{self._build_dir}/index.html", **kwargs)
-        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
+        self._renderer.render_details(f"{self._build_dir}/{service.url}", **kwargs)
+        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css(service)
         self._renderer.render_details(f"{PUBLIC_DIR}/{service.url}", **kwargs)
 
-    def gen_tailwind_css(self) -> str:
+    def gen_tailwind_css(self, service: ServiceInfo) -> str:
         """Must be called after index.html is rendered"""
         with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
             fobj.close()
             return self._tailwind(
-                [f"./{self._build_dir}/index.html", f"./{SOURCE_DIR}/scripts/*.jsx"],
+                [f"./{self._build_dir}/{service.url}", f"./{SOURCE_DIR}/scripts/*.jsx"],
                 fobj.name,
             )
 
@@ -397,6 +397,7 @@ class PublishImagesStep(AggregationStep):
 
 
 class BuildAnythingFactory(StepFactory):
+    # pylint: disable=too-many-instance-attributes
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
@@ -427,11 +428,6 @@ class BuildAnythingFactory(StepFactory):
             mode=self._mode,
             cache=js_cache,
         )
-
-    def create_step(self) -> BuildStep:
-        raise NotImplementedError()
-
-    def _create_build_admin_step(self) -> BuildAdminStep:
         admin_cache = FileCache(
             cache_file=f"{self.BUILD_DIR}/admin_cache.json",
             patterns=[
@@ -441,12 +437,25 @@ class BuildAnythingFactory(StepFactory):
                 "./admin/*.css",
             ],
         )
-        return BuildAdminStep(
+        self._build_admin_step = BuildAdminStep(
             create_public_assets_dir_step=self._create_public_assets_dir_step,
             mode=self._mode,
             tailwind=self._tailwind,
             cache=admin_cache,
         )
+        self._render_details_step = RenderDetailsStep(
+            parse_services_step=self._parse_services_step,
+            build_javascript_bundle_step=self._build_javascript_bundle_step,
+            create_public_dir_step=self._create_public_dir_step,
+            create_build_assets_dir_step=self._create_build_assets_dir_step,
+            mode=self._mode,
+            renderer=self._renderer,
+            build_dir=self.BUILD_DIR,
+            tailwind=self._tailwind,
+        )
+
+    def create_step(self) -> BuildStep:
+        raise NotImplementedError()
 
 
 class DumpSnippetsFactory(BuildAnythingFactory):
@@ -459,38 +468,20 @@ class DumpSnippetsFactory(BuildAnythingFactory):
 
 class BuildAdminFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
-        return self._create_build_admin_step()
+        return self._build_admin_step
 
 
 class DetailsFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
-        return RenderDetailsStep(
-            parse_services_step=self._parse_services_step,
-            build_javascript_bundle_step=self._build_javascript_bundle_step,
-            create_public_dir_step=self._create_public_dir_step,
-            create_build_assets_dir_step=self._create_build_assets_dir_step,
-            mode=self._mode,
-            renderer=self._renderer,
-            build_dir=self.BUILD_DIR,
-            tailwind=self._tailwind,
-        )
+        return self._render_details_step
 
 
 class BuildAllFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
         return AggregationStep(
             [
-                self._create_build_admin_step(),
-                RenderDetailsStep(
-                    parse_services_step=self._parse_services_step,
-                    build_javascript_bundle_step=self._build_javascript_bundle_step,
-                    create_public_dir_step=self._create_public_dir_step,
-                    create_build_assets_dir_step=self._create_build_assets_dir_step,
-                    mode=self._mode,
-                    renderer=self._renderer,
-                    build_dir=self.BUILD_DIR,
-                    tailwind=self._tailwind,
-                ),
+                self._build_admin_step,
+                self._render_details_step,
                 RenderIndexStep(
                     parse_services_step=self._parse_services_step,
                     build_javascript_bundle_step=self._build_javascript_bundle_step,
