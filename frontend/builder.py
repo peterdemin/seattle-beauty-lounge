@@ -184,7 +184,6 @@ class BuildJavascriptBundleStep(AggregationStep):
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
-    CACHE_FILE = f"{BUILD_DIR}/js_bundle_cache.json"
 
     def __init__(
         self,
@@ -360,21 +359,27 @@ class BuildAdminStep(AggregationStep):
         create_public_assets_dir_step: CreateOutputDirectoryStep,
         mode: str,
         tailwind: Tailwind,
+        cache: FileCache,
     ) -> None:
         super().__init__([create_public_assets_dir_step])
         self._mode = mode
         self._tailwind = tailwind
+        self._cache = cache
 
     def _after_dependencies(self) -> None:
-        subprocess.run(
-            ["npm", "run", f"admin{self._mode}"],
-            capture_output=True,
-            check=True,
-        )
-        self._tailwind(
-            ["./admin/admin.html", "./admin/*.jsx"],
-            "admin/dist/assets/admin.css",
-        )
+        if self._cache.has_changes():
+            subprocess.run(
+                ["npm", "run", f"admin{self._mode}"],
+                capture_output=True,
+                check=True,
+            )
+            self._tailwind(
+                ["./admin/admin.html", "./admin/*.jsx"],
+                "admin/dist/assets/admin.css",
+            )
+            self._cache.update_cache()
+
+        # Always copy the built files, even if we skipped the build
         for path in glob.glob(f"{self.ADMIN_DIR}/*.js"):
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
         shutil.copy("admin/dist/admin.html", f"{PUBLIC_DIR}/admin.html")
@@ -407,8 +412,11 @@ class BuildAnythingFactory(StepFactory):
         self._create_public_assets_dir_step = CreateOutputDirectoryStep(self.PUBLIC_ASSETS_DIR)
         self._create_build_assets_dir_step = CreateOutputDirectoryStep(self.BUILD_ASSETS_DIR)
         js_cache = FileCache(
-            cache_file=BuildJavascriptBundleStep.CACHE_FILE,
-            patterns=[f"{SOURCE_DIR}/scripts/**/*.js", f"{SOURCE_DIR}/scripts/**/*.jsx"],
+            cache_file=f"{self.BUILD_DIR}/js_bundle_cache.json",
+            patterns=[
+                f"{SOURCE_DIR}/scripts/**/*.js",
+                f"{SOURCE_DIR}/scripts/**/*.jsx",
+            ],
         )
         self._build_javascript_bundle_step = BuildJavascriptBundleStep(
             embed_javascript_step=EmbedJavascriptStep(
@@ -423,6 +431,23 @@ class BuildAnythingFactory(StepFactory):
     def create_step(self) -> BuildStep:
         raise NotImplementedError()
 
+    def _create_build_admin_step(self) -> BuildAdminStep:
+        admin_cache = FileCache(
+            cache_file=f"{self.BUILD_DIR}/admin_cache.json",
+            patterns=[
+                "./admin/admin.html",
+                "./admin/*.jsx",
+                "./admin/*.js",
+                "./admin/*.css",
+            ],
+        )
+        return BuildAdminStep(
+            create_public_assets_dir_step=self._create_public_assets_dir_step,
+            mode=self._mode,
+            tailwind=self._tailwind,
+            cache=admin_cache,
+        )
+
 
 class DumpSnippetsFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
@@ -434,11 +459,7 @@ class DumpSnippetsFactory(BuildAnythingFactory):
 
 class BuildAdminFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
-        return BuildAdminStep(
-            create_public_assets_dir_step=self._create_public_assets_dir_step,
-            mode=self._mode,
-            tailwind=self._tailwind,
-        )
+        return self._create_build_admin_step()
 
 
 class DetailsFactory(BuildAnythingFactory):
@@ -459,11 +480,7 @@ class BuildAllFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
         return AggregationStep(
             [
-                BuildAdminStep(
-                    create_public_assets_dir_step=self._create_public_assets_dir_step,
-                    mode=self._mode,
-                    tailwind=self._tailwind,
-                ),
+                self._create_build_admin_step(),
                 RenderDetailsStep(
                     parse_services_step=self._parse_services_step,
                     build_javascript_bundle_step=self._build_javascript_bundle_step,
