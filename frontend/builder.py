@@ -36,6 +36,7 @@ from lib.jd import JohnnyDecimal
 from lib.service import PUBLIC_DIR, ServiceInfo, Snippet, dump_content
 
 from .constants import SOURCE_DIR
+from .file_cache import FileCache
 from .image_publisher import ImagePublisher
 from .javascript_embedder import JavascriptEmbedder
 from .page import Page
@@ -183,24 +184,30 @@ class BuildJavascriptBundleStep(AggregationStep):
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
+    CACHE_FILE = f"{BUILD_DIR}/js_bundle_cache.json"
 
     def __init__(
         self,
         embed_javascript_step: EmbedJavascriptStep,
         create_build_assets_dir_step: CreateOutputDirectoryStep,
         mode: str,
+        cache: FileCache,
     ) -> None:
         super().__init__([embed_javascript_step, create_build_assets_dir_step])
         self._mode = mode
         self.script_name = ""
         self.style = ""
+        self._cache = cache
 
     def _after_dependencies(self) -> None:
-        subprocess.run(
-            ["npm", "run", self._mode],
-            capture_output=True,
-            check=True,
-        )
+        if self._cache.has_changes():
+            subprocess.run(
+                ["npm", "run", self._mode],
+                capture_output=True,
+                check=True,
+            )
+            self._cache.update_cache()
+        # Always copy the built files, even if we skipped the build
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.js"):
             shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
@@ -399,6 +406,10 @@ class BuildAnythingFactory(StepFactory):
         self._create_public_dir_step = CreateOutputDirectoryStep(PUBLIC_DIR)
         self._create_public_assets_dir_step = CreateOutputDirectoryStep(self.PUBLIC_ASSETS_DIR)
         self._create_build_assets_dir_step = CreateOutputDirectoryStep(self.BUILD_ASSETS_DIR)
+        js_cache = FileCache(
+            cache_file=BuildJavascriptBundleStep.CACHE_FILE,
+            patterns=[f"{SOURCE_DIR}/scripts/**/*.js", f"{SOURCE_DIR}/scripts/**/*.jsx"],
+        )
         self._build_javascript_bundle_step = BuildJavascriptBundleStep(
             embed_javascript_step=EmbedJavascriptStep(
                 load_media_step=self._load_media_step,
@@ -406,6 +417,7 @@ class BuildAnythingFactory(StepFactory):
             ),
             create_build_assets_dir_step=self._create_build_assets_dir_step,
             mode=self._mode,
+            cache=js_cache,
         )
 
     def create_step(self) -> BuildStep:
