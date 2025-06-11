@@ -1,3 +1,25 @@
+"""Build system for the web application.
+
+This module implements a flexible build system that orchestrates various build steps
+for generating the web application. It uses a step-based architecture where each step
+represents a specific build task (e.g., rendering pages, processing services, managing assets).
+
+The build system is organized around the following key components:
+- BuildStep: Base class for individual build steps
+- StepFactory: Factory interface for creating build steps
+- AggregationStep: Step that depends on other steps and runs them in sequence
+- Builder: Main class that manages different build configurations
+
+The system supports multiple build targets:
+- all: Builds the complete application
+- admin: Builds only the admin interface
+- snippets: Processes and dumps content snippets
+- details: Renders service detail pages
+
+Each build step can be run independently or as part of a larger build process,
+with proper dependency management and execution tracking.
+"""
+
 import concurrent.futures
 import glob
 import os
