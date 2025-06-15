@@ -9,21 +9,21 @@ beautifulsoup4==4.13.4
     # via -r requirements/frontend.in
 cachetools==5.5.2
     # via google-auth
-certifi==2025.4.26
+certifi==2025.6.15
     # via requests
 charset-normalizer==3.4.2
     # via requests
-click==8.1.8
+click==8.2.1
     # via gdocsync
 docutils==0.21.2
     # via -r requirements/frontend.in
-gdocsync==0.1.4
+gdocsync==0.2.0
     # via -r requirements/frontend.in
-google-api-core==2.24.2
+google-api-core==2.25.1
     # via google-api-python-client
-google-api-python-client==2.169.0
+google-api-python-client==2.172.0
     # via gdocsync
-google-auth==2.40.2
+google-auth==2.40.3
     # via
     #   google-api-core
     #   google-api-python-client
@@ -59,7 +59,7 @@ pillow==11.2.1
     # via -r requirements/frontend.in
 proto-plus==1.26.1
     # via google-api-core
-protobuf==6.31.0
+protobuf==6.31.1
     # via
     #   google-api-core
     #   googleapis-common-protos
@@ -72,7 +72,7 @@ pyasn1-modules==0.4.2
     # via google-auth
 pyparsing==3.2.3
     # via httplib2
-requests==2.32.3
+requests==2.32.4
     # via
     #   google-api-core
     #   requests-oauthlib
@@ -82,9 +82,9 @@ rsa==4.9.1
     # via google-auth
 soupsieve==2.7
     # via beautifulsoup4
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via beautifulsoup4
-uritemplate==4.1.1
+uritemplate==4.2.0
     # via google-api-python-client
 urllib3==2.4.0
     # via requests
