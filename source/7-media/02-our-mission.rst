@@ -1,4 +1,4 @@
-.. modified_time: 2025-05-21T04:08:20.114Z
+.. modified_time: 2025-06-15T21:23:31.584Z
 
 .. _h.i2hp1byl89k5:
 
@@ -16,7 +16,7 @@ journey.
 Our Vision
 ==========
 
-Our vision is to become a trusted destination for elevated beauty—where
+Our vision is to become a trusted destination for elevated beauty, where
 science meets creativity, and where self-care is seen as essential, not
 indulgent. We aim to set the standard for natural, soft-healed permanent
 makeup, expert skincare, and lash and brow artistry through continuous
@@ -29,8 +29,8 @@ Our Values
 
 -  Experience & Expertise: With over 18 years in the industry, we bring
    knowledge, skill, and confidence to every treatment.
--  Natural Results: We believe in enhancing your features—not masking
-   them—with soft, subtle, and timeless techniques.
+-  Natural Results: We believe in enhancing your features, not masking
+   them, with soft, subtle, and timeless techniques.
 -  European Technique & Precision: Our approach blends European training
    with modern innovations to deliver quality you can feel and see.
 -  Client Connection: Every treatment is customized, every visit is
@@ -38,4 +38,4 @@ Our Values
 -  Continual Growth: We stay on the cutting edge of esthetics, skincare
    science, and permanent makeup artistry through ongoing education.
 -  Holistic Beauty: We treat skin and beauty as part of whole-person
-   wellness—balancing inner and outer radiance.
+   wellness, balancing inner and outer radiance.
