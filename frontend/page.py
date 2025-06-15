@@ -58,7 +58,7 @@ class Page:
                 lines.append("\n".join(c.astext().strip() for c in elem.children))
             elif elem.tagname in ("list_item"):
                 lines.append("- " + elem.astext().strip())
-            elif elem.tagname in ("target", "comment"):
+            elif elem.tagname in ("target", "comment", "substitution_definition"):
                 pass
             else:
                 raise ValueError(f"Unsupported tag {elem.tagname}: {elem}")
