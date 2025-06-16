@@ -13,9 +13,11 @@ class Renderer:
         )
 
     def render_index(self, path: str, **params) -> None:
-        with open(path, "wt", encoding="utf-8") as fobj:
-            fobj.write(self.env.get_template("01-index.html").render(**params))
+        self.render_template(path, "01-index.html", **params)
 
     def render_details(self, path: str, **kwargs) -> None:
+        self.render_template(path, "06-details.html", **kwargs)
+
+    def render_template(self, path: str, template: str, **kwargs) -> None:
         with open(path, "wt", encoding="utf-8") as fobj:
-            fobj.write(self.env.get_template("06-details.html").render(**kwargs))
+            fobj.write(self.env.get_template(template).render(**kwargs))

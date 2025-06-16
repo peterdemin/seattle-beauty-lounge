@@ -1,9 +1,19 @@
 from collections import deque
+from dataclasses import dataclass
 from typing import Callable, cast
 
 import docutils.core
 from bs4 import BeautifulSoup
-from docutils.nodes import Element
+from docutils.nodes import Element, image
+
+from lib.service import ImageInfo
+
+
+@dataclass
+class Parts:
+    title: str = ""
+    text: str = ""
+    image: str = ""
 
 
 class Page:
@@ -23,6 +33,23 @@ class Page:
     def render_html(self, rst: str) -> str:
         doctree = docutils.core.publish_doctree(rst)
         return self.render_from_doctree(doctree)
+
+    def parse(self, rst: str) -> Parts:
+        doctree = cast(Element, docutils.core.publish_doctree(rst))
+        result = Parts()
+        for elem in doctree.children:
+            elem = cast(Element, elem)
+            if elem.tagname == "title":
+                result.title = elem.astext()
+                continue
+            if elem.tagname == "paragraph":
+                if elem.children and len(elem.children) == 1:
+                    child = elem.children[0]
+                    if isinstance(child, image):
+                        result.image = ImageInfo.from_source(child["uri"]).url
+                        continue
+                result.text = " ".join(c.astext().strip() for c in elem.children)
+        return result
 
     def render_from_doctree(self, doctree: Element) -> str:
         if not doctree.children:

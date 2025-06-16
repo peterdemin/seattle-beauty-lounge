@@ -39,7 +39,7 @@ from .constants import SOURCE_DIR
 from .file_cache import FileCache
 from .image_publisher import ImagePublisher
 from .javascript_embedder import JavascriptEmbedder
-from .page import Page
+from .page import Page, Parts
 from .renderer import Renderer
 from .service_parser import ServiceParser
 from .tailwind import Tailwind
@@ -105,6 +105,7 @@ class LoadSnippetsStep(BuildStep):
     def __init__(self, media_ptrn: str) -> None:
         self._media_ptrn = media_ptrn
         self.snippets: list[Snippet] = []
+        self.parts: dict[str, Parts] = {}
 
     def execute(self) -> None:
         page = Page()
@@ -118,6 +119,7 @@ class LoadSnippetsStep(BuildStep):
                     plain_text=page.render_plain_text(rst),
                 )
             )
+            self.parts[JohnnyDecimal(path).full_index] = page.parse(rst)
 
     def _highlight_phone_numbers(self, rst: str) -> str:
         return self._RE_PHONE_NUMBER.sub(self._phone_markup, rst)
@@ -291,6 +293,7 @@ class RenderIndexStep(AggregationStep):
         build_dir: str,
         tailwind: Tailwind,
         load_media_step: LoadMediaStep,
+        load_snippets_step: LoadSnippetsStep,
     ) -> None:
         # pylint: disable=too-many-arguments
         super().__init__(
@@ -299,6 +302,7 @@ class RenderIndexStep(AggregationStep):
                 build_javascript_bundle_step,
                 create_build_assets_dir_step,
                 create_public_dir_step,
+                load_snippets_step,
             ]
         )
         self._parse_services_step = parse_services_step
@@ -312,6 +316,7 @@ class RenderIndexStep(AggregationStep):
             "commonmark",
             {"breaks": True, "html": True},
         )
+        self._load_snippets_step = load_snippets_step
 
     def _after_dependencies(self) -> None:
         self._render(
@@ -321,6 +326,7 @@ class RenderIndexStep(AggregationStep):
             hours=list(self._iter_hours()),
             cancellation_policy=self._load_cancellation_policy(),
             media=self._load_media_step.media,
+            parts=self._load_snippets_step.parts,
         )
 
     def _render(self, **kwargs) -> None:
@@ -394,6 +400,63 @@ class PublishImagesStep(AggregationStep):
     def _after_dependencies(self) -> None:
         with concurrent.futures.ThreadPoolExecutor() as pool:
             pool.map(self.image_publisher.export_image, self.image_publisher.find_images())
+
+
+class RenderComponentsStep(AggregationStep):
+    def __init__(
+        self,
+        *,
+        parse_services_step: ParseServicesStep,
+        create_build_assets_dir_step: CreateOutputDirectoryStep,
+        create_public_dir_step: CreateOutputDirectoryStep,
+        mode: str,
+        renderer: Renderer,
+        build_dir: str,
+        tailwind: Tailwind,
+        load_media_step: LoadMediaStep,
+        load_snippets_step: LoadSnippetsStep,
+    ) -> None:
+        # pylint: disable=too-many-arguments
+        super().__init__(
+            [
+                parse_services_step,
+                create_build_assets_dir_step,
+                create_public_dir_step,
+                load_media_step,
+                load_snippets_step,
+            ]
+        )
+        self._parse_services_step = parse_services_step
+        self._mode = mode
+        self._renderer = renderer
+        self._build_dir = build_dir
+        self._tailwind = tailwind
+        self._load_media_step = load_media_step
+        self._load_snippets_step = load_snippets_step
+
+    def _after_dependencies(self) -> None:
+        kwargs = {
+            "mode": self._mode,
+            "services": self._parse_services_step.services,
+            "media": self._load_media_step.media,
+            "parts": self._load_snippets_step.parts,
+        }
+        self._renderer.render_template(
+            f"{self._build_dir}/components.html", "07-components.html", **kwargs
+        )
+        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
+        self._renderer.render_template(
+            f"{PUBLIC_DIR}/components.html", "07-components.html", **kwargs
+        )
+
+    def gen_tailwind_css(self) -> str:
+        """Must be called after components.html is rendered"""
+        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
+            fobj.close()
+            return self._tailwind(
+                [f"./{self._build_dir}/components.html"],
+                fobj.name,
+            )
 
 
 class BuildAnythingFactory(StepFactory):
@@ -476,6 +539,21 @@ class DetailsFactory(BuildAnythingFactory):
         return self._render_details_step
 
 
+class ComponentsFactory(BuildAnythingFactory):
+    def create_step(self) -> BuildStep:
+        return RenderComponentsStep(
+            parse_services_step=self._parse_services_step,
+            create_public_dir_step=self._create_public_dir_step,
+            create_build_assets_dir_step=self._create_build_assets_dir_step,
+            mode=self._mode,
+            renderer=self._renderer,
+            build_dir=self.BUILD_DIR,
+            tailwind=self._tailwind,
+            load_media_step=self._load_media_step,
+            load_snippets_step=self._load_snippets_step,
+        )
+
+
 class BuildAllFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
         return AggregationStep(
@@ -492,6 +570,7 @@ class BuildAllFactory(BuildAnythingFactory):
                     build_dir=self.BUILD_DIR,
                     tailwind=self._tailwind,
                     load_media_step=self._load_media_step,
+                    load_snippets_step=self._load_snippets_step,
                 ),
                 DumpSnippetsStep(
                     parse_services_step=self._parse_services_step,
@@ -510,6 +589,7 @@ class Builder:
         "admin": BuildAdminFactory,
         "snippets": DumpSnippetsFactory,
         "details": DetailsFactory,
+        "components": ComponentsFactory,
     }
 
     def __init__(self, mode: str) -> None:
