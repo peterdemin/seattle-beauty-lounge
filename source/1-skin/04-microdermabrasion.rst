@@ -1,9 +1,9 @@
-.. modified_time: 2025-05-27T01:34:28.241Z
+.. modified_time: 2025-06-16T20:06:00.685Z
 
 .. _h.x1y4712jyzhk:
 
-Diamond Microdermabrasion/Hydroderm
-===================================
+Diamond Microdermabrasion (Hydroderm)
+=====================================
 
 |image1|
 
