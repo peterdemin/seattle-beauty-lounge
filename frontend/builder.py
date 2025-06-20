@@ -257,6 +257,27 @@ class BaseRenderingStep(AggregationStep):
         self._load_media_step = load_media_step
         self._load_snippets_step = load_snippets_step
 
+    def render_cached_template(
+        self,
+        output_file: str,
+        template_file: str,
+        patterns: list[str],
+        **extra_params,
+    ) -> None:
+        cache = FileCache(
+            cache_file=f"{self._build_dir}/{output_file}.json",
+            patterns=patterns,
+            data=(
+                self._default_context
+                | extra_params
+                | {"template": self._renderer.read_template(template_file)}
+            ),
+        )
+        if os.path.exists(f"{PUBLIC_DIR}/{output_file}") and not cache.has_changes():
+            return
+        self.render_template(output_file, template_file, **extra_params)
+        cache.update_cache()
+
     def render_template(
         self,
         output_file: str,
@@ -266,13 +287,18 @@ class BaseRenderingStep(AggregationStep):
         self._two_step_render(
             output_file=output_file,
             template_file=template_file,
+            **self._default_context,
+            **extra_params,
+        )
+
+    @property
+    def _default_context(self) -> dict:
+        return dict(
             mode=self._mode,
-            services=self._parse_services_step.services,
             script_name=self._build_javascript_bundle_step.script_name,
             style=self._build_javascript_bundle_step.style,
             media=self._load_media_step.media,
             parts=self._load_snippets_step.parts,
-            **extra_params,
         )
 
     @property
@@ -304,14 +330,20 @@ class RenderDetailsStep(AggregationStep):
         self._base_rendering_step = base_rendering_step
 
     def _after_dependencies(self) -> None:
+        # for service in self._base_rendering_step.services:
+        #     self._render(service)
         with concurrent.futures.ThreadPoolExecutor() as pool:
             pool.map(self._render, self._base_rendering_step.services)
 
     def _render(self, service: ServiceInfo) -> None:
         if service.url:
-            self._base_rendering_step.render_template(
+            self._base_rendering_step.render_cached_template(
                 service.url,
                 "06-details.html",
+                patterns=[
+                    f"{SOURCE_DIR}/scripts/**/*.js",
+                    f"{SOURCE_DIR}/scripts/**/*.jsx",
+                ],
                 service=service,
             )
 
@@ -328,9 +360,14 @@ class RenderIndexStep(AggregationStep):
         )
 
     def _after_dependencies(self) -> None:
-        self._base_rendering_step.render_template(
+        self._base_rendering_step.render_cached_template(
             output_file="index.html",
             template_file="01-index.html",
+            patterns=[
+                f"{SOURCE_DIR}/scripts/**/*.js",
+                f"{SOURCE_DIR}/scripts/**/*.jsx",
+            ],
+            services=self._base_rendering_step.services,
             hours=list(self._iter_hours()),
             cancellation_policy=self._load_cancellation_policy(),
         )
@@ -353,7 +390,11 @@ class RenderComponentsStep(AggregationStep):
         self._base_rendering_step = base_rendering_step
 
     def _after_dependencies(self) -> None:
-        self._base_rendering_step.render_template("components.html", "07-components.html")
+        self._base_rendering_step.render_cached_template(
+            "components.html",
+            "07-components.html",
+            patterns=[],
+        )
 
 
 class BuildAdminStep(AggregationStep):

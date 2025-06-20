@@ -10,13 +10,15 @@ import glob
 import hashlib
 import json
 import os
-from typing import Iterable
+from typing import Any, Iterable
 
 
 class FileCache:
     """Cache for tracking file content changes using MD5 hashes."""
 
-    def __init__(self, cache_file: str, patterns: Iterable[str]) -> None:
+    def __init__(
+        self, cache_file: str, patterns: Iterable[str], data: dict[str, Any] | None = None
+    ) -> None:
         """Initialize the file cache.
 
         Args:
@@ -25,6 +27,7 @@ class FileCache:
         """
         self._cache_file = cache_file
         self._patterns = patterns
+        self._data = data or {}
 
     def _get_files(self) -> list[str]:
         """Get all files matching the patterns."""
@@ -35,11 +38,12 @@ class FileCache:
 
     def _get_file_hash(self, file_path: str) -> tuple[str, str]:
         """Calculate MD5 hash of file contents."""
-        hash_md5 = hashlib.md5()
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return file_path, hash_md5.hexdigest()
+        with open(file_path, "rt", encoding="utf-8") as f:
+            return file_path, self._get_hash(f.read())
+
+    def _get_hash(self, content: str) -> str:
+        """Calculate MD5 hash of text."""
+        return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     def _get_file_hashes(self) -> dict[str, str]:
         """Get content hashes for all matching files in parallel."""
@@ -47,6 +51,7 @@ class FileCache:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Map returns results in the same order as input
             results = dict(executor.map(self._get_file_hash, files))
+        results.update({k: self._get_hash(str(v)) for k, v in self._data.items()})
         return results
 
     def _load_cache(self) -> dict[str, str]:
