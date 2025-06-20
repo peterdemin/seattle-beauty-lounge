@@ -222,72 +222,14 @@ class BuildJavascriptBundleStep(AggregationStep):
             break  # Just one bundle
 
 
-class RenderDetailsStep(AggregationStep):
+class BaseRenderingStep(AggregationStep):
     def __init__(
         self,
         *,
         parse_services_step: ParseServicesStep,
-        build_javascript_bundle_step: BuildJavascriptBundleStep,
         create_build_assets_dir_step: CreateOutputDirectoryStep,
         create_public_dir_step: CreateOutputDirectoryStep,
-        mode: str,
-        renderer: Renderer,
-        build_dir: str,
-        tailwind: Tailwind,
-    ) -> None:
-        # pylint: disable=too-many-arguments
-        super().__init__(
-            [
-                parse_services_step,
-                build_javascript_bundle_step,
-                create_build_assets_dir_step,
-                create_public_dir_step,
-            ]
-        )
-        self._parse_services_step = parse_services_step
-        self._build_javascript_bundle_step = build_javascript_bundle_step
-        self._mode = mode
-        self._renderer = renderer
-        self._build_dir = build_dir
-        self._tailwind = tailwind
-
-    def _after_dependencies(self) -> None:
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            pool.map(self._render, self._parse_services_step.services)
-
-    def _render(self, service: ServiceInfo) -> None:
-        if not service.url:
-            return
-        kwargs = {
-            "mode": self._mode,
-            "service": service,
-            "script_name": self._build_javascript_bundle_step.script_name,
-            "style": self._build_javascript_bundle_step.style,
-        }
-        self._renderer.render_details(f"{self._build_dir}/{service.url}", **kwargs)
-        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css(service)
-        self._renderer.render_details(f"{PUBLIC_DIR}/{service.url}", **kwargs)
-
-    def gen_tailwind_css(self, service: ServiceInfo) -> str:
-        """Must be called after index.html is rendered"""
-        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
-            fobj.close()
-            return self._tailwind(
-                [f"./{self._build_dir}/{service.url}", f"./{SOURCE_DIR}/scripts/*.jsx"],
-                fobj.name,
-            )
-
-
-class RenderIndexStep(AggregationStep):
-    PAGES_DIR = f"{SOURCE_DIR}/pages"
-
-    def __init__(
-        self,
-        *,
-        parse_services_step: ParseServicesStep,
         build_javascript_bundle_step: BuildJavascriptBundleStep,
-        create_build_assets_dir_step: CreateOutputDirectoryStep,
-        create_public_dir_step: CreateOutputDirectoryStep,
         mode: str,
         renderer: Renderer,
         build_dir: str,
@@ -299,44 +241,102 @@ class RenderIndexStep(AggregationStep):
         super().__init__(
             [
                 parse_services_step,
-                build_javascript_bundle_step,
                 create_build_assets_dir_step,
                 create_public_dir_step,
+                load_media_step,
                 load_snippets_step,
+                build_javascript_bundle_step,
             ]
         )
-        self._parse_services_step = parse_services_step
         self._build_javascript_bundle_step = build_javascript_bundle_step
+        self._parse_services_step = parse_services_step
         self._mode = mode
         self._renderer = renderer
         self._build_dir = build_dir
         self._tailwind = tailwind
         self._load_media_step = load_media_step
+        self._load_snippets_step = load_snippets_step
+
+    def render_template(
+        self,
+        output_file: str,
+        template_file: str,
+        **extra_params,
+    ) -> None:
+        self._two_step_render(
+            output_file=output_file,
+            template_file=template_file,
+            mode=self._mode,
+            services=self._parse_services_step.services,
+            script_name=self._build_javascript_bundle_step.script_name,
+            style=self._build_javascript_bundle_step.style,
+            media=self._load_media_step.media,
+            parts=self._load_snippets_step.parts,
+            **extra_params,
+        )
+
+    @property
+    def media(self) -> dict[str, Snippet]:
+        return self._load_media_step.media
+
+    @property
+    def services(self) -> list[ServiceInfo]:
+        return self._parse_services_step.services
+
+    def _two_step_render(self, output_file: str, template_file: str, **kwargs) -> None:
+        self._renderer.render_template(f"{self._build_dir}/{output_file}", template_file, **kwargs)
+        kwargs["style"] = kwargs.get("style", "") + self._gen_tailwind_css(output_file)
+        self._renderer.render_template(f"{PUBLIC_DIR}/{output_file}", template_file, **kwargs)
+
+    def _gen_tailwind_css(self, output_file: str) -> str:
+        """Must be called after output_file is rendered"""
+        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
+            fobj.close()
+            return self._tailwind(
+                [f"./{self._build_dir}/{output_file}", f"./{SOURCE_DIR}/scripts/*.jsx"],
+                fobj.name,
+            )
+
+
+class RenderDetailsStep(AggregationStep):
+    def __init__(self, base_rendering_step: BaseRenderingStep) -> None:
+        super().__init__([base_rendering_step])
+        self._base_rendering_step = base_rendering_step
+
+    def _after_dependencies(self) -> None:
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            pool.map(self._render, self._base_rendering_step.services)
+
+    def _render(self, service: ServiceInfo) -> None:
+        if service.url:
+            self._base_rendering_step.render_template(
+                service.url,
+                "06-details.html",
+                service=service,
+            )
+
+
+class RenderIndexStep(AggregationStep):
+    PAGES_DIR = f"{SOURCE_DIR}/pages"
+
+    def __init__(self, base_rendering_step: BaseRenderingStep) -> None:
+        super().__init__([base_rendering_step])
+        self._base_rendering_step = base_rendering_step
         self._markdown = MarkdownIt(
             "commonmark",
             {"breaks": True, "html": True},
         )
-        self._load_snippets_step = load_snippets_step
 
     def _after_dependencies(self) -> None:
-        self._render(
-            services=self._parse_services_step.services,
-            script_name=self._build_javascript_bundle_step.script_name,
-            style=self._build_javascript_bundle_step.style,
+        self._base_rendering_step.render_template(
+            output_file="index.html",
+            template_file="01-index.html",
             hours=list(self._iter_hours()),
             cancellation_policy=self._load_cancellation_policy(),
-            media=self._load_media_step.media,
-            parts=self._load_snippets_step.parts,
         )
 
-    def _render(self, **kwargs) -> None:
-        kwargs.update({"mode": self._mode})
-        self._renderer.render_index(f"{self._build_dir}/index.html", **kwargs)
-        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
-        self._renderer.render_index(f"{PUBLIC_DIR}/index.html", **kwargs)
-
     def _iter_hours(self) -> Iterable[dict]:
-        for line in self._load_media_step.media["7.05"].plain_text.splitlines()[1:]:
+        for line in self._base_rendering_step.media["7.05"].plain_text.splitlines()[1:]:
             parts = line.strip().split(None, 1)
             if len(parts) == 2:
                 day, hours = parts
@@ -346,14 +346,14 @@ class RenderIndexStep(AggregationStep):
         with open(f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8") as fobj:
             return self._markdown.render(fobj.read())
 
-    def gen_tailwind_css(self) -> str:
-        """Must be called after index.html is rendered"""
-        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
-            fobj.close()
-            return self._tailwind(
-                [f"./{self._build_dir}/index.html", f"./{SOURCE_DIR}/scripts/*.jsx"],
-                fobj.name,
-            )
+
+class RenderComponentsStep(AggregationStep):
+    def __init__(self, base_rendering_step: BaseRenderingStep) -> None:
+        super().__init__([base_rendering_step])
+        self._base_rendering_step = base_rendering_step
+
+    def _after_dependencies(self) -> None:
+        self._base_rendering_step.render_template("components.html", "07-components.html")
 
 
 class BuildAdminStep(AggregationStep):
@@ -402,119 +402,60 @@ class PublishImagesStep(AggregationStep):
             pool.map(self.image_publisher.export_image, self.image_publisher.find_images())
 
 
-class RenderComponentsStep(AggregationStep):
-    def __init__(
-        self,
-        *,
-        parse_services_step: ParseServicesStep,
-        create_build_assets_dir_step: CreateOutputDirectoryStep,
-        create_public_dir_step: CreateOutputDirectoryStep,
-        mode: str,
-        renderer: Renderer,
-        build_dir: str,
-        tailwind: Tailwind,
-        load_media_step: LoadMediaStep,
-        load_snippets_step: LoadSnippetsStep,
-    ) -> None:
-        # pylint: disable=too-many-arguments
-        super().__init__(
-            [
-                parse_services_step,
-                create_build_assets_dir_step,
-                create_public_dir_step,
-                load_media_step,
-                load_snippets_step,
-            ]
-        )
-        self._parse_services_step = parse_services_step
-        self._mode = mode
-        self._renderer = renderer
-        self._build_dir = build_dir
-        self._tailwind = tailwind
-        self._load_media_step = load_media_step
-        self._load_snippets_step = load_snippets_step
-
-    def _after_dependencies(self) -> None:
-        kwargs = {
-            "mode": self._mode,
-            "services": self._parse_services_step.services,
-            "media": self._load_media_step.media,
-            "parts": self._load_snippets_step.parts,
-        }
-        self._renderer.render_template(
-            f"{self._build_dir}/components.html", "07-components.html", **kwargs
-        )
-        kwargs["style"] = kwargs.get("style", "") + self.gen_tailwind_css()
-        self._renderer.render_template(
-            f"{PUBLIC_DIR}/components.html", "07-components.html", **kwargs
-        )
-
-    def gen_tailwind_css(self) -> str:
-        """Must be called after components.html is rendered"""
-        with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
-            fobj.close()
-            return self._tailwind(
-                [f"./{self._build_dir}/components.html"],
-                fobj.name,
-            )
-
-
 class BuildAnythingFactory(StepFactory):
-    # pylint: disable=too-many-instance-attributes
     BUILD_DIR = ".build"
     BUILD_ASSETS_DIR = f"{BUILD_DIR}/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
 
     def __init__(self, mode: str) -> None:
-        self._mode = mode
-        self._renderer = Renderer()
-        self._tailwind = Tailwind()
+        renderer = Renderer()
+        tailwind = Tailwind()
         self._load_snippets_step = LoadSnippetsStep(f"{SOURCE_DIR}/7-media/[0-9][0-9]-*.rst")
         self._parse_services_step = ParseServicesStep()
-        self._load_media_step = LoadMediaStep(load_snippets_step=self._load_snippets_step)
-        self._create_public_dir_step = CreateOutputDirectoryStep(PUBLIC_DIR)
+        load_media_step = LoadMediaStep(load_snippets_step=self._load_snippets_step)
+        create_public_dir_step = CreateOutputDirectoryStep(PUBLIC_DIR)
         self._create_public_assets_dir_step = CreateOutputDirectoryStep(self.PUBLIC_ASSETS_DIR)
-        self._create_build_assets_dir_step = CreateOutputDirectoryStep(self.BUILD_ASSETS_DIR)
-        js_cache = FileCache(
-            cache_file=f"{self.BUILD_DIR}/js_bundle_cache.json",
-            patterns=[
-                f"{SOURCE_DIR}/scripts/**/*.js",
-                f"{SOURCE_DIR}/scripts/**/*.jsx",
-            ],
-        )
+        create_build_assets_dir_step = CreateOutputDirectoryStep(self.BUILD_ASSETS_DIR)
         self._build_javascript_bundle_step = BuildJavascriptBundleStep(
             embed_javascript_step=EmbedJavascriptStep(
-                load_media_step=self._load_media_step,
+                load_media_step=load_media_step,
                 target_ptrn=f"{SOURCE_DIR}/scripts/*Template.js",
             ),
-            create_build_assets_dir_step=self._create_build_assets_dir_step,
-            mode=self._mode,
-            cache=js_cache,
-        )
-        admin_cache = FileCache(
-            cache_file=f"{self.BUILD_DIR}/admin_cache.json",
-            patterns=[
-                "./admin/admin.html",
-                "./admin/*.jsx",
-                "./admin/*.js",
-                "./admin/*.css",
-            ],
+            create_build_assets_dir_step=create_build_assets_dir_step,
+            mode=mode,
+            cache=FileCache(
+                cache_file=f"{self.BUILD_DIR}/js_bundle_cache.json",
+                patterns=[
+                    f"{SOURCE_DIR}/scripts/**/*.js",
+                    f"{SOURCE_DIR}/scripts/**/*.jsx",
+                ],
+            ),
         )
         self._build_admin_step = BuildAdminStep(
             create_public_assets_dir_step=self._create_public_assets_dir_step,
-            mode=self._mode,
-            tailwind=self._tailwind,
-            cache=admin_cache,
+            mode=mode,
+            tailwind=tailwind,
+            cache=FileCache(
+                cache_file=f"{self.BUILD_DIR}/admin_cache.json",
+                patterns=[
+                    "./admin/admin.html",
+                    "./admin/*.jsx",
+                    "./admin/*.js",
+                    "./admin/*.css",
+                ],
+            ),
         )
-        self._render_details_step = RenderDetailsStep(
+        self._base_rendering_step = BaseRenderingStep(
             parse_services_step=self._parse_services_step,
             build_javascript_bundle_step=self._build_javascript_bundle_step,
-            create_public_dir_step=self._create_public_dir_step,
-            create_build_assets_dir_step=self._create_build_assets_dir_step,
-            mode=self._mode,
-            renderer=self._renderer,
+            create_public_dir_step=create_public_dir_step,
+            create_build_assets_dir_step=create_build_assets_dir_step,
+            mode=mode,
+            renderer=renderer,
             build_dir=self.BUILD_DIR,
-            tailwind=self._tailwind,
+            tailwind=tailwind,
+            load_media_step=load_media_step,
+            load_snippets_step=self._load_snippets_step,
         )
 
     def create_step(self) -> BuildStep:
@@ -536,22 +477,12 @@ class BuildAdminFactory(BuildAnythingFactory):
 
 class DetailsFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
-        return self._render_details_step
+        return RenderDetailsStep(self._base_rendering_step)
 
 
 class ComponentsFactory(BuildAnythingFactory):
     def create_step(self) -> BuildStep:
-        return RenderComponentsStep(
-            parse_services_step=self._parse_services_step,
-            create_public_dir_step=self._create_public_dir_step,
-            create_build_assets_dir_step=self._create_build_assets_dir_step,
-            mode=self._mode,
-            renderer=self._renderer,
-            build_dir=self.BUILD_DIR,
-            tailwind=self._tailwind,
-            load_media_step=self._load_media_step,
-            load_snippets_step=self._load_snippets_step,
-        )
+        return RenderComponentsStep(self._base_rendering_step)
 
 
 class BuildAllFactory(BuildAnythingFactory):
@@ -559,19 +490,8 @@ class BuildAllFactory(BuildAnythingFactory):
         return AggregationStep(
             [
                 self._build_admin_step,
-                self._render_details_step,
-                RenderIndexStep(
-                    parse_services_step=self._parse_services_step,
-                    build_javascript_bundle_step=self._build_javascript_bundle_step,
-                    create_public_dir_step=self._create_public_dir_step,
-                    create_build_assets_dir_step=self._create_build_assets_dir_step,
-                    mode=self._mode,
-                    renderer=self._renderer,
-                    build_dir=self.BUILD_DIR,
-                    tailwind=self._tailwind,
-                    load_media_step=self._load_media_step,
-                    load_snippets_step=self._load_snippets_step,
-                ),
+                RenderDetailsStep(self._base_rendering_step),
+                RenderIndexStep(self._base_rendering_step),
                 DumpSnippetsStep(
                     parse_services_step=self._parse_services_step,
                     load_snippets_step=self._load_snippets_step,
