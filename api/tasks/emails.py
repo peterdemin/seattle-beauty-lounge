@@ -126,15 +126,17 @@ class EmailTask:
             )
         )
         end = start + self._service_catalog.get_duration(appointment.serviceId)
-        calendar = Calendar()
-        calendar.events.append(
-            Event(
-                summary=self._service_catalog.get_title(appointment.serviceId),
-                description=self._CALENDAR_TEMPLATE.format(appointment=appointment),
-                location=LOCATION,
-                contacts=[PHONE, EMAIL],
-                start=start.isoformat(),
-                end=end.isoformat(),
-            ),
+        return IcsCalendarStream.calendar_to_ics(
+            Calendar(
+                events=[  # pyright: ignore[reportCallIssue]
+                    Event(
+                        summary=self._service_catalog.get_title(appointment.serviceId),
+                        description=self._CALENDAR_TEMPLATE.format(appointment=appointment),
+                        location=LOCATION,
+                        contacts=[PHONE, EMAIL],
+                        start=start.isoformat(),
+                        end=end.isoformat(),
+                    ),
+                ]
+            )
         )
-        return IcsCalendarStream.calendar_to_ics(calendar)
