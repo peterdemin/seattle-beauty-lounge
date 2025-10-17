@@ -16,6 +16,7 @@ rsync -a --delete lib/ /home/api/lib
 chown -R api:api /home/api/lib
 rsync -a --delete api/ /home/api/api
 chown -R api:api /home/api/api
+sudo -u api ln -fs /home/api/api/alembic.ini /home/api/alembic.ini
 
 # Install requirements and etc files
 pushd /home/api/
