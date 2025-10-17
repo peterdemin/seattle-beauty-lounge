@@ -50,7 +50,7 @@ server {
 		try_files $uri $uri/ =404;
 	}
 
-	listen 100.103.200.72:443 ssl; # managed by Certbot
+	listen 100.78.148.27:443 ssl; # managed by Certbot
 	ssl_certificate /etc/letsencrypt/live/a.seattle-beauty-lounge.com/fullchain.pem; # managed by Certbot
 	ssl_certificate_key /etc/letsencrypt/live/a.seattle-beauty-lounge.com/privkey.pem; # managed by Certbot
 	include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
@@ -78,6 +78,6 @@ server {
 	} # managed by Certbot
 
 	server_name a.seattle-beauty-lounge.com;
-	listen 100.103.200.72:80;
+	listen 100.78.148.27:80;
 	return 404; # managed by Certbot
 }
