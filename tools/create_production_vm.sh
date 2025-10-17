@@ -16,7 +16,7 @@ AAAAB3NzaC1yc2EAAAADAQABAAABgQDYxOnUHnt2KZ8kdjYjO/xWflaFKxXXJLv6V8/TiXgow8L\+QdF
     --provisioning-model=STANDARD \
     --service-account=698831896740-compute@developer.gserviceaccount.com \
     --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/trace.append \
-    --create-disk=auto-delete=yes,boot=yes,device-name=production,image=projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20241219,mode=rw,size=10,type=pd-ssd \
+    --create-disk=auto-delete=yes,boot=yes,device-name=production,image=projects/debian-cloud/global/images/debian-13-trixie-v20250925,mode=rw,size=10,type=pd-ssd \
     --no-shielded-secure-boot \
     --shielded-vtpm \
     --shielded-integrity-monitoring \

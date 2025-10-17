@@ -2,12 +2,6 @@
 
 set -e -o pipefail
 
-if [ ! -e /usr/bin/certbot ]; then
-    snap install --classic certbot
-    ln -s /snap/bin/certbot /usr/bin/certbot
-fi
-certbot --non-interactive --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com -d www.seattle-beauty-lounge.com
-
 # Variables for database and user
 DB_NAME="api"
 DB_USER="api"
@@ -30,8 +24,6 @@ if [ "$USER_EXISTS" != "1" ]; then
 else
   echo "User $DB_USER already exists."
 fi
-mv alembic.minimal.ini ~api/alembic.ini
-chown api:api ~api/alembic.ini
 
 # Grant privileges to the user on the database
 echo "Granting privileges on $DB_NAME to $DB_USER..."
@@ -39,4 +31,7 @@ echo "Granting privileges on $DB_NAME to $DB_USER..."
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
 sudo -u postgres psql -d $DB_NAME -c "GRANT ALL ON SCHEMA public to $DB_USER;"
 
-sudo tailscale up
+tailscale up
+
+certbot --non-interactive --agree-tos --nginx -m peter@seattle-beauty-lounge.com -d seattle-beauty-lounge.com -d www.seattle-beauty-lounge.com
+systemctl restart nginx.service
