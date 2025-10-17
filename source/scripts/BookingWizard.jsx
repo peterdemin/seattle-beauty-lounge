@@ -39,7 +39,7 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 	useEffect(() => {
 		document.getElementById("book-back").onclick = () => {
 			if (currentStep === 1) {
-				close();
+				closeModal();
 			} else {
 				setCurrentStep(currentStep - 1);
 			}
@@ -60,7 +60,10 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 				document.getElementById("book-modal").classList.remove("hidden");
 			});
 		}
-		document.getElementById("book-close").addEventListener("click", close);
+		document.getElementById("book-close").addEventListener("click", closeModal);
+		restoreSavedValue("clientName", setClientName);
+		restoreSavedValue("clientPhone", setClientPhone);
+		restoreSavedValue("clientEmail", setClientEmail);
 	}, []);
 
 	async function handleSubmitAppointment(payment) {
@@ -122,9 +125,9 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 					clientPhone={clientPhone}
 					clientEmail={clientEmail}
 					onNextStep={(name, phone, email) => {
-						setClientName(name);
-						setClientPhone(phone);
-						setClientEmail(email);
+						saveValue("clientName", setClientName, name);
+						saveValue("clientPhone", setClientPhone, phone);
+						saveValue("clientEmail", setClientEmail, email);
 						setCurrentStep(5);
 					}}
 				/>
@@ -436,8 +439,20 @@ function ReviewAndConfirmStep({
 	);
 }
 
-async function close() {
+async function closeModal() {
 	document.getElementById("book-modal").classList.add("hidden");
+}
+
+async function restoreSavedValue(key, setter) {
+	const value = localStorage.getItem(key);
+	if (value !== null) {
+		setter(value);
+	}
+}
+
+async function saveValue(key, setter, value) {
+	localStorage.setItem(key, value);
+	setter(value);
 }
 
 if (import.meta.env.VITE_SENTRY_DSN) {

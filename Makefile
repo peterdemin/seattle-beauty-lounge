@@ -34,7 +34,7 @@ watch:
 
 .PHONY: dev
 dev: fe
-	fastapi dev api/main.py
+	python -m fastapi dev api/main.py
 
 .PHONY: slots
 slots:
@@ -65,12 +65,18 @@ fmt:
 	isort api frontend lib
 	black api frontend lib
 
-.PHONY: lint
-lint:
+.PHONY: lint-python
+lint-python:
 	flake8 api frontend lib
 	pylint api frontend lib
 	pyright api frontend lib
+
+.PHONY: lint-js
+lint-js:
 	npx biome check --fix --unsafe source/scripts/*.jsx
+
+.PHONY: lint
+lint: lint-python lint-js
 
 .PHONY: gitconfig
 gitconfig:
