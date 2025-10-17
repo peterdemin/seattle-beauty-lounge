@@ -1,6 +1,3 @@
-# You can set these variables from the command line, and also
-# from the environment for the first two.
-
 HTML_FILES := $(wildcard public/*.html)
 JS_FILES := $(wildcard public/assets/*.js)
 CSS_FILES := $(wildcard public/assets/*.css)

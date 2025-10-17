@@ -364,6 +364,7 @@ class RenderIndexStep(AggregationStep):
             output_file="index.html",
             template_file="01-index.html",
             patterns=[
+                f"{SOURCE_DIR}/templates/*.html",
                 f"{SOURCE_DIR}/scripts/**/*.js",
                 f"{SOURCE_DIR}/scripts/**/*.jsx",
             ],

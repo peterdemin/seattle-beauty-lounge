@@ -37,6 +37,16 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 	}, [availability, duration]);
 
 	useEffect(() => {
+		document.getElementById("book-back").onclick = () => {
+			if (currentStep === 1) {
+				close();
+			} else {
+				setCurrentStep(currentStep - 1);
+			}
+		};
+	}, [currentStep]);
+
+	useEffect(() => {
 		for (const element of document.getElementsByClassName("book-btn")) {
 			element.addEventListener("click", () => {
 				setSelectedServiceId(element.dataset.serviceId);
@@ -50,9 +60,7 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 				document.getElementById("book-modal").classList.remove("hidden");
 			});
 		}
-		document.getElementById("book-close").addEventListener("click", () => {
-			document.getElementById("book-modal").classList.add("hidden");
-		});
+		document.getElementById("book-close").addEventListener("click", close);
 	}, []);
 
 	async function handleSubmitAppointment(payment) {
@@ -117,18 +125,18 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 						setClientName(name);
 						setClientPhone(phone);
 						setClientEmail(email);
-						setCurrentStep(6);
+						setCurrentStep(5);
 					}}
 				/>
 			)}
 			<SquarePayment
-				active={currentStep === 6}
+				active={currentStep === 5}
 				apiUrl={apiUrl}
 				applicationId={squareApplicationId}
 				locationId={squareLocationId}
 				onPayment={handleSubmitAppointment}
 			/>
-			{currentStep === 7 && (
+			{currentStep === 6 && (
 				<ReviewAndConfirmStep
 					serviceTitle={selectedServiceTitle}
 					date={selectedDate}
@@ -426,6 +434,10 @@ function ReviewAndConfirmStep({
 			</div>
 		</div>
 	);
+}
+
+async function close() {
+	document.getElementById("book-modal").classList.add("hidden");
 }
 
 if (import.meta.env.VITE_SENTRY_DSN) {
