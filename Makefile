@@ -104,6 +104,13 @@ sync:
 	pip-sync requirements/dev.txt
 	pip install -e .
 
+.PHONY: analytics
+analytics:
+	./tools/pull.sh
+	gunzip -kf logs/seattle-beauty-lounge.com/*.gz
+	ls logs/seattle-beauty-lounge.com/access.log* | grep -v \.gz | xargs goaccess -c -o analytics.html --log-format=COMBINED
+	open analytics.html
+
 .PHONY: ubuntu-install
 ubuntu-install:
 	sudo tools/ubuntu_install.sh
