@@ -186,3 +186,4 @@ api/test.db
 
 # Project-specific
 /backups/
+/logs/
