@@ -1,7 +1,9 @@
 import datetime
+import uuid
 from typing import Annotated, Any, Optional
 
 from pydantic import PlainValidator
+from sqlalchemy.sql import func
 from sqlmodel import Field, SQLModel
 
 from api.square_client import Payment
@@ -26,6 +28,12 @@ Time = Annotated[datetime.time, PlainValidator(parse_time)]
 
 class Appointment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    pubid: Optional[uuid.UUID] = Field(
+        default_factory=uuid.uuid4,
+        index=True,
+        unique=True,
+        sa_column_kwargs=dict(server_default=func.gen_random_uuid()),
+    )
     serviceId: str
     date: datetime.date
     time: datetime.time

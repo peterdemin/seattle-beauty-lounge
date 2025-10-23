@@ -42,14 +42,16 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
     result = response.json()
     app_id = result.get("id")
     assert app_id > 0
-    result["id"] = 1
+    app_id = result["id"]
+    pub_id = result["pubid"]
     assert result == {
         "clientEmail": "janedoe@gmail.com",
         "clientName": "Jane Doe",
         "clientPhone": "555-123-4567",
         "date": "2025-01-10",
         "remindedAt": 0,
-        "id": 1,
+        "id": app_id,
+        "pubid": pub_id,
         "serviceId": "2.02",
         "time": "13:30:00",
         "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
@@ -65,6 +67,7 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
             "date": "2025-01-10",
             "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
             "id": app_id,
+            "pubid": pub_id,
             "remindedAt": 0,
             "service": {
                 "duration": "30 min",

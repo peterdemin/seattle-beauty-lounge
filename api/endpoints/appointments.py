@@ -1,5 +1,6 @@
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import JSONResponse
+from sqlmodel import select
 
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
@@ -58,6 +59,19 @@ class AppointmentsAPI:
         )
         return appointment
 
+    def view_appointment(self, pubid: str) -> dict[str, dict]:
+        with self._db.session() as session:
+            appointment = session.exec(
+                select(Appointment).where(
+                    Appointment.pubid == pubid,
+                )
+            ).first()
+            if not appointment:
+                return {}
+            return {
+                "appointment": appointment.model_dump(exclude={"id"}),
+            }
+
     def get_availability(self):
         return self._slots_loader.gen_ranges()
 
@@ -66,6 +80,12 @@ class AppointmentsAPI:
             prefix + "/appointments",
             self.create_appointment,
             methods=["POST"],
+            response_model=None,
+        )
+        app.add_api_route(
+            prefix + "/appointments/{pubid}",
+            self.view_appointment,
+            methods=["GET"],
             response_model=None,
         )
         app.add_api_route(
