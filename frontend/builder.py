@@ -196,7 +196,7 @@ class BuildJavascriptBundleStep(AggregationStep):
     ) -> None:
         super().__init__([embed_javascript_step, create_build_assets_dir_step])
         self._mode = mode
-        self.script_name = ""
+        self.script_names = []
         self.style = ""
         self._cache = cache
 
@@ -212,8 +212,10 @@ class BuildJavascriptBundleStep(AggregationStep):
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.js"):
             shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
-            self.script_name = os.path.basename(path)
-            break  # Just one bundle
+            self.script_names.append(os.path.basename(path))
+        for path in glob.glob(f"{self.SCRIPTS_DIR}/*.js.map"):
+            shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
+            shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
         for path in glob.glob(f"{self.SCRIPTS_DIR}/*.css"):
             shutil.copy(path, f"{self.BUILD_ASSETS_DIR}/")
             shutil.copy(path, f"{self.PUBLIC_ASSETS_DIR}/")
@@ -295,7 +297,7 @@ class BaseRenderingStep(AggregationStep):
     def _default_context(self) -> dict:
         return dict(
             mode=self._mode,
-            script_name=self._build_javascript_bundle_step.script_name,
+            script_names=self._build_javascript_bundle_step.script_names,
             style=self._build_javascript_bundle_step.style,
             media=self._load_media_step.media,
             parts=self._load_snippets_step.parts,
@@ -398,6 +400,27 @@ class RenderComponentsStep(AggregationStep):
         )
 
 
+class RenderAppointmentPageStep(RenderIndexStep):
+    PAGES_DIR = f"{SOURCE_DIR}/pages"
+
+    def __init__(self, base_rendering_step: BaseRenderingStep) -> None:
+        super().__init__(base_rendering_step)
+        self._base_rendering_step = base_rendering_step
+
+    def _after_dependencies(self) -> None:
+        self._base_rendering_step.render_cached_template(
+            output_file="appointment.html",
+            template_file="09-appointment.html",
+            patterns=[
+                f"{SOURCE_DIR}/templates/*.html",
+                f"{SOURCE_DIR}/scripts/**/*.js",
+                f"{SOURCE_DIR}/scripts/**/*.jsx",
+            ],
+            services=self._base_rendering_step.services,
+            cancellation_policy=self._load_cancellation_policy(),
+        )
+
+
 class BuildAdminStep(AggregationStep):
     ADMIN_DIR = "admin/dist/assets"
     PUBLIC_ASSETS_DIR = f"{PUBLIC_DIR}/assets"
@@ -473,6 +496,21 @@ class BuildAnythingFactory(StepFactory):
                 ],
             ),
         )
+        self._build_appointment_javascript_bundle_step = BuildJavascriptBundleStep(
+            embed_javascript_step=EmbedJavascriptStep(
+                load_media_step=load_media_step,
+                target_ptrn=f"{SOURCE_DIR}/scripts/*Template.js",
+            ),
+            create_build_assets_dir_step=create_build_assets_dir_step,
+            mode=f"appointment{mode}",
+            cache=FileCache(
+                cache_file=f"{self.BUILD_DIR}/appointment_js_bundle_cache.json",
+                patterns=[
+                    f"{SOURCE_DIR}/scripts/**/*.js",
+                    f"{SOURCE_DIR}/scripts/**/*.jsx",
+                ],
+            ),
+        )
         self._build_admin_step = BuildAdminStep(
             create_public_assets_dir_step=self._create_public_assets_dir_step,
             mode=mode,
@@ -534,6 +572,7 @@ class BuildAllFactory(BuildAnythingFactory):
                 self._build_admin_step,
                 RenderDetailsStep(self._base_rendering_step),
                 RenderIndexStep(self._base_rendering_step),
+                RenderAppointmentPageStep(self._base_rendering_step),
                 DumpSnippetsStep(
                     parse_services_step=self._parse_services_step,
                     load_snippets_step=self._load_snippets_step,

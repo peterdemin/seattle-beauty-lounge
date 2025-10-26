@@ -86,11 +86,9 @@
     {% if script %}
       <script>{{ script|safe }}</script>
     {% endif %}
-    {% for script_name in script_names %}
-      {% if "index-" in script_name %}
-        <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
-      {% endif %}
-    {% endfor %}
+    {% if script_name %}
+      <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
+    {% endif %}
     {% if mode == "production" %}
       <script crossorigin src="https://web.squarecdn.com/v1/square.js" async></script>
     {% else %}

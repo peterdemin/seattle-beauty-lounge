@@ -7,6 +7,9 @@
 		"development": "vite build --mode development",
 		"staging": "vite build --mode staging",
 		"production": "vite build --mode production",
+		"appointmentdevelopment": "vite build --config vite.config.appointment.js --mode development",
+		"appointmentstaging": "vite build --config vite.config.appointment.js --mode staging",
+		"appointmentproduction": "vite build --config vite.config.appointment.js --mode production",
 		"admindevelopment": "vite build --config vite.config.admin.js --mode development",
 		"adminstaging": "vite build --config vite.config.admin.js --mode staging",
 		"adminproduction": "vite build --config vite.config.admin.js --mode production"
