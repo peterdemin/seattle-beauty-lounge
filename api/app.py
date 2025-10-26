@@ -112,6 +112,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             day_breaker=FreshDayBreaker(kv),
         ),
         square_client=square_client,
+        service_catalog=service_catalog,
     ).register(app, prefix=settings.location_prefix)
     if settings.enable_admin:
         BackofficeAPI(

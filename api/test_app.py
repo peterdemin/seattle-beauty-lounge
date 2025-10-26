@@ -56,6 +56,39 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
         "time": "13:30:00",
         "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
     }
+    appointment_response = test_client.get(f"/appointment/{pub_id}")
+    assert appointment_response.status_code == 200, appointment_response.content
+    result = appointment_response.json()
+    result["appointment"]["service"]["full_html"] = "<html/>"
+    assert result == {
+        "appointment": {
+            "date": "2025-01-10",
+            "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
+            "pubid": pub_id,
+            "remindedAt": 0,
+            "service": {
+                "duration": "30 min",
+                "duration_min": 30,
+                "price": "$65",
+                "price_cents": 6500,
+                "full_html": "<html/>",
+                "image": {
+                    "public": "public/images/2.02-1.webp",
+                    "source": "source/2-eyes/images/2.02-1.jpg",
+                    "url": "images/2.02-1.webp",
+                },
+                "short_text": (
+                    "Achieve perfectly shaped and tinted brows that frame your face\n"
+                    "beautifully with our expert brow shaping and tinting service."
+                ),
+                "source_path": "source/2-eyes/02-brows.rst",
+                "title": "Eyebrow shaping and tinting",
+                "url": "02-brows.html",
+            },
+            "serviceId": "2.02",
+            "time": "13:30:00",
+        },
+    }
     admin_response = test_client.get(f"/admin/appointment/{app_id}")
     assert admin_response.status_code == 200, admin_response.content
     result = admin_response.json()

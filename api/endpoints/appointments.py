@@ -1,9 +1,13 @@
+import dataclasses
+import uuid
+
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import JSONResponse
 from sqlmodel import select
 
 from api.db import Database
 from api.models import Appointment, AppointmentCreate
+from api.service_catalog import ServiceCatalog
 from api.slots import SlotsLoader
 from api.square_client import CreatePaymentResult, SquareClientDummy
 from api.tasks.calendar import CalendarTask
@@ -19,12 +23,14 @@ class AppointmentsAPI:
         calendar_task: CalendarTask,
         slots_loader: SlotsLoader,
         square_client: SquareClientDummy,
+        service_catalog: ServiceCatalog,
     ) -> None:
         self._db = db
         self._email_task = email_task
         self._calendar_task = calendar_task
         self._slots_loader = slots_loader
         self._square_client = square_client
+        self._service_catalog = service_catalog
 
     def create_appointment(
         self,
@@ -63,14 +69,21 @@ class AppointmentsAPI:
         with self._db.session() as session:
             appointment = session.exec(
                 select(Appointment).where(
-                    Appointment.pubid == pubid,
+                    Appointment.pubid == uuid.UUID(pubid),
                 )
             ).first()
             if not appointment:
                 return {}
             return {
-                "appointment": appointment.model_dump(exclude={"id"}),
+                "appointment": self._serialize_appointment(appointment),
             }
+
+    def _serialize_appointment(self, appointment: Appointment) -> dict:
+        return appointment.model_dump(
+            exclude={"id", "clientName", "clientEmail", "clientPhone"}
+        ) | {
+            "service": dataclasses.asdict(self._service_catalog.get_service(appointment.serviceId))
+        }
 
     def get_availability(self):
         return self._slots_loader.gen_ranges()
@@ -83,7 +96,7 @@ class AppointmentsAPI:
             response_model=None,
         )
         app.add_api_route(
-            prefix + "/appointments/{pubid}",
+            prefix + "/appointment/{pubid}",
             self.view_appointment,
             methods=["GET"],
             response_model=None,
