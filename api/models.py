@@ -3,7 +3,6 @@ import uuid
 from typing import Annotated, Any, Optional
 
 from pydantic import PlainValidator
-from sqlalchemy.sql import func
 from sqlmodel import Field, SQLModel
 
 from api.square_client import Payment
@@ -32,7 +31,8 @@ class Appointment(SQLModel, table=True):
         default_factory=uuid.uuid4,
         index=True,
         unique=True,
-        sa_column_kwargs=dict(server_default=func.gen_random_uuid()),
+        nullable=False,
+        sa_column_kwargs={"server_default": uuid.UUID("0" * 32).hex},
     )
     serviceId: str
     date: datetime.date

@@ -5,11 +5,11 @@ Revises: 907ca147cafc
 Create Date: 2025-10-22 20:51:00.795230
 """
 
+import uuid
 from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
 revision: str = "be4a57d1185c"
@@ -19,21 +19,43 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    default = uuid.UUID("0" * 32)
     op.add_column(
         "appointment",
         sa.Column(
             "pubid",
             sa.Uuid(),
-            server_default=func.gen_random_uuid(),
-            nullable=True,
+            nullable=False,
+            server_default=default.hex,
         ),
     )
-    op.create_index(
-        op.f("ix_appointment_pubid"),
+    backfill(default)
+    op.create_index(op.f("ix_appointment_pubid"), "appointment", ["pubid"], unique=True)
+
+
+def backfill(default) -> None:
+    t_appointment = sa.Table(
         "appointment",
-        ["pubid"],
-        unique=True,
+        sa.MetaData(),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column(
+            "pubid",
+            sa.Uuid(),
+            nullable=False,
+        ),
     )
+    connection = op.get_bind()
+    records = connection.execute(
+        t_appointment.select().where(t_appointment.c.pubid == default)
+    ).fetchall()
+    for record in records:
+        connection.execute(
+            t_appointment.update()
+            .where(t_appointment.c.id == record.id)
+            .values(
+                pubid=uuid.uuid4(),
+            )
+        )
 
 
 def downgrade() -> None:
