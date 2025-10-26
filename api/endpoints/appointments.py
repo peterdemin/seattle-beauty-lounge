@@ -25,6 +25,7 @@ class AppointmentsAPI:
         square_client: SquareClientDummy,
         service_catalog: ServiceCatalog,
     ) -> None:
+        # pylint: disable=too-many-arguments
         self._db = db
         self._email_task = email_task
         self._calendar_task = calendar_task
