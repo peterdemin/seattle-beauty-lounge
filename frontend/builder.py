@@ -311,6 +311,13 @@ class BaseRenderingStep(AggregationStep):
     def services(self) -> list[ServiceInfo]:
         return self._parse_services_step.services
 
+    def iter_hours(self) -> Iterable[dict]:
+        for line in self.media["7.05"].plain_text.splitlines()[1:]:
+            parts = line.strip().split(None, 1)
+            if len(parts) == 2:
+                day, hours = parts
+                yield {"day": day, "hours": hours}
+
     def _two_step_render(self, output_file: str, template_file: str, **kwargs) -> None:
         self._renderer.render_template(f"{self._build_dir}/{output_file}", template_file, **kwargs)
         kwargs["style"] = kwargs.get("style", "") + self._gen_tailwind_css(output_file)
@@ -371,16 +378,9 @@ class RenderIndexStep(AggregationStep):
                 f"{SOURCE_DIR}/scripts/**/*.jsx",
             ],
             services=self._base_rendering_step.services,
-            hours=list(self._iter_hours()),
+            hours=list(self._base_rendering_step.iter_hours()),
             cancellation_policy=self._load_cancellation_policy(),
         )
-
-    def _iter_hours(self) -> Iterable[dict]:
-        for line in self._base_rendering_step.media["7.05"].plain_text.splitlines()[1:]:
-            parts = line.strip().split(None, 1)
-            if len(parts) == 2:
-                day, hours = parts
-                yield {"day": day, "hours": hours}
 
     def _load_cancellation_policy(self) -> str:
         with open(f"{self.PAGES_DIR}/52-cancellation.md", "rt", encoding="utf-8") as fobj:
@@ -403,10 +403,6 @@ class RenderComponentsStep(AggregationStep):
 class RenderAppointmentPageStep(RenderIndexStep):
     PAGES_DIR = f"{SOURCE_DIR}/pages"
 
-    def __init__(self, base_rendering_step: BaseRenderingStep) -> None:
-        super().__init__(base_rendering_step)
-        self._base_rendering_step = base_rendering_step
-
     def _after_dependencies(self) -> None:
         self._base_rendering_step.render_cached_template(
             output_file="appointment.html",
@@ -417,6 +413,7 @@ class RenderAppointmentPageStep(RenderIndexStep):
                 f"{SOURCE_DIR}/scripts/**/*.jsx",
             ],
             services=self._base_rendering_step.services,
+            hours=list(self._base_rendering_step.iter_hours()),
             cancellation_policy=self._load_cancellation_policy(),
         )
 
@@ -530,12 +527,12 @@ class BuildAnythingFactory(StepFactory):
             build_javascript_bundle_step=self._build_javascript_bundle_step,
             create_public_dir_step=create_public_dir_step,
             create_build_assets_dir_step=create_build_assets_dir_step,
+            load_media_step=load_media_step,
+            load_snippets_step=self._load_snippets_step,
             mode=mode,
             renderer=renderer,
             build_dir=self.BUILD_DIR,
             tailwind=tailwind,
-            load_media_step=load_media_step,
-            load_snippets_step=self._load_snippets_step,
         )
 
     def create_step(self) -> BuildStep:

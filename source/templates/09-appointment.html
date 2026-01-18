@@ -56,9 +56,7 @@
         </div>
       </div>
     </section>
-    {% include "05-book.html" %}
-    {% include "08-greeting.html" %}
-    {% include "02-services.html" %}
+    <div id="appointment"></div>
     {% include "04-hours.html" %}
     {#
     <section class="bg-neutral py-8">
@@ -70,29 +68,10 @@
         <div class="text-primary [&_a]:text-primary [&>p]:text-stone-900 font-light [&>h2]:pt-4 [&>h1]:mb-2 [&>h1]:text-center [&>h1]:font-medium [&>h1]:text-5xl [&>h2]:font-medium [&>h2]:text-lg">{{ cancellation_policy|safe }}</div>
       </div>
     </section>
-    {% if mode == "development" %}
-    <section class="bg-gray-700 pt-96 pb-4">
-      <div class="max-w-lg mx-auto">
-        <form action="admin/api/build" method="POST">
-          <button
-              class="mx-2 px-5 rounded-lg text-xl bg-amber-400 text-gray-800"
-              type=submit>
-            Update staging
-          </button>
-        </form
-      </div>
-    </section>
-    {% endif %}
-    {% if script %}
-      <script>{{ script|safe }}</script>
-    {% endif %}
-    {% if script_name %}
-      <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
-    {% endif %}
-    {% if mode == "production" %}
-      <script crossorigin src="https://web.squarecdn.com/v1/square.js" async></script>
-    {% else %}
-      <script crossorigin src="https://sandbox.web.squarecdn.com/v1/square.js" async></script>
-    {% endif %}
+    {% for script_name in script_names %}
+      {% if "appointment-" in script_name %}
+        <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
+      {% endif %}
+    {% endfor %}
   </body>
 </html>
