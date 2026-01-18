@@ -26,6 +26,21 @@ server {
 		try_files $uri $uri/ =404;
 	}
 
+	location ^~ /bugsink/ {
+	    rewrite ^/bugsink/?(.*)$ /$1 break;
+
+	    proxy_pass https://bugsink.seattle-beauty-lounge.com;
+
+	    proxy_set_header Host bugsink.seattle-beauty-lounge.com;
+	    proxy_ssl_server_name on;
+
+	    proxy_set_header X-Real-IP         $remote_addr;
+	    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+	    proxy_set_header X-Forwarded-Proto $scheme;
+
+	    client_max_body_size 20m;
+	}
+
 	listen 100.95.10.44:443 ssl; # managed by Certbot
 	ssl_certificate /etc/letsencrypt/live/staging.seattle-beauty-lounge.com/fullchain.pem; # managed by Certbot
 	ssl_certificate_key /etc/letsencrypt/live/staging.seattle-beauty-lounge.com/privkey.pem; # managed by Certbot

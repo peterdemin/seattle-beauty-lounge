@@ -110,8 +110,10 @@
     {% if script %}
       <script>{{ script|safe }}</script>
     {% endif %}
-    {% if script_name %}
-      <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
-    {% endif %}
+    {% for script_name in script_names %}
+      {% if "index-" in script_name %}
+        <script type="module" crossorigin src="assets/{{ script_name }}" async></script>
+      {% endif %}
+    {% endfor %}
   </body>
 </html>
