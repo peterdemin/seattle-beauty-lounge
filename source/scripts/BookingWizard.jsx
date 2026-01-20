@@ -4,8 +4,8 @@ import reactDom from "react-dom/client";
 import "/rdp-style.css";
 import * as Sentry from "@sentry/react";
 import { useForm } from "react-hook-form";
-import SquarePayment from "/SquarePayment.jsx";
 import renderConfirmation from "./ConfirmationTemplate.js";
+import SquarePayment from "./SquarePayment.jsx";
 import { getAvailableSlots, insertSkips } from "./availability.js";
 
 function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
@@ -147,7 +147,9 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 					clientName={clientName}
 					clientPhone={clientPhone}
 					clientEmail={clientEmail}
-					onConfirm={handleSubmitAppointment}
+					onConfirm={() => {
+						handleSubmitAppointment(null);
+					}}
 				/>
 			)}
 			{currentStep === 99 && (
@@ -248,7 +250,7 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 	}, [slots, date]);
 
 	const slotClass = (slot) => {
-		const base = "cursor-pointer p-1 rounded-full border-2";
+		const base = "cursor-pointer p-1 rounded-full border-2 text-right";
 		if (selected === slot) {
 			return `${base} border-primary text-primary`;
 		}
@@ -405,7 +407,8 @@ function ReviewAndConfirmStep({
 	clientEmail,
 	onConfirm,
 }) {
-	function formatDate(date) {
+	function formatDate(isoDate) {
+		const date = new Date(isoDate);
 		const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
 		const month = date.toLocaleString("en-US", { month: "long" });
 		const day = date.getDate();
@@ -426,13 +429,15 @@ function ReviewAndConfirmStep({
 			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
 				Or by email: <span>{clientEmail}</span>
 			</p>
-			<div className="flex place-content-center my-4">
+			<div className="mt-4 flex place-content-end">
 				<button
 					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
 					onClick={onConfirm}
 					type="button"
 				>
-					Confirm Booking
+					Confirm
+					<br />
+					Booking
 				</button>
 			</div>
 		</div>
