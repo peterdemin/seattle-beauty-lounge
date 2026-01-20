@@ -2,11 +2,13 @@ import base64
 import datetime
 import os
 import re
+import uuid
 from unittest import mock
 
 import pytest
 
 from api.config import Settings
+from api.linker import Linker
 from api.models import Appointment
 from api.service_catalog import ServiceCatalog
 from api.smtp_client import SMTPClient, SMTPClientDummy
@@ -30,11 +32,12 @@ def test_send_confirmation_email_example():
             ]
         ),
         email_template=content.get_snippet("7.04"),
-        admin_url="http://admin",
+        linker=Linker(base_url="http://site", admin_url="http://admin/a.html"),
     )
     email_task.on_appointment(
         Appointment(
             id=1,
+            pubid=uuid.UUID("00000000-0000-0000-0000-000000000000"),
             serviceId="1.23",
             date=datetime.date(2014, 4, 4),
             time=datetime.time(13, 23, 45),
@@ -86,7 +89,7 @@ def test_send_confirmation_email_integration():
             ]
         ),
         email_template=content.get_snippet("7.04"),
-        admin_url="http://admin",
+        linker=Linker(base_url="", admin_url="http://admin"),
     )
     email_task.on_appointment(
         Appointment(
@@ -178,8 +181,7 @@ Content-Disposition: attachment; filename="invite.ics"
 """
 
 ICS_BODY = (
-    r"""
-BEGIN:VCALENDAR
+    r"""BEGIN:VCALENDAR
 PRODID:-//github.com/allenporter/ical//11.0.0//EN
 VERSION:2.0
 BEGIN:VEVENT
@@ -190,10 +192,11 @@ DTEND;TZID="UTC-07:00":20140404T132645
 SUMMARY:service
 CONTACT:301-658-8708
 CONTACT:kate@seattle-beauty-lounge.com
-DESCRIPTION:Seattle Beauty Lounge\n\nAddress: 311 W Republican St\,""".lstrip()
-    + " "
-    + r"""
- Seattle\, WA 98119\nPhone: 301-658-8708\nEmail:"""
+DESCRIPTION:Seattle Beauty Lounge\n\nDetails: http://site/appointment.html?"""
+    + "\n "
+    + r"""app=00000000-0000-0000-0000-000000000000\nAddress: 311 W Republican St\,"""
+    + " \n "
+    + r"""Seattle\, WA 98119\nPhone: 301-658-8708\nEmail:"""
     + " "
     + r"""
  kate@seattle-beauty-lounge.com
@@ -213,7 +216,7 @@ To: kate@seattle-beauty-lounge.com
 
 Seattle Beauty Lounge
 
-Appointment: http://admin?app=1
+Appointment: http://admin/a.html?app=1
 
 Service: service
 Date: Friday, April 4

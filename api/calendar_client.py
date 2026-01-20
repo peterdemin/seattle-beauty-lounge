@@ -4,6 +4,7 @@ from typing import Iterable, TypedDict
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from pydantic import HttpUrl
 
 from api.constants import TIMEZONE, TIMEZONE_STR
 from api.models import Appointment
@@ -45,7 +46,7 @@ class CalendarServiceDummy:
         cls,
         appointment: Appointment,
         service_info: ServiceInfo,
-        admin_url: str,
+        admin_url: HttpUrl,
     ) -> CalendarEventBody:
         description = cls._DESCRIPTION_TEMPLATE.format(appointment=appointment, admin_url=admin_url)
         start_dt = TIMEZONE.localize(

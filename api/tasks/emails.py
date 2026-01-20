@@ -10,6 +10,7 @@ from ical.event import Event
 from tenacity import retry, stop_after_delay, wait_fixed
 
 from api.constants import EMAIL, LOCATION, PHONE, TIMEZONE, TITLE
+from api.linker import Linker
 from api.models import Appointment
 from api.service_catalog import ServiceCatalog
 from api.smtp_client import SMTPClientDummy
@@ -21,6 +22,7 @@ class EmailTask:
         f"""
         {TITLE}
 
+        Details: {{pub_url}}
         Address: {LOCATION}
         Phone: {PHONE}
         Email: {EMAIL}
@@ -47,12 +49,12 @@ class EmailTask:
         smtp_client: SMTPClientDummy,
         service_catalog: ServiceCatalog,
         email_template: Snippet,
-        admin_url: str,
+        linker: Linker,
     ) -> None:
         self._smtp_client = smtp_client
         self._service_catalog = service_catalog
         self._email_template = email_template
-        self._admin_url_template = f"{admin_url}?app={{appointment.id}}"
+        self._linker = linker
 
     def on_appointment(self, appointment: Appointment) -> None:
         """Sends a confirmation email client and notification to the owner."""
@@ -70,7 +72,7 @@ class EmailTask:
                 title=self._service_catalog.get_title(appointment.serviceId),
                 date_str=appointment.date.strftime("%A, %B %-d"),
                 time_str=appointment.time.strftime("%I:%M %p"),
-                admin_url=self._admin_url_template.format(appointment=appointment),
+                admin_url=self._linker.admin(appointment),
             )
         )
         msg["Subject"] = f"New appointment in {TITLE}"
@@ -94,6 +96,7 @@ class EmailTask:
                     title=self._service_catalog.get_title(appointment.serviceId),
                     date_str=appointment.date.strftime("%A, %B %-d"),
                     time_str=appointment.time.strftime("%I:%M %p"),
+                    pub_url=self._linker.view(appointment),
                 )
             )
         )
@@ -104,6 +107,7 @@ class EmailTask:
                     title=self._service_catalog.get_title(appointment.serviceId),
                     date_str=appointment.date.strftime("%A, %B %-d"),
                     time_str=appointment.time.strftime("%I:%M %p"),
+                    pub_url=self._linker.view(appointment),
                 ),
                 "html",
             )
@@ -131,7 +135,9 @@ class EmailTask:
                 events=[  # pyright: ignore[reportCallIssue]
                     Event(
                         summary=self._service_catalog.get_title(appointment.serviceId),
-                        description=self._CALENDAR_TEMPLATE.format(appointment=appointment),
+                        description=self._CALENDAR_TEMPLATE.format(
+                            pub_url=self._linker.view(appointment)
+                        ),
                         location=LOCATION,
                         contacts=[PHONE, EMAIL],
                         start=start.isoformat(),

@@ -43,7 +43,7 @@ class Settings(BaseSettings):
             twilio_account_sid="",
             twilio_auth_token="",
             twilio_from_number="",
-            admin_url="",
+            admin_url="http://localhost:8000/admin.html",
             enable_admin=True,
             enable_build=True,
         )

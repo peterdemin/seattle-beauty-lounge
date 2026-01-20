@@ -2,10 +2,10 @@ import uuid
 
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import HttpUrl
 from sqlmodel import select
 
 from api.db import Database
+from api.linker import Linker
 from api.models import Appointment, AppointmentCreate, AppointmentFull
 from api.service_catalog import ServiceCatalog
 from api.slots import SlotsLoader
@@ -18,7 +18,7 @@ class AppointmentsAPI:
     def __init__(
         self,
         *,
-        base_url: str,
+        linker: Linker,
         db: Database,
         email_task: EmailTask,
         calendar_task: CalendarTask,
@@ -27,7 +27,7 @@ class AppointmentsAPI:
         service_catalog: ServiceCatalog,
     ) -> None:
         # pylint: disable=too-many-arguments
-        self._base_url = base_url
+        self._linker = linker
         self._db = db
         self._email_task = email_task
         self._calendar_task = calendar_task
@@ -85,7 +85,7 @@ class AppointmentsAPI:
     def _format_appointment(self, appointment: Appointment) -> AppointmentFull:
         return AppointmentFull.extract_pub(
             appointment,
-            pub_url=HttpUrl(f"{self._base_url}/appointment.html?app={appointment.pubid}"),
+            pub_url=self._linker.view(appointment),
             service=self._service_catalog.get_service(appointment.serviceId),
         )
 

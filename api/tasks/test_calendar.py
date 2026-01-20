@@ -1,7 +1,10 @@
 import datetime
 from unittest import mock
 
+from pydantic import HttpUrl
+
 from api.calendar_client import CalendarServiceDummy
+from api.linker import Linker
 from api.models import Appointment
 from api.service_catalog import ServiceCatalog
 from api.tasks.calendar import CalendarTask
@@ -20,7 +23,7 @@ def test_create_calendar_event() -> None:
     calendar_task = CalendarTask(
         calendar_service=calendar_service,
         service_catalog=ServiceCatalog([service_info]),
-        admin_url="http://admin",
+        linker=Linker(base_url="", admin_url="http://admin"),
     )
     appointment = Appointment(
         id=1,
@@ -33,6 +36,6 @@ def test_create_calendar_event() -> None:
     )
     calendar_task.create_event(appointment)
     calendar_service.compose_event.assert_called_once_with(
-        appointment=appointment, service_info=service_info, admin_url="http://admin?app=1"
+        appointment=appointment, service_info=service_info, admin_url=HttpUrl("http://admin?app=1")
     )
     calendar_service.insert.assert_called_once_with({"summary": "summary"})

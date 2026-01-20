@@ -17,6 +17,7 @@ from api.endpoints.appointments import AppointmentsAPI
 from api.endpoints.backoffice import BackofficeAPI
 from api.google_auth import GoogleAuth
 from api.kv import KiwiStore
+from api.linker import Linker
 from api.service_catalog import ServiceCatalog
 from api.slots import FreshDayBreaker, SlotsLoader
 from api.sms_client import SMSClient
@@ -63,10 +64,11 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             calendar_event_parser=CalendarEventParser(),
             day_breaker=DayBreaker({}),
         ).register(task_scheduler)
+    linker = Linker(base_url=settings.base_url, admin_url=settings.admin_url)
     calendar_task = CalendarTask(
         calendar_service=calendar_service,
         service_catalog=service_catalog,
-        admin_url=settings.admin_url,
+        linker=linker,
     )
     if settings.twilio_account_sid:
         ReminderTask(
@@ -87,7 +89,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         ),
         service_catalog=service_catalog,
         email_template=content.get_snippet("7.04"),
-        admin_url=settings.admin_url,
+        linker=linker,
     )
 
     app = FastAPI(lifespan=lifespan)
@@ -99,7 +101,6 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     else:
         square_client = SquareClientDummy()
     AppointmentsAPI(
-        base_url=settings.base_url,
         db=db,
         email_task=email_task,
         calendar_task=calendar_task,
@@ -108,6 +109,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         ),
         square_client=square_client,
         service_catalog=service_catalog,
+        linker=linker,
     ).register(app, prefix=settings.location_prefix)
     if settings.enable_admin:
         BackofficeAPI(

@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from pydantic import HttpUrl
 
 from api.calendar_client import CalendarServiceDummy, DayBreaker
 from api.models import Appointment
@@ -51,10 +52,10 @@ def test_compose_event_example() -> None:
             title="in-and-out",
             duration_min=3,
         ),
-        admin_url="http://admin",
+        admin_url=HttpUrl("http://admin"),
     )
     assert event == {
-        "description": "Appointment: http://admin\n"
+        "description": "Appointment: http://admin/\n"
         "Name: Peter Demin\n"
         "Phone: 2403421438\n"
         "Email: peterdemin@gmail.com",
