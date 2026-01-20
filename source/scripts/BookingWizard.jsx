@@ -5,10 +5,9 @@ import "/rdp-style.css";
 import * as Sentry from "@sentry/react";
 import { useForm } from "react-hook-form";
 import renderConfirmation from "./ConfirmationTemplate.js";
-import SquarePayment from "./SquarePayment.jsx";
 import { getAvailableSlots, insertSkips } from "./availability.js";
 
-function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
+function BookingWizard({ apiUrl }) {
 	const [currentStep, setCurrentStep] = useState(1);
 
 	// Wizard State
@@ -132,13 +131,6 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 					}}
 				/>
 			)}
-			<SquarePayment
-				active={currentStep === 6}
-				apiUrl={apiUrl}
-				applicationId={squareApplicationId}
-				locationId={squareLocationId}
-				onPayment={handleSubmitAppointment}
-			/>
 			{currentStep === 5 && (
 				<ReviewAndConfirmStep
 					serviceTitle={selectedServiceTitle}
@@ -379,9 +371,7 @@ function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
                                checked:bg-primary checked:border-0"
 				/>
 				<label for="consent">
-					I consent to receive appointment reminders via email and text. I also
-					agree to share my personal information with Square when paying with
-					credit card.
+					I consent to receive appointment reminders via email and text.
 				</label>
 			</div>
 
@@ -502,11 +492,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 
 reactDom.createRoot(document.getElementById("book")).render(
 	<StrictMode>
-		<BookingWizard
-			apiUrl="/api"
-			squareApplicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
-			squareLocationId={import.meta.env.VITE_SQUARE_LOCATION_ID}
-		/>
+		<BookingWizard apiUrl="/api" />
 	</StrictMode>,
 );
 
