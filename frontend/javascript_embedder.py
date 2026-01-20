@@ -6,8 +6,8 @@ from lib.service import Snippet
 class JavascriptEmbedder:
     """Updates template strings in .js files from a dictionary."""
 
-    _RE_EMBED = re.compile(r"(?im) *// embed: (\S+)$")
-    _RE_END = re.compile(r"(?m) *`$")
+    _RE_EMBED = re.compile(r"(?im)\s*// embed: (\S+)$")
+    _RE_END = re.compile(r"(?m)\s*`;$")
 
     @classmethod
     def __call__(cls, path: str, values: dict[str, Snippet]) -> None:
