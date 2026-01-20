@@ -133,13 +133,13 @@ function BookingWizard({ apiUrl, squareApplicationId, squareLocationId }) {
 				/>
 			)}
 			<SquarePayment
-				active={currentStep === 5}
+				active={currentStep === 6}
 				apiUrl={apiUrl}
 				applicationId={squareApplicationId}
 				locationId={squareLocationId}
 				onPayment={handleSubmitAppointment}
 			/>
-			{currentStep === 6 && (
+			{currentStep === 5 && (
 				<ReviewAndConfirmStep
 					serviceTitle={selectedServiceTitle}
 					date={selectedDate}
