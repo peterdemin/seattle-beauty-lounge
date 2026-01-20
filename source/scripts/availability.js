@@ -23,8 +23,8 @@ function formatTime(totalMinutes) {
 			hours -= 12;
 		}
 	}
-	// Pad with leading zeros if needed (e.g. "09:05")
-	return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
+	// Pad minutes with leading zeros if needed (e.g. "9:05")
+	return `${String(hours)}:${String(minutes).padStart(2, "0")} ${ampm}`;
 }
 
 /**
@@ -39,7 +39,7 @@ function roundUp(minutes) {
 }
 
 /**
- * range = ["HH:MM", "HH:MM"]  e.g. ["10:00", "17:00"]
+ * range = ["hh:MM", "hh:MM"]  e.g. ["9:00", "17:00"]
  * serviceDuration = number of minutes (e.g. 180)
  * returns array of "HH:MM" times (e.g. ["10:00", "10:15", ... "14:00"])
  */

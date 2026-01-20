@@ -12,7 +12,7 @@ try {
 	);
 	assert.deepEqual(
 		getAvailableSlots({ "2014-04-14": [["14:14", "15:15"]] }, 60),
-		{ "2014-04-14": ["02:15 PM"] },
+		{ "2014-04-14": ["2:15 PM"] },
 	);
 	assert.deepEqual(
 		getAvailableSlots({ "2014-04-14": [["12:00", "13:00"]] }, 60),
