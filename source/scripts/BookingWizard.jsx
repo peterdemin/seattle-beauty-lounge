@@ -420,14 +420,34 @@ function ReviewAndConfirmStep({
 				Review and Confirm
 			</h2>
 			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
-				I, <span>{clientName}</span>, want to book <span>{serviceTitle}</span>{" "}
-				on <span>{formatDate(date)}</span> at <span>{time}</span>.
-			</p>
-			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
-				You can contact me by phone: <span>{clientPhone}</span>
-			</p>
-			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
-				Or by email: <span>{clientEmail}</span>
+				<table class="table-auto">
+					<tbody>
+						<tr>
+							<td className="pr-1">Name:</td>
+							<td>{clientName}</td>
+						</tr>
+						<tr>
+							<td className="pr-1">Phone:</td>
+							<td>{clientPhone}</td>
+						</tr>
+						<tr>
+							<td className="pr-1">Email:</td>
+							<td>{clientEmail}</td>
+						</tr>
+						<tr>
+							<td className="pr-1">Service:</td>
+							<td>{serviceTitle}</td>
+						</tr>
+						<tr>
+							<td className="pr-1">Date:</td>
+							<td>{formatDate(date)}</td>
+						</tr>
+						<tr>
+							<td className="pr-1">Time:</td>
+							<td>{time}</td>
+						</tr>
+					</tbody>
+				</table>
 			</p>
 			<div className="mt-4 flex place-content-end">
 				<button
