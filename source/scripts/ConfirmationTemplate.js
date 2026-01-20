@@ -2,6 +2,7 @@ export default function renderConfirmation(
 	clientName,
 	clientEmail,
 	clientPhone,
+	pubUrl,
 ) {
 	// embed: 7.03
 	return `
@@ -16,7 +17,7 @@ export default function renderConfirmation(
   </span>
   Your appointment is confirmed.
  </h2>
- <!-- modified_time: 2025-05-03T05:44:42.513Z -->
+ <!-- modified_time: 2026-01-20T04:17:15.438Z -->
  <p class="py-2">
   You will receive an email confirmation at ${clientEmail} with the
 booking details.
@@ -29,7 +30,13 @@ booking details.
    To cancel or reschedule your appointment,
   </div>
   <div class="line">
-   call
+   visit
+   <a class="font-medium text-primary underline" href="${pubUrl}">
+    appointment page
+   </a>
+  </div>
+  <div class="line">
+   or call
    <a class="font-medium text-primary underline" href="tel:+13016588708">
     +1 (301) 658-8708
    </a>

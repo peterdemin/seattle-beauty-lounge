@@ -1,4 +1,4 @@
-.. modified_time: 2025-05-03T05:44:59.598Z
+.. modified_time: 2026-01-20T04:17:15.438Z
 
 .. _h.5ykxqwpjq18w:
 
@@ -16,4 +16,5 @@ booking details.
 We'll send a reminder the day before service to ${clientPhone}.
 
 | To cancel or reschedule your appointment,
-| call +1 (301) 658-8708
+| visit [appointment page](${pubUrl})
+| or call +1 (301) 658-8708

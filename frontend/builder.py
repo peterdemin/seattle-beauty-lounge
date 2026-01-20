@@ -101,6 +101,7 @@ class CreateOutputDirectoryStep(BuildStep):
 
 class LoadSnippetsStep(BuildStep):
     _RE_PHONE_NUMBER = re.compile(r"\+1\s\(\d{3}\)\s\d{3}-\d{4}")
+    _RE_MARKDOWN_LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
     def __init__(self, media_ptrn: str) -> None:
         self._media_ptrn = media_ptrn
@@ -111,7 +112,7 @@ class LoadSnippetsStep(BuildStep):
         page = Page()
         for path in sorted(glob.glob(self._media_ptrn)):
             with open(path, encoding="utf-8") as fobj:
-                rst = fobj.read()
+                rst = self._preprocess_rst(fobj.read())
             self.snippets.append(
                 Snippet(
                     full_index=JohnnyDecimal(path).full_index,
@@ -120,6 +121,9 @@ class LoadSnippetsStep(BuildStep):
                 )
             )
             self.parts[JohnnyDecimal(path).full_index] = page.parse(rst)
+
+    def _preprocess_rst(self, rst: str) -> str:
+        return self._RE_MARKDOWN_LINK.sub(r"`\1 <\2>`_", rst)
 
     def _highlight_phone_numbers(self, rst: str) -> str:
         return self._RE_PHONE_NUMBER.sub(self._phone_markup, rst)
@@ -487,21 +491,6 @@ class BuildAnythingFactory(StepFactory):
             mode=mode,
             cache=FileCache(
                 cache_file=f"{self.BUILD_DIR}/js_bundle_cache.json",
-                patterns=[
-                    f"{SOURCE_DIR}/scripts/**/*.js",
-                    f"{SOURCE_DIR}/scripts/**/*.jsx",
-                ],
-            ),
-        )
-        self._build_appointment_javascript_bundle_step = BuildJavascriptBundleStep(
-            embed_javascript_step=EmbedJavascriptStep(
-                load_media_step=load_media_step,
-                target_ptrn=f"{SOURCE_DIR}/scripts/*Template.js",
-            ),
-            create_build_assets_dir_step=create_build_assets_dir_step,
-            mode=f"appointment{mode}",
-            cache=FileCache(
-                cache_file=f"{self.BUILD_DIR}/appointment_js_bundle_cache.json",
                 patterns=[
                     f"{SOURCE_DIR}/scripts/**/*.js",
                     f"{SOURCE_DIR}/scripts/**/*.jsx",
