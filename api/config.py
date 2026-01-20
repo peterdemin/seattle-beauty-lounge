@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
+    base_url: str = ""
     database_url: str = "sqlite:///api/test.db"
     proxy_frontend: bool = False
     location_prefix: str = ""
@@ -28,6 +29,7 @@ class Settings(BaseSettings):
     @classmethod
     def test_settings(cls) -> "Settings":
         return cls(
+            base_url="http://localhost:8000/",
             database_url="sqlite://",
             sender_email="",
             sender_password="",

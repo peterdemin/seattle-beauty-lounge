@@ -21,6 +21,7 @@ function BookingWizard({ apiUrl }) {
 	const [clientName, setClientName] = useState(null);
 	const [clientPhone, setClientPhone] = useState(null);
 	const [clientEmail, setClientEmail] = useState(null);
+	const [pubUrl, setPubUrl] = useState(null);
 
 	useEffect(() => {
 		fetch(`${apiUrl}/availability`)
@@ -79,11 +80,12 @@ function BookingWizard({ apiUrl }) {
 				payment: payment,
 			}),
 		});
+		const resp = await res.json();
 		if (res.ok) {
+			setPubUrl(resp.pubUrl);
 			setCurrentStep(99);
 			return "";
 		}
-		const resp = await res.json();
 		return resp.error;
 	}
 
@@ -148,7 +150,12 @@ function BookingWizard({ apiUrl }) {
 				<div
 					class="mb-6"
 					dangerouslySetInnerHTML={{
-						__html: renderConfirmation(clientName, clientEmail, clientPhone),
+						__html: renderConfirmation(
+							clientName,
+							clientEmail,
+							clientPhone,
+							pubUrl,
+						),
 					}}
 				/>
 			)}

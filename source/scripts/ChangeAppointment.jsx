@@ -24,7 +24,7 @@ function ChangeAppointment({ apiUrl, appointmentId }) {
 
 	return (
 		<>
-			{data && <FullAppointment data={data.appointment} />}
+			{data && <FullAppointment data={data} />}
 			{message && <div className="text-red-600">{message}</div>}
 		</>
 	);
@@ -58,25 +58,19 @@ function FullAppointment({ data }) {
 						<div className="flex-0 shrink-0 w-24 font-medium">Time:</div>
 						<div className="grow">{timeStr}</div>
 					</div>
-				</div>
-				{data.service && (
-					<div className="flex flex-col text-xl">
-						<div className="flex flex-row">
-							<div className="flex-0 shrink-0 w-24 font-medium">Service:</div>
-							<div className="grow">
-								{data.serviceId} - {data.service.title}
-							</div>
-						</div>
-						<div className="flex flex-row">
-							<div className="flex-0 shrink-0 w-24 font-medium">Duration:</div>
-							<div className="grow">{data.service.duration}</div>
-						</div>
-						<div className="flex flex-row">
-							<div className="flex-0 shrink-0 w-24 font-medium">Price:</div>
-							<div className="grow">{data.service.price}</div>
-						</div>
+					<div className="flex flex-row">
+						<div className="flex-0 shrink-0 w-24 font-medium">Service:</div>
+						<div className="grow">{data.serviceTitle}</div>
 					</div>
-				)}
+					<div className="flex flex-row">
+						<div className="flex-0 shrink-0 w-24 font-medium">Duration:</div>
+						<div className="grow">{data.serviceDuration}</div>
+					</div>
+					<div className="flex flex-row">
+						<div className="flex-0 shrink-0 w-24 font-medium">Price:</div>
+						<div className="grow">{data.servicePrice}</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

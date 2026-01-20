@@ -43,42 +43,29 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
     assert response.status_code == 200, response.content
     result = response.json()
     pub_id = result["pubid"]
+    pub_url = result["pubUrl"]
     assert result == {
         "pubid": pub_id,
+        "pubUrl": pub_url,
         "serviceId": "2.02",
+        "serviceTitle": "Eyebrow shaping and tinting",
+        "serviceDuration": "30 min",
+        "servicePrice": "$65",
         "date": "2025-01-10",
         "time": "13:30:00",
     }
     appointment_response = test_client.get(f"/appointment/{pub_id}")
     assert appointment_response.status_code == 200, appointment_response.content
     result = appointment_response.json()
-    result["appointment"]["service"]["full_html"] = "<html/>"
     assert result == {
-        "appointment": {
-            "date": "2025-01-10",
-            "pubid": pub_id,
-            "service": {
-                "duration": "30 min",
-                "duration_min": 30,
-                "price": "$65",
-                "price_cents": 6500,
-                "full_html": "<html/>",
-                "image": {
-                    "public": "public/images/2.02-1.webp",
-                    "source": "source/2-eyes/images/2.02-1.jpg",
-                    "url": "images/2.02-1.webp",
-                },
-                "short_text": (
-                    "Achieve perfectly shaped and tinted brows that frame your face\n"
-                    "beautifully with our expert brow shaping and tinting service."
-                ),
-                "source_path": "source/2-eyes/02-brows.rst",
-                "title": "Eyebrow shaping and tinting",
-                "url": "02-brows.html",
-            },
-            "serviceId": "2.02",
-            "time": "13:30:00",
-        },
+        "date": "2025-01-10",
+        "pubid": pub_id,
+        "pubUrl": pub_url,
+        "serviceTitle": "Eyebrow shaping and tinting",
+        "serviceDuration": "30 min",
+        "servicePrice": "$65",
+        "serviceId": "2.02",
+        "time": "13:30:00",
     }
     app_id = 1
     admin_response = test_client.get(f"/admin/appointment/{app_id}")
@@ -150,10 +137,15 @@ def test_submit_appointment_without_payment_succeeds(test_client: TestClient) ->
     )
     assert response.status_code == 200
     result = response.json()
-    result["pubid"] = result["pubid"] and PUBID
+    pub_id = result["pubid"]
+    pub_url = result["pubUrl"]
     assert result == {
-        "pubid": PUBID,
+        "pubid": pub_id,
+        "pubUrl": pub_url,
         "serviceId": "2.02",
+        "serviceTitle": "Eyebrow shaping and tinting",
+        "serviceDuration": "30 min",
+        "servicePrice": "$65",
         "date": "2025-01-10",
         "time": "13:30:00",
     }

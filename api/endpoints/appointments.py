@@ -1,12 +1,12 @@
-import dataclasses
 import uuid
 
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import JSONResponse
+from pydantic import HttpUrl
 from sqlmodel import select
 
 from api.db import Database
-from api.models import Appointment, AppointmentCreate, AppointmentPub
+from api.models import Appointment, AppointmentCreate, AppointmentFull
 from api.service_catalog import ServiceCatalog
 from api.slots import SlotsLoader
 from api.square_client import CreatePaymentResult, SquareClientDummy
@@ -18,6 +18,7 @@ class AppointmentsAPI:
     def __init__(
         self,
         *,
+        base_url: str,
         db: Database,
         email_task: EmailTask,
         calendar_task: CalendarTask,
@@ -26,6 +27,7 @@ class AppointmentsAPI:
         service_catalog: ServiceCatalog,
     ) -> None:
         # pylint: disable=too-many-arguments
+        self._base_url = base_url
         self._db = db
         self._email_task = email_task
         self._calendar_task = calendar_task
@@ -35,16 +37,14 @@ class AppointmentsAPI:
 
     def create_appointment(
         self,
-        request: Request,
         appointment_data: AppointmentCreate,
         background_tasks: BackgroundTasks,
-    ) -> JSONResponse | AppointmentPub:
+    ) -> JSONResponse | AppointmentFull:
         """Creates a new appointment.
 
         - Stores it in the DB,
         - Starts a background task to send a confirmation email.
         """
-        del request
         appointment = Appointment.model_validate(appointment_data)
         with self._db.session() as session:
             session.add(appointment)
@@ -69,9 +69,9 @@ class AppointmentsAPI:
             self._calendar_task.create_event,
             appointment,
         )
-        return AppointmentPub.extract_pub(appointment)
+        return self._format_appointment(appointment)
 
-    def view_appointment(self, pubid: str) -> dict[str, dict]:
+    def view_appointment(self, pubid: str) -> AppointmentFull | JSONResponse:
         with self._db.session() as session:
             appointment = session.exec(
                 select(Appointment).where(
@@ -79,15 +79,15 @@ class AppointmentsAPI:
                 )
             ).first()
             if not appointment:
-                return {}
-            return {
-                "appointment": self._serialize_appointment(AppointmentPub.extract_pub(appointment)),
-            }
+                return JSONResponse(content=None, status_code=404)
+        return self._format_appointment(appointment)
 
-    def _serialize_appointment(self, appointment: AppointmentPub) -> dict:
-        return appointment.model_dump() | {
-            "service": dataclasses.asdict(self._service_catalog.get_service(appointment.serviceId))
-        }
+    def _format_appointment(self, appointment: Appointment) -> AppointmentFull:
+        return AppointmentFull.extract_pub(
+            appointment,
+            pub_url=HttpUrl(f"{self._base_url}/appointment.html?app={appointment.pubid}"),
+            service=self._service_catalog.get_service(appointment.serviceId),
+        )
 
     def get_availability(self):
         return self._slots_loader.gen_ranges()

@@ -2,10 +2,11 @@ import datetime
 import uuid
 from typing import Annotated, Any, Optional
 
-from pydantic import PlainValidator
+from pydantic import HttpUrl, PlainValidator
 from sqlmodel import Field, SQLModel
 
 from api.square_client import Payment
+from lib.service import ServiceInfo
 
 
 def parse_time(value: Any) -> datetime.time:
@@ -37,15 +38,6 @@ class AppointmentPub(SQLModel):
     date: datetime.date
     time: datetime.time
 
-    @staticmethod
-    def extract_pub(inst: "AppointmentPub") -> "AppointmentPub":
-        return AppointmentPub(
-            pubid=inst.pubid,
-            serviceId=inst.serviceId,
-            date=inst.date,
-            time=inst.time,
-        )
-
 
 class Appointment(AppointmentPub, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -62,6 +54,28 @@ class AppointmentCreate(AppointmentPub):
     clientPhone: str
     clientEmail: str
     payment: Optional[Payment]
+
+
+class AppointmentFull(AppointmentPub):
+    pubUrl: HttpUrl
+    serviceTitle: str
+    serviceDuration: str
+    servicePrice: str
+
+    @classmethod
+    def extract_pub(
+        cls, inst: AppointmentPub, pub_url: HttpUrl, service: ServiceInfo
+    ) -> "AppointmentFull":
+        return cls(
+            pubid=inst.pubid,
+            pubUrl=pub_url,
+            serviceId=inst.serviceId,
+            serviceTitle=service.title,
+            serviceDuration=service.duration,
+            servicePrice=service.price,
+            date=inst.date,
+            time=inst.time,
+        )
 
 
 class Kiwi(SQLModel, table=True):
