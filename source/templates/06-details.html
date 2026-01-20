@@ -94,18 +94,6 @@
         </div>
       </div>
     </section>
-    {% if mode in ("development", "staging") %}
-    <section class="bg-gray-700 pt-96 pb-4">
-      <div class="max-w-lg mx-auto">
-        <form action="admin/api/build" method="POST">
-          <button
-              class="mx-2 px-5 rounded-lg text-xl bg-amber-400 text-gray-800"
-              type=submit>
-            Update staging
-          </button>
-        </form
-      </div>
-    </section>
     {% endif %}
     {% if script %}
       <script>{{ script|safe }}</script>
