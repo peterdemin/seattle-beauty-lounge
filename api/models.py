@@ -25,8 +25,7 @@ def parse_time(value: Any) -> datetime.time:
 Time = Annotated[datetime.time, PlainValidator(parse_time)]
 
 
-class Appointment(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class AppointmentPub(SQLModel):
     pubid: Optional[uuid.UUID] = Field(
         default_factory=uuid.uuid4,
         index=True,
@@ -37,6 +36,19 @@ class Appointment(SQLModel, table=True):
     serviceId: str
     date: datetime.date
     time: datetime.time
+
+    @staticmethod
+    def extract_pub(inst: "AppointmentPub") -> "AppointmentPub":
+        return AppointmentPub(
+            pubid=inst.pubid,
+            serviceId=inst.serviceId,
+            date=inst.date,
+            time=inst.time,
+        )
+
+
+class Appointment(AppointmentPub, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     clientName: str
     clientPhone: str
     clientEmail: str
@@ -44,14 +56,12 @@ class Appointment(SQLModel, table=True):
     depositToken: str = Field(default="")
 
 
-class AppointmentCreate(SQLModel):
-    serviceId: str
-    date: datetime.date
+class AppointmentCreate(AppointmentPub):
     time: Time
     clientName: str
     clientPhone: str
     clientEmail: str
-    payment: Payment
+    payment: Optional[Payment]
 
 
 class Kiwi(SQLModel, table=True):

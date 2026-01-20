@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 from api.app import create_app
 from api.config import Settings
 
+PUBID = "00000000-0000-0000-0000-000000000000"
+
 
 @pytest.fixture(name="test_settings", scope="session")
 def settings_fixture() -> Settings:
@@ -40,21 +42,12 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
     )
     assert response.status_code == 200, response.content
     result = response.json()
-    app_id = result.get("id")
-    assert app_id > 0
-    app_id = result["id"]
     pub_id = result["pubid"]
     assert result == {
-        "clientEmail": "janedoe@gmail.com",
-        "clientName": "Jane Doe",
-        "clientPhone": "555-123-4567",
-        "date": "2025-01-10",
-        "remindedAt": 0,
-        "id": app_id,
         "pubid": pub_id,
         "serviceId": "2.02",
+        "date": "2025-01-10",
         "time": "13:30:00",
-        "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
     }
     appointment_response = test_client.get(f"/appointment/{pub_id}")
     assert appointment_response.status_code == 200, appointment_response.content
@@ -63,9 +56,7 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
     assert result == {
         "appointment": {
             "date": "2025-01-10",
-            "depositToken": "J2xeb9aj55wS755Tw59hmjRKK3ZZY",
             "pubid": pub_id,
-            "remindedAt": 0,
             "service": {
                 "duration": "30 min",
                 "duration_min": 30,
@@ -89,6 +80,7 @@ def test_submit_appointment(test_client: TestClient, time) -> None:
             "time": "13:30:00",
         },
     }
+    app_id = 1
     admin_response = test_client.get(f"/admin/appointment/{app_id}")
     assert admin_response.status_code == 200, admin_response.content
     result = admin_response.json()
@@ -139,4 +131,29 @@ def test_submit_appointment_without_token_fails(test_client: TestClient) -> None
     result = response.json()
     assert result == {
         "error": "no token",
+    }
+
+
+def test_submit_appointment_without_payment_succeeds(test_client: TestClient) -> None:
+    response = test_client.post(
+        "/appointments",
+        json={
+            "id": 1,
+            "serviceId": "2.02",
+            "date": "2025-01-10",
+            "time": "01:30 pm",
+            "clientName": "Jane Doe",
+            "clientPhone": "555-123-4567",
+            "clientEmail": "janedoe@gmail.com",
+            "payment": None,
+        },
+    )
+    assert response.status_code == 200
+    result = response.json()
+    result["pubid"] = result["pubid"] and PUBID
+    assert result == {
+        "pubid": PUBID,
+        "serviceId": "2.02",
+        "date": "2025-01-10",
+        "time": "13:30:00",
     }

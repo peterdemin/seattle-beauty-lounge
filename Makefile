@@ -56,6 +56,10 @@ js:
 jsdev:
 	npm run dev
 
+.PHONY: jstest
+jstest:
+	node source/scripts/testAvailability.js
+
 .PHONY: test
 test:
 	pytest api lib frontend --cov=api --cov=lib --cov-fail-under=70
@@ -77,6 +81,9 @@ lint-js:
 
 .PHONY: lint
 lint: lint-python lint-js
+
+.PHONY: check
+check: fmt lint test jstest
 
 .PHONY: gitconfig
 gitconfig:
