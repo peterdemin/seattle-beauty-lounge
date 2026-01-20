@@ -34,13 +34,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     settings = settings or Settings()
 
     if settings.sentry_dsn:
-        sentry_sdk.init(
-            dsn=settings.sentry_dsn,
-            traces_sample_rate=1.0,
-            _experiments={
-                "continuous_profiling_auto_start": True,
-            },
-        )
+        sentry_sdk.init(dsn=settings.sentry_dsn)
 
     db = Database(database_url=settings.database_url)
     kv = KiwiStore(db)
