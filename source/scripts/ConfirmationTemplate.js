@@ -17,7 +17,7 @@ export default function renderConfirmation(
   </span>
   Your appointment is confirmed.
  </h2>
- <!-- modified_time: 2026-01-20T04:17:15.438Z -->
+ <!-- modified_time: 2026-01-20T04:17:27.048Z -->
  <p class="py-2">
   You will receive an email confirmation at ${clientEmail} with the
 booking details.

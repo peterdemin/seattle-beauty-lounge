@@ -1,4 +1,4 @@
-.. modified_time: 2025-05-05T22:23:06.883Z
+.. modified_time: 2026-01-21T03:25:58.188Z
 
 .. _h.74q66fivwzmb:
 
@@ -7,7 +7,7 @@ Appointment with Seattle Beauty Lounge
 
 Hello {appointment.clientName},
 
-Your appointment has been booked.
+Your [appointment]({pub_url}) has been booked.
 
 We'll see you on {date_str} at {time_str} for {title}.
 
