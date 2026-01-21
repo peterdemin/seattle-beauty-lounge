@@ -25,7 +25,9 @@
     <section>
       <div class="w-fit mx-auto py-12">
         <div class="flex flex-col md:flex-row lg:gap-4 items-center">
-         <img src="images/01-logo.png" />
+         <a href="/">
+           <img src="images/01-logo.png" />
+         </a>
          <div>
           <a class="flex my-2 items-center" href="https://maps.app.goo.gl/zarAGzf5JcqtUXY68">
             <div class="p-2 mx-2 rounded-full bg-primary">
@@ -48,15 +50,15 @@
             <p class="underline">+1 (301) 658-8708</p>
           </a>
          </div>
-         <button
-             class="book-btn mx-2 px-5 aspect-square rounded-full text-2xl font-bold bg-primary text-neutral shadow drop-shadow-lg"
-             type=button>
-           Book<br/>Service
-         </button>
         </div>
       </div>
     </section>
-    <div id="appointment"></div>
+    <section>
+      <div class="w-fit mx-auto py-12">
+        <div id="appointment"></div>
+        <p class="text-xl">To cancel or reschedule your appointment, call <a class="text-primary underline" href="tel:+13016588708">+1 (301) 658-8708</a></p>
+      </div>
+    </section>
     {% include "04-hours.html" %}
     {#
     <section class="bg-neutral py-8">

@@ -51,16 +51,16 @@ function FullAppointment({ data }) {
 			<div className="flex flex-row text-xl mx-auto w-fit flex-wrap justify-items-start">
 				<div className="flex flex-col text-xl mr-10">
 					<div className="flex flex-row">
+						<div className="flex-0 shrink-0 w-24 font-medium">Service:</div>
+						<div className="grow">{data.serviceTitle}</div>
+					</div>
+					<div className="flex flex-row">
 						<div className="flex-0 shrink-0 w-24 font-medium">Date:</div>
 						<div className="grow">{dateStr}</div>
 					</div>
 					<div className="flex flex-row">
 						<div className="flex-0 shrink-0 w-24 font-medium">Time:</div>
 						<div className="grow">{timeStr}</div>
-					</div>
-					<div className="flex flex-row">
-						<div className="flex-0 shrink-0 w-24 font-medium">Service:</div>
-						<div className="grow">{data.serviceTitle}</div>
 					</div>
 					<div className="flex flex-row">
 						<div className="flex-0 shrink-0 w-24 font-medium">Duration:</div>

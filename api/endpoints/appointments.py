@@ -72,10 +72,14 @@ class AppointmentsAPI:
         return self._format_appointment(appointment)
 
     def view_appointment(self, pubid: str) -> AppointmentFull | JSONResponse:
+        try:
+            pub_uuid = uuid.UUID(pubid)
+        except ValueError:
+            return JSONResponse(content=None, status_code=404)
         with self._db.session() as session:
             appointment = session.exec(
                 select(Appointment).where(
-                    Appointment.pubid == uuid.UUID(pubid),
+                    Appointment.pubid == pub_uuid,
                 )
             ).first()
             if not appointment:
