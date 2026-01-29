@@ -26,7 +26,7 @@ prod: clean
 compress: $(COMPRESSED_HTML) $(COMPRESSED_JS) $(COMPRESSED_CSS)
 
 %.gz: %
-	gzip -c $< > $@
+	gzip -fnk $<
 
 .PHONY: watch
 watch:
