@@ -147,7 +147,11 @@ Content-Transfer-Encoding: 7bit
   Hello clientName,
  </p>
  <p class="py-2">
-  Your appointment has been booked.
+  Your
+  <a class="font-medium text-primary underline" href="http://site/appointment.html?app=00000000-0000-0000-0000-000000000000">
+   appointment
+  </a>
+  has been booked.
  </p>
  <p class="py-2">
   We'll see you on Friday, April 4 at 01:23 PM for service.
