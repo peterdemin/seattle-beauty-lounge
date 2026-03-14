@@ -10,12 +10,14 @@
 		"appointmentdevelopment": "vite build --config vite.config.appointment.js --mode development",
 		"appointmentstaging": "vite build --config vite.config.appointment.js --mode staging",
 		"appointmentproduction": "vite build --config vite.config.appointment.js --mode production",
+		"e2e": "npm exec -- playwright test",
 		"admindevelopment": "vite build --config vite.config.admin.js --mode development",
 		"adminstaging": "vite build --config vite.config.admin.js --mode staging",
 		"adminproduction": "vite build --config vite.config.admin.js --mode production"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@playwright/test": "1.50.0",
 		"@sentry/vite-plugin": "^2.22.7",
 		"@vitejs/plugin-react": "^4.3.4",
 		"tailwindcss": "^3.4.17",

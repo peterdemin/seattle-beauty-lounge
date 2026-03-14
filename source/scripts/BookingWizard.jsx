@@ -1,6 +1,5 @@
-import React, { useState, useEffect, StrictMode } from "react";
+import React, { useState, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
-import reactDom from "react-dom/client";
 import "/rdp-style.css";
 import * as Sentry from "@sentry/react";
 import { useForm } from "react-hook-form";
@@ -504,11 +503,5 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 		debug: true,
 	});
 }
-
-reactDom.createRoot(document.getElementById("book")).render(
-	<StrictMode>
-		<BookingWizard apiUrl="/api" />
-	</StrictMode>,
-);
 
 export default BookingWizard;

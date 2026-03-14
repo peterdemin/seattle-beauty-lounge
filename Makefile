@@ -1,6 +1,7 @@
 HTML_FILES := $(wildcard public/*.html)
 JS_FILES := $(wildcard public/assets/*.js)
 CSS_FILES := $(wildcard public/assets/*.css)
+E2E_BASE_URL ?= https://staging.seattle-beauty-lounge.com
 
 COMPRESSED_HTML := $(HTML_FILES:.html=.html.gz)
 COMPRESSED_JS := $(JS_FILES:.js=.js.gz)
@@ -55,6 +56,19 @@ js:
 .PHONY: jsdev
 jsdev:
 	npm run dev
+
+.PHONY: e2e
+# Run E2E against an already-running make dev server with proxy_frontend disabled/enabled.
+# Example:
+#   make dev                                   # starts backend (and builds frontend into public/)
+#   E2E_BASE_URL="http://127.0.0.1:8000" make e2e
+e2e:
+	@if [ ! -x node_modules/.bin/playwright ]; then \
+		npm install; \
+		npm exec playwright install; \
+	fi
+	E2E_BASE_URL="$(E2E_BASE_URL)" \
+	npm run e2e
 
 .PHONY: jstest
 jstest:

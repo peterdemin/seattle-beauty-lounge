@@ -8,6 +8,14 @@ export default defineConfig({
 		react(),
 		// sentryVitePlugin({ org: "seattle-beauty-lounge", project: "javascript"}),
 	],
+	server: {
+		proxy: {
+			"/api": {
+				target: "http://127.0.0.1:8000",
+				changeOrigin: false,
+			},
+		},
+	},
 
 	root: "source/scripts",
 

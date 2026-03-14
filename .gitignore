@@ -188,3 +188,4 @@ api/test.db
 # Project-specific
 /backups/
 /logs/
+test-results/.last-run.json

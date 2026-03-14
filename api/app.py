@@ -122,5 +122,5 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         )
 
     if settings.proxy_frontend:
-        app.mount("/", StaticFiles(directory="public"), name="static")
+        app.mount("/", StaticFiles(directory="public", html=True), name="static")
     return app
