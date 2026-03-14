@@ -34,7 +34,7 @@ function FullAppointment({ data }) {
 	if (!data) {
 		return null;
 	}
-	const date = new Date(`${data.date}T${data.time}`);
+	const date = parseLocalDateTime(data.date, data.time);
 	const dateStr = new Intl.DateTimeFormat("en-US", {
 		year: "numeric",
 		month: "long",
@@ -74,6 +74,12 @@ function FullAppointment({ data }) {
 			</div>
 		</div>
 	);
+}
+
+function parseLocalDateTime(dateStr, timeStr) {
+	const [year, month, day] = dateStr.split("-").map(Number);
+	const [hours, minutes] = timeStr.split(":").map(Number);
+	return new Date(year, month - 1, day, hours, minutes);
 }
 
 ReactDOM.createRoot(document.getElementById("appointment")).render(

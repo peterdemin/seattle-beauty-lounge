@@ -40,7 +40,7 @@ function FullAppointment({ data, clientId }) {
 		return null;
 	}
 	const [paymentActive, setPaymentActive] = useState(false);
-	const date = new Date(`${data.date}T${data.time}`);
+	const date = parseLocalDateTime(data.date, data.time);
 	const dateStr = new Intl.DateTimeFormat("en-US", {
 		year: "numeric",
 		month: "long",
@@ -118,6 +118,17 @@ function FullAppointment({ data, clientId }) {
 	);
 }
 
+function parseLocalDate(dateStr) {
+	const [year, month, day] = dateStr.split("-").map(Number);
+	return new Date(year, month - 1, day);
+}
+
+function parseLocalDateTime(dateStr, timeStr) {
+	const [year, month, day] = dateStr.split("-").map(Number);
+	const [hours, minutes] = timeStr.split(":").map(Number);
+	return new Date(year, month - 1, day, hours, minutes);
+}
+
 function AppointmentHistory({ data }) {
 	function groupBy(dates, keyfunc) {
 		const grouped = [];
@@ -144,7 +155,7 @@ function AppointmentHistory({ data }) {
 	}
 
 	function groupDatesByDate(dates) {
-		return groupBy(dates, (date) => date.getDate() + 1);
+		return groupBy(dates, (date) => date.getDate());
 	}
 
 	function formatTime(timeStr) {
@@ -160,7 +171,7 @@ function AppointmentHistory({ data }) {
 		return formatter.format(d);
 	}
 
-	const dates = data.map((item) => [new Date(item.date), item]);
+	const dates = data.map((item) => [parseLocalDate(item.date), item]);
 	const dateBreakdown = groupDatesByYear(dates).map(([year, yearItems]) => {
 		const monthElems = groupDatesByMonth(yearItems).map(
 			([month, monthItems]) => {

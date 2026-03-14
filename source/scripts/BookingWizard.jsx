@@ -190,7 +190,7 @@ function PickDateStep({ slots, onDateSelect }) {
 
 	function handleNext() {
 		if (selectedDay) {
-			onDateSelect(selectedDay.toISOString().substring(0, 10));
+			onDateSelect(formatDateForApi(selectedDay));
 		}
 	}
 
@@ -218,6 +218,13 @@ function PickDateStep({ slots, onDateSelect }) {
 			<NextButton handleNext={handleNext} disabled={!selectedDay} />
 		</div>
 	);
+}
+
+function formatDateForApi(date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
 }
 
 function NextButton({ handleNext, disabled }) {
@@ -405,11 +412,12 @@ function ReviewAndConfirmStep({
 	onConfirm,
 }) {
 	function formatDate(isoDate) {
-		const date = new Date(isoDate);
+		const [yearValue, monthValue, dayValue] = isoDate.split("-").map(Number);
+		const date = new Date(yearValue, monthValue - 1, dayValue);
 		const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
-		const month = date.toLocaleString("en-US", { month: "long" });
-		const day = date.getDate();
-		return `${dayOfWeek}, ${month} ${day}`;
+		const monthName = date.toLocaleString("en-US", { month: "long" });
+		const dayOfMonth = date.getDate();
+		return `${dayOfWeek}, ${monthName} ${dayOfMonth}`;
 	}
 	return (
 		<div>
