@@ -7,8 +7,8 @@ make clean
 HOST=seattle-beauty-lounge.com
 ENV_SLUG=prod
 
-scp .env.${ENV_SLUG} ${HOST}:
-ssh ${HOST} "sudo ls /home/api >/dev/null 2>&1 && sudo mv .env.${ENV_SLUG} /home/api/.env && sudo chown api:api /home/api/.env || true"
+# scp ~/.local/seattle-beauty-lounge/.env.${ENV_SLUG} ${HOST}:
+# ssh ${HOST} "sudo ls /home/api >/dev/null 2>&1 && sudo mv .env.${ENV_SLUG} /home/api/.env && sudo chown api:api /home/api/.env || true"
 
 rsync -a --delete lib ${HOST}:
 rsync -a --delete api ${HOST}:
