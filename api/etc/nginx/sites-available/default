@@ -33,15 +33,20 @@ server {
 }
 
 server {
-	root /var/www/html;
-	index index.html;
-	server_name a.seattle-beauty-lounge.com; # managed by Certbot
+    allow 100.64.0.0/10;
+    allow 127.0.0.1;
+    allow ::1;
+    deny all;
 
-	location /admin/ {
-		proxy_pass http://api/admin/;
-		proxy_set_header  X-Forwarded-Proto https;
-		proxy_set_header Host $http_host;
-	}
+    root /var/www/html;
+    index index.html;
+    server_name a.seattle-beauty-lounge.com; # managed by Certbot
+
+    location /admin/ {
+        proxy_pass http://api/admin/;
+        proxy_set_header  X-Forwarded-Proto https;
+        proxy_set_header Host $http_host;
+    }
 
 	location / {
 		gzip_static on;
