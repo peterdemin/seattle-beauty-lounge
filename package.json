@@ -13,7 +13,8 @@
 		"e2e": "npm exec -- playwright test",
 		"admindevelopment": "vite build --config vite.config.admin.js --mode development",
 		"adminstaging": "vite build --config vite.config.admin.js --mode staging",
-		"adminproduction": "vite build --config vite.config.admin.js --mode production"
+		"adminproduction": "vite build --config vite.config.admin.js --mode production",
+		"test:admin-unit": "node admin/paymentMath.test.js && node admin/dateUtils.test.js && node admin/historyUtils.test.js"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",

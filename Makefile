@@ -73,6 +73,9 @@ e2e:
 .PHONY: jstest
 jstest:
 	node source/scripts/testAvailability.js
+	for test_file in admin/*.test.js; do \
+		node $$test_file; \
+	done
 
 .PHONY: test
 test:

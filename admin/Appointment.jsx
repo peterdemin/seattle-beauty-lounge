@@ -1,5 +1,14 @@
 import React, { useState, useEffect, StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import { parseLocalDate, parseLocalDateTime } from "./dateUtils.js";
+import {
+	formatTime,
+	groupDatesByDate,
+	groupDatesByMonth,
+	groupDatesByYear,
+} from "./historyUtils.js";
+import { toDollars } from "./paymentMath.js";
+import { buildPaymentSummary, getTipLabel, tipOptions } from "./paymentView.js";
 
 function AdminDashboard({ apiUrl, appointmentId, clientId }) {
 	const [data, setData] = useState(null);
@@ -118,59 +127,7 @@ function FullAppointment({ data, clientId }) {
 	);
 }
 
-function parseLocalDate(dateStr) {
-	const [year, month, day] = dateStr.split("-").map(Number);
-	return new Date(year, month - 1, day);
-}
-
-function parseLocalDateTime(dateStr, timeStr) {
-	const [year, month, day] = dateStr.split("-").map(Number);
-	const [hours, minutes] = timeStr.split(":").map(Number);
-	return new Date(year, month - 1, day, hours, minutes);
-}
-
 function AppointmentHistory({ data }) {
-	function groupBy(dates, keyfunc) {
-		const grouped = [];
-		let curKey = null;
-		for (const [date, item] of dates) {
-			const key = keyfunc(date);
-			if (key !== curKey) {
-				grouped.push([key, []]);
-				curKey = key;
-			}
-			grouped[grouped.length - 1][1].push([date, item]);
-		}
-		return grouped;
-	}
-
-	function groupDatesByYear(dates) {
-		return groupBy(dates, (date) => date.getFullYear());
-	}
-
-	function groupDatesByMonth(dates) {
-		return groupBy(dates, (date) =>
-			new Intl.DateTimeFormat("en-US", { month: "long" }).format(date),
-		);
-	}
-
-	function groupDatesByDate(dates) {
-		return groupBy(dates, (date) => date.getDate());
-	}
-
-	function formatTime(timeStr) {
-		const d = new Date();
-		const [hours, minutes, _] = timeStr.split(":").map(Number);
-		d.setHours(hours);
-		d.setMinutes(minutes);
-		const formatter = new Intl.DateTimeFormat("en-US", {
-			hour: "numeric",
-			minute: "numeric",
-			hour12: true,
-		});
-		return formatter.format(d);
-	}
-
 	const dates = data.map((item) => [parseLocalDate(item.date), item]);
 	const dateBreakdown = groupDatesByYear(dates).map(([year, yearItems]) => {
 		const monthElems = groupDatesByMonth(yearItems).map(
@@ -224,12 +181,17 @@ function PaymentForm({ clientId, service, active }) {
 	const [tip, setTip] = useState(0);
 	const hidden = active ? "" : "hidden ";
 	const modalClass = `${hidden} overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex flex-col md:justify-center items-center w-full h-full md:bg-opacity-90 bg-primary`;
-	const subtotal = (service.price_cents - 5000) / 100;
-	const total = (subtotal + (service.price_cents * tip) / 10000).toFixed(2);
+	const subtotalCents = Number(service.price_cents || 0);
+	const summary = buildPaymentSummary(subtotalCents, tip);
+	const totalCents = summary.totalCents;
+	const total = toDollars(totalCents);
 	const tipClass =
 		"p-4 mx-2 border-2 rounded-lg text-center basis-1/4 font-bold";
 	const activeTipClass = `bg-primary text-neutral border-primary ${tipClass}`;
 	const inactiveTipClass = `border-black text-black ${tipClass}`;
+
+	const getTipButtonClass = (percent) =>
+		percent === tip ? activeTipClass : inactiveTipClass;
 	return (
 		<div tabindex="-1" aria-hidden="true" className={modalClass}>
 			<div className="relative mx-auto my-auto p-4 w-full md:max-w-3xl md:h-fit bg-neutral md:rounded-lg md:shadow">
@@ -263,47 +225,27 @@ function PaymentForm({ clientId, service, active }) {
 				</div>
 				<div className="max-w-xl mx-auto text-black text-2xl">
 					<div>Service price: {service.price}</div>
-					<div>Deposit: -$50</div>
-					<div>Subtotal: ${subtotal}</div>
 					<div className="text-3xl py-4 text-center w-full font-light">
 						Add tip
 					</div>
 					<div className="py-4 flex justify-between place-items-center">
-						<button
-							className={tip === 15 ? activeTipClass : inactiveTipClass}
-							type="button"
-							onClick={() => setTip(15)}
-						>
-							15%
-						</button>
-						<button
-							className={tip === 20 ? activeTipClass : inactiveTipClass}
-							type="button"
-							onClick={() => setTip(20)}
-						>
-							20%
-						</button>
-						<button
-							className={tip === 25 ? activeTipClass : inactiveTipClass}
-							type="button"
-							onClick={() => setTip(25)}
-						>
-							25%
-						</button>
-						<button
-							className={inactiveTipClass}
-							type="button"
-							onClick={() => setTip(0)}
-						>
-							No tip
-						</button>
+						{tipOptions.map((tipPercent) => (
+							<button
+								className={getTipButtonClass(tipPercent)}
+								type="button"
+								onClick={() => setTip(tipPercent)}
+								key={tipPercent}
+							>
+								{getTipLabel(tipPercent)}
+							</button>
+						))}
 					</div>
 
 					<div className="flex items-center place-content-end py-8">
 						<div className="font-bold">Total: ${total}</div>
 						<button
 							className="ml-8 px-6 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary drop-shadow-lg"
-							onClick={() => payInApp(clientId, total * 100, "")}
+							onClick={() => payInApp(clientId, totalCents, "")}
 							type="button"
 						>
 							Pay
