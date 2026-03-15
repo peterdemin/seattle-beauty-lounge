@@ -60,7 +60,7 @@ jsdev:
 .PHONY: e2e
 # Run E2E against an already-running make dev server with proxy_frontend disabled/enabled.
 # Example:
-#   make dev                                   # starts backend (and builds frontend into public/)
+#   make dev   # starts backend (and builds frontend into public/)
 #   E2E_BASE_URL="http://127.0.0.1:8000" make e2e
 e2e:
 	@if [ ! -x node_modules/.bin/playwright ]; then \
