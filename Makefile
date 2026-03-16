@@ -35,6 +35,7 @@ watch:
 
 .PHONY: dev
 dev: fe
+	(sleep 3 && open http://localhost:8000/index.html)&
 	python -m fastapi dev api/main.py
 
 .PHONY: slots
