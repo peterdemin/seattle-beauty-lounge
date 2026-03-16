@@ -189,3 +189,4 @@ api/test.db
 /backups/
 /logs/
 test-results/.last-run.json
+/coverage/

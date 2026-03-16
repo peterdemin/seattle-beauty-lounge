@@ -73,10 +73,11 @@ e2e:
 
 .PHONY: jstest
 jstest:
-	node source/scripts/testAvailability.js
-	for test_file in admin/*.test.js; do \
-		node $$test_file; \
-	done
+	npm run test:js
+
+.PHONY: jscoverage
+jscoverage:
+	npm run test:js:coverage
 
 .PHONY: test
 test:
@@ -95,7 +96,11 @@ lint-python:
 
 .PHONY: lint-js
 lint-js:
-	npx biome check --fix --unsafe source/scripts/*.jsx
+	npx biome check --write . --no-errors-on-unmatched
+
+.PHONY: lint-js-unsafe
+lint-js-unsafe:
+	npx biome check --write --unsafe . --no-errors-on-unmatched
 
 .PHONY: lint
 lint: lint-python lint-js

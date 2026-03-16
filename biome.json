@@ -1,4 +1,18 @@
 {
+	"files": {
+		"ignore": [
+			".git",
+			"node_modules",
+			".build",
+			"public",
+			"coverage",
+			"htmlcov",
+			"test-results",
+			"admin/dist",
+			"source/scripts/dist"
+		],
+		"ignoreUnknown": true
+	},
 	"linter": {
 		"rules": {
 			"security": {

@@ -1,507 +1,110 @@
-import React, { useState, useEffect } from "react";
-import { DayPicker } from "react-day-picker";
+import React, { useEffect, useLayoutEffect } from "react";
 import "/rdp-style.css";
-import * as Sentry from "@sentry/react";
-import { useForm } from "react-hook-form";
+
 import renderConfirmation from "./ConfirmationTemplate.js";
-import { getAvailableSlots, insertSkips } from "./availability.js";
+import { STEP } from "./bookingWizard/constants.js";
+import ClientInfoStep from "./bookingWizard/steps/ClientInfoStep.jsx";
+import PickDateStep from "./bookingWizard/steps/PickDateStep.jsx";
+import PickTimeslotStep from "./bookingWizard/steps/PickTimeslotStep.jsx";
+import ReviewAndConfirmStep from "./bookingWizard/steps/ReviewAndConfirmStep.jsx";
+import {
+	getServiceFromElement,
+	useBookingWizard,
+} from "./bookingWizard/useBookingWizard.js";
 
 function BookingWizard({ apiUrl }) {
-	const [currentStep, setCurrentStep] = useState(1);
-
-	// Wizard State
-	const [selectedServiceId, setSelectedServiceId] = useState(null);
-	const [selectedServiceTitle, setSelectedServiceTitle] = useState(null);
-	const [availability, setAvailability] = useState([]);
-	const [duration, setDuration] = useState(null);
-	const [slots, setSlots] = useState(null);
-	const [selectedDate, setSelectedDate] = useState(null);
-	const [selectedTime, setSelectedTime] = useState(null);
-	const [clientName, setClientName] = useState(null);
-	const [clientPhone, setClientPhone] = useState(null);
-	const [clientEmail, setClientEmail] = useState(null);
-	const [pubUrl, setPubUrl] = useState(null);
+	const { state, availability, actions } = useBookingWizard({ apiUrl });
 
 	useEffect(() => {
-		fetch(`${apiUrl}/availability`)
-			.then((response) => response.json())
-			.then(setAvailability);
-	}, [apiUrl]);
-
-	useEffect(() => {
-		if (duration === null || availability.length === 0) {
-			return;
+		const modal = document.getElementById("book-modal");
+		if (modal) {
+			modal.classList.toggle("hidden", !state.isOpen);
 		}
-		setSlots(getAvailableSlots(availability, duration));
-	}, [availability, duration]);
+		const serviceTable = document.getElementById("service-table");
+		if (serviceTable) {
+			serviceTable.classList.toggle("hidden", state.step !== STEP.SERVICE);
+		}
+	}, [state.isOpen, state.step]);
 
-	useEffect(() => {
-		document.getElementById("book-back").onclick = () => {
-			if (currentStep === 1) {
-				closeModal();
-			} else {
-				setCurrentStep(currentStep - 1);
+	useLayoutEffect(() => {
+		function handleDocumentClick(event) {
+			const target = event.target instanceof Element ? event.target : null;
+			if (!target) {
+				return;
 			}
-		};
-	}, [currentStep]);
 
-	useEffect(() => {
-		for (const element of document.getElementsByClassName("book-btn")) {
-			element.addEventListener("click", () => {
-				setSelectedServiceId(element.dataset.serviceId);
-				setSelectedServiceTitle(element.dataset.serviceTitle);
-				setDuration(element.dataset.duration);
-				if (element.dataset.serviceId) {
-					setCurrentStep(2);
-				} else {
-					setCurrentStep(1);
+			const button = target.closest(".book-btn");
+			if (button instanceof HTMLElement) {
+				actions.open(getServiceFromElement(button));
+				return;
+			}
+
+			if (target.closest("#book-close")) {
+				actions.close();
+				return;
+			}
+
+			if (target.closest("#book-back")) {
+				if (state.step === STEP.SERVICE) {
+					actions.close();
+					return;
 				}
-				document.getElementById("book-modal").classList.remove("hidden");
-			});
+				actions.back();
+			}
 		}
-		document.getElementById("book-close").addEventListener("click", closeModal);
-		restoreSavedValue("clientName", setClientName);
-		restoreSavedValue("clientPhone", setClientPhone);
-		restoreSavedValue("clientEmail", setClientEmail);
-	}, []);
 
-	async function handleSubmitAppointment(payment) {
-		const res = await fetch(`${apiUrl}/appointments`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				serviceId: selectedServiceId,
-				date: selectedDate,
-				time: selectedTime,
-				clientName,
-				clientPhone,
-				clientEmail,
-				payment: payment,
-			}),
-		});
-		const resp = await res.json();
-		if (res.ok) {
-			setPubUrl(resp.pubUrl);
-			setCurrentStep(99);
-			return "";
-		}
-		return resp.error;
-	}
+		document.addEventListener("click", handleDocumentClick);
+		return () => {
+			document.removeEventListener("click", handleDocumentClick);
+		};
+	}, [actions, state.step]);
 
-	const serviceTableEl = document.getElementById("service-table");
-	if (serviceTableEl) {
-		if (currentStep === 1) {
-			document.getElementById("service-table").classList.remove("hidden");
-		} else {
-			document.getElementById("service-table").classList.add("hidden");
-		}
-	}
-
-	// Render steps conditionally:
 	return (
 		<div>
-			{currentStep === 2 && (
+			{state.step === STEP.DATE && (
 				<PickDateStep
-					slots={slots}
-					onDateSelect={(date) => {
-						setSelectedDate(date);
-						setCurrentStep(3);
-					}}
+					slots={availability.slots}
+					isLoading={availability.isAvailabilityLoading}
+					error={availability.availabilityError}
+					onDateSelect={actions.selectDate}
 				/>
 			)}
-			{currentStep === 3 && (
+			{state.step === STEP.TIME && (
 				<PickTimeslotStep
-					slots={slots}
-					date={selectedDate}
-					onTimeslotSelect={(time) => {
-						setSelectedTime(time);
-						setCurrentStep(4);
-					}}
+					key={state.selectedDate ?? "time"}
+					slots={availability.slots}
+					date={state.selectedDate}
+					onTimeslotSelect={actions.selectTime}
 				/>
 			)}
-			{currentStep === 4 && (
-				<ClientInfoStep
-					clientName={clientName}
-					clientPhone={clientPhone}
-					clientEmail={clientEmail}
-					onNextStep={(name, phone, email) => {
-						saveValue("clientName", setClientName, name);
-						saveValue("clientPhone", setClientPhone, phone);
-						saveValue("clientEmail", setClientEmail, email);
-						setCurrentStep(5);
-					}}
-				/>
+			{state.step === STEP.CLIENT && (
+				<ClientInfoStep client={state.client} onNextStep={actions.saveClient} />
 			)}
-			{currentStep === 5 && (
+			{state.step === STEP.REVIEW && (
 				<ReviewAndConfirmStep
-					serviceTitle={selectedServiceTitle}
-					date={selectedDate}
-					time={selectedTime}
-					clientName={clientName}
-					clientPhone={clientPhone}
-					clientEmail={clientEmail}
-					onConfirm={() => {
-						handleSubmitAppointment(null);
-					}}
+					serviceTitle={state.service?.title ?? ""}
+					date={state.selectedDate}
+					time={state.selectedTime}
+					client={state.client}
+					error={state.submitError}
+					onConfirm={actions.confirm}
 				/>
 			)}
-			{currentStep === 99 && (
+			{state.step === STEP.CONFIRMED && (
 				<div
-					class="mb-6"
+					className="mb-6"
 					dangerouslySetInnerHTML={{
 						__html: renderConfirmation(
-							clientName,
-							clientEmail,
-							clientPhone,
-							pubUrl,
+							state.client.name,
+							state.client.email,
+							state.client.phone,
+							state.pubUrl,
 						),
 					}}
 				/>
 			)}
 		</div>
 	);
-}
-
-function PickDateStep({ slots, onDateSelect }) {
-	const [selectedDay, setSelectedDay] = useState(null);
-	const [disabledDates, setDisabledDates] = useState(null);
-
-	useEffect(() => {
-		const dates = [];
-		for (const dateStr in slots) {
-			if (slots[dateStr].length === 0) {
-				const [year, month, day] = dateStr.split("-").map(Number);
-				dates.push(new Date(year, month - 1, day));
-			}
-		}
-		setDisabledDates(dates);
-	}, [slots]);
-
-	function addDays(date, days) {
-		const result = new Date(date);
-		result.setDate(result.getDate() + days);
-		return result;
-	}
-
-	const today = new Date();
-	const firstDay = addDays(today, 1); // next day
-	const lastDay = addDays(today, 7 * 6); // 6 weeks
-
-	function handleNext() {
-		if (selectedDay) {
-			onDateSelect(formatDateForApi(selectedDay));
-		}
-	}
-
-	if (disabledDates === null) {
-		return null;
-	}
-
-	return (
-		<div>
-			<h2 className="text-2xl text-center font-light text-primary">
-				Pick a Date
-			</h2>
-			<DayPicker
-				mode="single"
-				selected={selectedDay}
-				onSelect={setSelectedDay}
-				// You can add optional props here, like `disabled` or `fromDate/toDate`
-				// to limit the selectable date range.
-				modifiers={{
-					disabled: [{ before: firstDay }, { after: lastDay }].concat(
-						disabledDates,
-					),
-				}}
-			/>
-			<NextButton handleNext={handleNext} disabled={!selectedDay} />
-		</div>
-	);
-}
-
-function formatDateForApi(date) {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	return `${year}-${month}-${day}`;
-}
-
-function NextButton({ handleNext, disabled }) {
-	return (
-		<div className="flex place-content-end">
-			<button
-				className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary
-                   disabled:invisible
-                   hover:bg-primary hover:text-neutral"
-				onClick={handleNext}
-				disabled={disabled}
-				type="button"
-			>
-				Next
-			</button>
-		</div>
-	);
-}
-
-function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
-	const [selected, setSelected] = useState(null);
-	const [timeslots, setTimeslots] = useState([]);
-
-	useEffect(() => {
-		if (slots === null || date === null) {
-			return;
-		}
-		setTimeslots(insertSkips(slots[date]));
-	}, [slots, date]);
-
-	const slotClass = (slot) => {
-		const base = "cursor-pointer p-1 rounded-full border-2 text-right";
-		if (selected === slot) {
-			return `${base} border-primary text-primary`;
-		}
-		return `${base} border-neutral text-black`;
-	};
-
-	return (
-		<div>
-			<h2 className="text-2xl text-center pb-4 font-light text-primary">
-				Pick a Time
-			</h2>
-			<div className="grid grid-cols-4 gap-4 mb-4">
-				{timeslots.map((slot) =>
-					slot === null ? (
-						<div key={slot} />
-					) : (
-						<button
-							onClick={() => {
-								setSelected(slot);
-							}}
-							className={slotClass(slot)}
-							type="button"
-							key={slot}
-						>
-							{slot}
-						</button>
-					),
-				)}
-			</div>
-			<NextButton
-				handleNext={() => {
-					onTimeslotSelect(selected);
-				}}
-				disabled={!selected}
-			/>
-		</div>
-	);
-}
-
-function ClientInfoStep({ clientName, clientPhone, clientEmail, onNextStep }) {
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-	} = useForm({
-		defaultValues: {
-			name: clientName,
-			phone: clientPhone,
-			email: clientEmail,
-		},
-	});
-
-	const onSubmit = (data) => {
-		onNextStep(data.name, data.phone, data.email);
-	};
-
-	const labelClass = "block mt-2 font-light text-primary";
-	const inputClass =
-		"block bg-neutral border border-primary text-black text-sm rounded-lg focus:ring-primary w-full p-2.5";
-
-	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
-			<h2 className="text-2xl text-center pb-4 font-light text-primary">
-				Enter Your Information
-			</h2>
-
-			<div>
-				<label htmlFor="name" className={labelClass}>
-					FULL NAME
-				</label>
-				<input
-					id="name"
-					className={inputClass}
-					{...register("name", { required: "Name is required" })}
-					placeholder="Your Full Name"
-				/>
-				{errors.name && <p style={{ color: "red" }}>{errors.name.message}</p>}
-			</div>
-
-			<div>
-				<label htmlFor="phone" className={labelClass}>
-					PHONE NUMBER
-				</label>
-				<input
-					id="phone"
-					className={inputClass}
-					{...register("phone", {
-						required: "Phone number is required",
-						pattern: {
-							value: /^[\d\s()+-]+$/,
-							message: "Invalid phone format",
-						},
-					})}
-					placeholder="e.g. 555-123-4567"
-				/>
-				{errors.phone && <p style={{ color: "red" }}>{errors.phone.message}</p>}
-			</div>
-
-			<div class="mb-4">
-				<label htmlFor="email" className={labelClass}>
-					E-MAIL
-				</label>
-				<input
-					id="email"
-					className={inputClass}
-					{...register("email", {
-						required: "Email is required",
-						pattern: {
-							value: /^[^@]+@[^@]+\.[^@]+$/,
-							message: "Invalid email format",
-						},
-					})}
-					placeholder="you@example.com"
-				/>
-				{errors.email && <p style={{ color: "red" }}>{errors.email.message}</p>}
-			</div>
-
-			<div className="flex gap-2 justify-baseline">
-				<input
-					type="checkbox"
-					id="consent"
-					name="consent"
-					value="yes"
-					required
-					className="appearance-none w-6 h-6 rounded-full border border-primary bg-neutral mt-1 shrink-0
-                               checked:bg-primary checked:border-0"
-				/>
-				<label for="consent">
-					I consent to receive appointment reminders via email and text.
-				</label>
-			</div>
-
-			<div className="mt-4 flex place-content-end">
-				<button
-					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary
-                    hover:bg-primary hover:text-neutral"
-					type="submit"
-				>
-					Next
-				</button>
-			</div>
-		</form>
-	);
-}
-
-function ReviewAndConfirmStep({
-	serviceTitle,
-	date,
-	time,
-	clientName,
-	clientPhone,
-	clientEmail,
-	onConfirm,
-}) {
-	function formatDate(isoDate) {
-		const [yearValue, monthValue, dayValue] = isoDate.split("-").map(Number);
-		const date = new Date(yearValue, monthValue - 1, dayValue);
-		const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
-		const monthName = date.toLocaleString("en-US", { month: "long" });
-		const dayOfMonth = date.getDate();
-		return `${dayOfWeek}, ${monthName} ${dayOfMonth}`;
-	}
-	return (
-		<div>
-			<h2 className="text-2xl text-center font-light text-primary mb-4">
-				Review and Confirm
-			</h2>
-			<p className="text-lg font-light [&>span]:font-medium [&>span]:text-primary">
-				<table class="table-auto">
-					<tbody>
-						<tr>
-							<td className="pr-1">Name:</td>
-							<td>{clientName}</td>
-						</tr>
-						<tr>
-							<td className="pr-1">Phone:</td>
-							<td>{clientPhone}</td>
-						</tr>
-						<tr>
-							<td className="pr-1">Email:</td>
-							<td>{clientEmail}</td>
-						</tr>
-						<tr>
-							<td className="pr-1">Service:</td>
-							<td>{serviceTitle}</td>
-						</tr>
-						<tr>
-							<td className="pr-1">Date:</td>
-							<td>{formatDate(date)}</td>
-						</tr>
-						<tr>
-							<td className="pr-1">Time:</td>
-							<td>{time}</td>
-						</tr>
-					</tbody>
-				</table>
-			</p>
-			<div className="mt-4 flex place-content-end">
-				<button
-					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary"
-					onClick={onConfirm}
-					type="button"
-				>
-					Confirm
-					<br />
-					Booking
-				</button>
-			</div>
-		</div>
-	);
-}
-
-async function closeModal() {
-	document.getElementById("book-modal").classList.add("hidden");
-}
-
-async function restoreSavedValue(key, setter) {
-	const value = localStorage.getItem(key);
-	if (value !== null) {
-		setter(value);
-	}
-}
-
-async function saveValue(key, setter, value) {
-	localStorage.setItem(key, value);
-	setter(value);
-}
-
-if (import.meta.env.VITE_SENTRY_DSN) {
-	Sentry.init({
-		dsn: import.meta.env.VITE_SENTRY_DSN,
-		integrations: [
-			Sentry.browserTracingIntegration(),
-			Sentry.replayIntegration(),
-		],
-		// Tracing
-		tracesSampleRate: 1.0, //  Capture 100% of the transactions
-		tracePropagationTargets: [
-			"http://127.0.0.1:8000/index.html",
-			"https://staging.seattle-beauty-lounge.com/",
-		],
-		// Session Replay
-		replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-		replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-		debug: true,
-	});
 }
 
 export default BookingWizard;

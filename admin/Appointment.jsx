@@ -1,5 +1,4 @@
-import React, { useState, useEffect, StrictMode } from "react";
-import ReactDOM from "react-dom/client";
+import React, { useState, useEffect } from "react";
 import { parseLocalDate, parseLocalDateTime } from "./dateUtils.js";
 import {
 	formatTime,
@@ -193,7 +192,7 @@ function PaymentForm({ clientId, service, active }) {
 	const getTipButtonClass = (percent) =>
 		percent === tip ? activeTipClass : inactiveTipClass;
 	return (
-		<div tabindex="-1" aria-hidden="true" className={modalClass}>
+		<div tabIndex="-1" aria-hidden="true" className={modalClass}>
 			<div className="relative mx-auto my-auto p-4 w-full md:max-w-3xl md:h-fit bg-neutral md:rounded-lg md:shadow">
 				<div className="flex items-center justify-between p-4 md:p-5 rounded-t">
 					<h2 className="w-full my-2 lg:text-5xl text-3xl font-medium leading-tight text-center text-primary">
@@ -214,9 +213,9 @@ function PaymentForm({ clientId, service, active }) {
 						>
 							<path
 								stroke="currentColor"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
 								d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
 							/>
 						</svg>
@@ -257,8 +256,8 @@ function PaymentForm({ clientId, service, active }) {
 	);
 }
 
-function payInApp(clientId, amountCents, notes) {
-	window.location =
+export function buildSquarePaymentUrl(clientId, amountCents, notes) {
+	return (
 		// biome-ignore lint/style/useTemplate: this looks nicer
 		"square-commerce-v1://payment/create?data=" +
 		encodeURIComponent(
@@ -275,15 +274,14 @@ function payInApp(clientId, amountCents, notes) {
 					supported_tender_types: ["CREDIT_CARD"],
 				},
 			}),
-		);
+		)
+	);
 }
 
-ReactDOM.createRoot(document.getElementById("admin")).render(
-	<StrictMode>
-		<AdminDashboard
-			apiUrl="/admin/api"
-			clientId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
-			appointmentId={new URLSearchParams(location.search).get("app")}
-		/>
-	</StrictMode>,
-);
+export function payInApp(clientId, amountCents, notes) {
+	window.location = buildSquarePaymentUrl(clientId, amountCents, notes);
+}
+
+export { AdminDashboard, FullAppointment, AppointmentHistory, PaymentForm };
+
+export default AdminDashboard;

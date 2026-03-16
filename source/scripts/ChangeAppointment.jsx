@@ -1,5 +1,4 @@
-import React, { useState, useEffect, StrictMode } from "react";
-import ReactDOM from "react-dom/client";
+import React, { useState, useEffect } from "react";
 
 function ChangeAppointment({ apiUrl, appointmentId }) {
 	const [data, setData] = useState(null);
@@ -82,11 +81,4 @@ function parseLocalDateTime(dateStr, timeStr) {
 	return new Date(year, month - 1, day, hours, minutes);
 }
 
-ReactDOM.createRoot(document.getElementById("appointment")).render(
-	<StrictMode>
-		<ChangeAppointment
-			apiUrl="/api"
-			appointmentId={new URLSearchParams(location.search).get("app")}
-		/>
-	</StrictMode>,
-);
+export default ChangeAppointment;

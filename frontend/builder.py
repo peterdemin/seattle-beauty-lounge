@@ -332,7 +332,7 @@ class BaseRenderingStep(AggregationStep):
         with tempfile.NamedTemporaryFile("wb", delete_on_close=False) as fobj:
             fobj.close()
             return self._tailwind(
-                [f"./{self._build_dir}/{output_file}", f"./{SOURCE_DIR}/scripts/*.jsx"],
+                [f"./{self._build_dir}/{output_file}", f"./{SOURCE_DIR}/scripts/**/*.jsx"],
                 fobj.name,
             )
 

@@ -12,6 +12,11 @@ from .constants import SOURCE_DIR
 
 class ImagePublisher:
     IMAGE_GLOBS = (f"{SOURCE_DIR}/images/*", f"{SOURCE_DIR}/[0-9]-*/images/*")
+    APPLE_TOUCH_ICON_SOURCE = f"{SOURCE_DIR}/images/02-favicon-192.png"
+    APPLE_TOUCH_ICON_TARGETS = (
+        "public/apple-touch-icon.png",
+        "public/apple-touch-icon-precomposed.png",
+    )
     SERVICE_IMAGE_MAX_SIZE = (500, 500)
 
     def export_images(self) -> None:
@@ -30,6 +35,12 @@ class ImagePublisher:
         for ptrn in self.IMAGE_GLOBS:
             for path in glob.glob(ptrn):
                 yield ImageInfo.from_source(path)
+        for target in self.APPLE_TOUCH_ICON_TARGETS:
+            yield ImageInfo(
+                source=self.APPLE_TOUCH_ICON_SOURCE,
+                public=target,
+                url=os.path.basename(target),
+            )
 
     def _export_thumbnail(self, source: str, target: str) -> None:
         image = Image.open(source)
