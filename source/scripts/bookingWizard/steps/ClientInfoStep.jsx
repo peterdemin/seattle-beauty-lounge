@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
 function ClientInfoStep({ client, onNextStep }) {
+	const [hasConsent, setHasConsent] = useState(false);
 	const {
 		register,
 		handleSubmit,
@@ -82,6 +83,9 @@ function ClientInfoStep({ client, onNextStep }) {
 					name="consent"
 					value="yes"
 					required
+					onChange={(event) => {
+						setHasConsent(event.target.checked);
+					}}
 					className="appearance-none w-6 h-6 rounded-full border border-primary bg-neutral mt-1 shrink-0 checked:bg-primary checked:border-0"
 				/>
 				<label htmlFor="consent">
@@ -91,7 +95,8 @@ function ClientInfoStep({ client, onNextStep }) {
 
 			<div className="mt-4 flex place-content-end">
 				<button
-					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary hover:bg-primary hover:text-neutral"
+					className="mx-2 px-5 aspect-square rounded-full text-2xl text-neutral font-bold bg-primary hover:bg-primary hover:text-neutral disabled:opacity-40 disabled:cursor-not-allowed"
+					disabled={!hasConsent}
 					type="submit"
 				>
 					Next

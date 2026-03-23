@@ -53,9 +53,10 @@ function PickTimeslotStep({ slots, date, onTimeslotSelect }) {
 }
 
 function slotClass(slot, selected) {
-	const base = "cursor-pointer p-1 rounded-full border-2 text-right";
+	const base =
+		"w-full min-w-0 px-1 py-1 rounded-full border-2 text-center whitespace-nowrap text-sm sm:text-base";
 	if (selected === slot) {
-		return `${base} border-primary text-primary`;
+		return `${base} border-primary text-black font-bold`;
 	}
 	return `${base} border-neutral text-black`;
 }

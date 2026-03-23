@@ -23,7 +23,10 @@ describe("ClientInfoStep", () => {
 		expect(screen.getByLabelText("PHONE NUMBER").value).toBe("206-555-0101");
 		expect(screen.getByLabelText("E-MAIL").value).toBe("ada@example.com");
 
-		fireEvent.click(screen.getByRole("button", { name: "Next" }));
+		const nextButton = screen.getByRole("button", { name: "Next" });
+		expect(nextButton.disabled).toBe(true);
+
+		fireEvent.click(nextButton);
 		expect(onNextStep).not.toHaveBeenCalled();
 		expect(screen.queryByText("Invalid email format")).toBeNull();
 
@@ -33,7 +36,8 @@ describe("ClientInfoStep", () => {
 		fireEvent.click(
 			screen.getByLabelText(/i consent to receive appointment reminders/i),
 		);
-		fireEvent.click(screen.getByRole("button", { name: "Next" }));
+		expect(nextButton.disabled).toBe(false);
+		fireEvent.click(nextButton);
 
 		expect(await screen.findByText("Invalid email format")).toBeTruthy();
 		expect(onNextStep).not.toHaveBeenCalled();
@@ -47,7 +51,7 @@ describe("ClientInfoStep", () => {
 		fireEvent.change(screen.getByLabelText("E-MAIL"), {
 			target: { value: "ada@example.com" },
 		});
-		fireEvent.click(screen.getByRole("button", { name: "Next" }));
+		fireEvent.click(nextButton);
 
 		await waitFor(() => {
 			expect(onNextStep).toHaveBeenCalled();
